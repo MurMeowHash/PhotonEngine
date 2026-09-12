@@ -19,6 +19,8 @@ target_include_directories(EngineLoopModule.Engine
 target_link_libraries(EngineLoopModule.Engine
         PRIVATE
         EngineLoopModule.Core
+        WindowProviderModule.Core
+        WindowProviderModule.Glfw
 )
 
 if(MSVC)

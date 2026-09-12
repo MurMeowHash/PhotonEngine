@@ -6,6 +6,7 @@ target_link_libraries(LaunchModule
         PRIVATE
         EngineLoopModule.Core
         EngineLoopModule.Engine
+        CoreModule
 )
 
 target_include_directories(LaunchModule
