@@ -1,0 +1,5 @@
+add_subdirectory(LaunchModule)
+add_subdirectory(EngineLoopModule/Core)
+add_subdirectory(EngineLoopModule/Engine)
+add_subdirectory(DelegateModule)
+add_subdirectory(MemoryModule)
