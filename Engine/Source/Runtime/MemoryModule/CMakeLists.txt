@@ -34,6 +34,11 @@ target_include_directories(MemoryModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private
 )
 
+target_link_libraries(MemoryModule
+        PUBLIC
+        MathModule
+)
+
 if(MSVC)
     target_compile_options(MemoryModule PRIVATE /W4)
 else()

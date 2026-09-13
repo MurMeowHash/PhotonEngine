@@ -21,6 +21,7 @@ target_link_libraries(EngineLoopModule.Engine
         EngineLoopModule.Core
         WindowProviderModule.Core
         WindowProviderModule.Glfw
+        VulkanRHLModule
 )
 
 if(MSVC)
