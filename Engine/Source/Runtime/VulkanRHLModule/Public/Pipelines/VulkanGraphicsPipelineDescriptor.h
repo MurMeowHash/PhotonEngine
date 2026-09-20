@@ -117,7 +117,7 @@ public:
     }
 
     [[nodiscard]] size_t GetIdentifier() const {
-
+        throw std::runtime_error("Not implemented exception");
     }
 
 private:

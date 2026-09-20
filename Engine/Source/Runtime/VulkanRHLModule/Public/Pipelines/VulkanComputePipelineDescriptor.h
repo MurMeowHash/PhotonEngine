@@ -1,8 +1,7 @@
 #pragma once
-#include "VulkanPipelineDescriptor.h"
 #include "Shaders/VulkanShaderModule.h"
 
-class VulkanComputePipelineDescriptor : public VulkanPipelineDescriptor {
+class VulkanComputePipelineDescriptor {
     friend class VulkanComputePipeline;
 public:
     VulkanComputePipelineDescriptor& SetComputeShader(VulkanShaderModule* computeShaderModule) {
@@ -12,7 +11,7 @@ public:
     }
 
     [[nodiscard]] size_t GetIdentifier() const {
-
+        throw std::runtime_error("Not implemented exception");
     }
 private:
     VulkanShaderModule* m_computeShaderModule = nullptr;

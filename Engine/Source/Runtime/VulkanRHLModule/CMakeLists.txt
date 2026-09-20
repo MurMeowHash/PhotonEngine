@@ -63,7 +63,6 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanComputePipelineDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipeline.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipelineDescriptor.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineFactory.h
 
         PRIVATE
