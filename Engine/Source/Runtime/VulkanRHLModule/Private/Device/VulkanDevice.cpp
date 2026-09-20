@@ -18,6 +18,7 @@ using Photon::Core::Flags::operator|;
 
 VulkanDevice::~VulkanDevice() {
     delete m_memoryProvider;
+    delete m_pipelineProvider;
 
     for (std::pair<const vk::QueueFlagBits, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
@@ -58,6 +59,7 @@ bool VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo) {
     m_handle = std::move(deviceWrapper.value);
     ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties), std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
     InitializeMemoryProvider(createInfo.m_memoryProviderType);
+    InitializePipelineProvider();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
@@ -88,6 +90,10 @@ bool VulkanDevice::TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue *vul
 
 IVulkanDeviceMemoryProvider * VulkanDevice::GetMemoryProvider() const {
     return m_memoryProvider;
+}
+
+VulkanPipelineProvider * VulkanDevice::GetPipelineProvider() const {
+    return m_pipelineProvider;
 }
 
 QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requestedQueues) {
@@ -225,4 +231,8 @@ VulkanFeatureNative VulkanDevice::ResolveFeature(VulkanDeviceFeatureType feature
 void VulkanDevice::InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType) {
     m_memoryProvider = Photon::Vulkan::DeviceMemoryProviderFactory::CreateVulkanDeviceMemoryProvider(memoryProviderType,
         m_handle, m_physicalDevice, Photon::Vulkan::AllocationConfiguration::g_defaultAllocationPreset);
+}
+
+void VulkanDevice::InitializePipelineProvider() {
+    m_pipelineProvider = new VulkanPipelineProvider(this);
 }

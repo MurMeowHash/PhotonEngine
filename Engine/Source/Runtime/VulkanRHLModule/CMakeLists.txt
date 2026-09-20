@@ -53,6 +53,19 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanQueue.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanQueueFactory.h
 
+        ## Shaders
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanShaderModule.h
+
+        ## Pipelines
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipeline.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineProvider.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanComputePipeline.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanComputePipelineDescriptor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipeline.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipelineDescriptor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineDescriptor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineFactory.h
+
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanMemoryCommon.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanDeviceMemory.cpp
@@ -86,6 +99,16 @@ target_sources(VulkanRHLModule
         ## Queue
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanQueue.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanQueueFactory.cpp
+
+        ## Shaders
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanShaderModule.cpp
+
+        ## Pipelines
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipeline.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipelineProvider.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanComputePipeline.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanGraphicsPipeline.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipelineFactory.cpp
 )
 
 target_include_directories(VulkanRHLModule

@@ -62,6 +62,32 @@ set_target_properties(vulkan PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${VULKAN_DIR}/include"
 )
 
+# ---------- DXC (DirectX Shader Compiler, bundled with Vulkan SDK) ----------
+add_library(dxc INTERFACE)
+target_include_directories(dxc INTERFACE "${VULKAN_DIR}/include/dxc")
+
+if(WIN32)
+    set(DXC_IMPLIB "${VULKAN_DIR}/lib/dxcompiler.lib")
+    if(NOT EXISTS "${DXC_IMPLIB}")
+        message(FATAL_ERROR "DXC import library not found at ${DXC_IMPLIB}")
+    endif()
+
+    add_library(dxcompiler SHARED IMPORTED GLOBAL)
+    set(_dxc_imported_props
+            IMPORTED_IMPLIB "${DXC_IMPLIB}"
+    )
+    if(EXISTS "${VULKAN_DIR}/lib/dxcompiler.dll")
+        list(APPEND _dxc_imported_props
+                IMPORTED_LOCATION "${VULKAN_DIR}/lib/dxcompiler.dll"
+        )
+    endif()
+    set_target_properties(dxcompiler PROPERTIES ${_dxc_imported_props})
+
+    target_link_libraries(dxc INTERFACE dxcompiler)
+else()
+    message(STATUS "DXC library linking is only configured for Windows")
+endif()
+
 # ==========================================
 # Engine Runtime
 # ==========================================

@@ -5,6 +5,7 @@
 #include "Entity/VulkanEntity.h"
 #include "Memory/IVulkanDeviceMemoryProvider.h"
 #include "Memory/VulkanMemoryProviderType.h"
+#include "Pipelines/VulkanPipelineProvider.h"
 #include "Queue/VulkanQueue.h"
 
 struct VulkanDeviceCreateInfo {
@@ -49,6 +50,7 @@ public:
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
     [[nodiscard]] bool TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue* vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
+    [[nodiscard]] VulkanPipelineProvider* GetPipelineProvider() const;
 private:
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
     vk::raii::Device m_handle = nullptr;
@@ -57,6 +59,7 @@ private:
     std::unordered_map<VulkanDeviceFeatureType, VulkanDeviceFeature> m_features;
 
     IVulkanDeviceMemoryProvider* m_memoryProvider = nullptr;
+    VulkanPipelineProvider* m_pipelineProvider = nullptr;
 
     QueueInitializeInfo InitializeDeviceQueues(vk::QueueFlags requestedQueues);
     void ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
@@ -69,4 +72,5 @@ private:
                 vk::PhysicalDeviceVulkan14Features>& deviceFeaturesInfo, uint32_t deviceApiVersion,
                 VulkanDeviceFeaturesAssembleData& assembleData);
     void InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType);
+    void InitializePipelineProvider();
 };
