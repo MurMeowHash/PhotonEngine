@@ -65,6 +65,12 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipelineDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineFactory.h
 
+        ## Synchronization
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanBinarySemaphore.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanTimelineSemaphore.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSemaphore.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSynchronizationFactory.h
+
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanMemoryCommon.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanDeviceMemory.cpp
@@ -108,6 +114,12 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanComputePipeline.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanGraphicsPipeline.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipelineFactory.cpp
+
+        ## Synchronization
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanBinarySemaphore.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanTimelineSemaphore.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSemaphore.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSynchronizationFactory.cpp
 )
 
 target_include_directories(VulkanRHLModule

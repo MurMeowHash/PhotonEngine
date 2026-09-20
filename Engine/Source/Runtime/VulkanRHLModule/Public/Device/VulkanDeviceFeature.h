@@ -5,8 +5,8 @@ enum class VulkanDeviceFeatureType {
     ShaderDrawParameters = 1,
     DynamicRendering = 2,
     Synchronization2 = 3,
+    TimelineSemaphore = 4,
 };
-
 
 class VulkanDeviceFeature {
 public:

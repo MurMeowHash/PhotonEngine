@@ -223,6 +223,10 @@ VulkanFeatureNative VulkanDevice::ResolveFeature(VulkanDeviceFeatureType feature
             return VulkanFeatureNative(assembleData.m_features13.synchronization2,
                 QUERY_FEATURE_SUPPORT_SAFE(vk::PhysicalDeviceVulkan13Features, synchronization2,
                     deviceFeaturesInfo, deviceApiVersion, vk::ApiVersion13));
+        case VulkanDeviceFeatureType::TimelineSemaphore:
+            return VulkanFeatureNative(assembleData.m_features12.timelineSemaphore,
+                QUERY_FEATURE_SUPPORT_SAFE(vk::PhysicalDeviceVulkan12Features, timelineSemaphore,
+                    deviceFeaturesInfo, deviceApiVersion, vk::ApiVersion12));
         default:
             throw std::invalid_argument(StringFormatter("Unable to resolve feature of type ", static_cast<uint32_t>(featureType)));
     }
