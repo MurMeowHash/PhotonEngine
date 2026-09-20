@@ -3,6 +3,6 @@
 #include "VulkanTimelineSemaphore.h"
 
 namespace Photon::Vulkan::SynchronizationFactory {
-    VulkanBinarySemaphore* CreateBinarySemaphore(const VulkanBinarySemaphoreCreateInfo& createInfo, bool* isValid);
-    VulkanTimelineSemaphore* CreateTimelineSemaphore(const VulkanTimelineSemaphoreCreateInfo& createInfo, bool* isValid);
+    VulkanBinarySemaphore* CreateBinarySemaphore(const VulkanBinarySemaphoreCreateInfo& createInfo, bool* isValid = nullptr);
+    VulkanTimelineSemaphore* CreateTimelineSemaphore(const VulkanTimelineSemaphoreCreateInfo& createInfo, bool* isValid = nullptr);
 };
