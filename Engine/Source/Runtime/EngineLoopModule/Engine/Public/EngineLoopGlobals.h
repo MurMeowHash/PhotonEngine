@@ -6,4 +6,5 @@ class IEngineLoop;
 
 namespace Photon::EngineLoops {
     extern std::shared_ptr<IEngineLoop> g_coreLoop;
+    extern std::shared_ptr<IEngineLoop> g_vulkanRHLLoop;
 }

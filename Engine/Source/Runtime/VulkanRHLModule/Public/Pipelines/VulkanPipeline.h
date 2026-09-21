@@ -4,7 +4,7 @@
 
 class VulkanPipeline {
 public:
-    [[nodiscard]] vk::raii::Pipeline& GetHandle() const;
+    [[nodiscard]] const vk::raii::Pipeline& GetHandle() const;
 protected:
     vk::raii::Pipeline m_handle = nullptr;
 };

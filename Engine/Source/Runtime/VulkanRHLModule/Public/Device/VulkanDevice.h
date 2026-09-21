@@ -9,11 +9,11 @@
 #include "Queue/VulkanQueue.h"
 
 struct VulkanDeviceCreateInfo {
-    vk::raii::PhysicalDevice& m_physicalDevice;
+    vk::raii::PhysicalDevice m_physicalDevice = nullptr;
     vk::QueueFlags m_requestedQueues;
     std::vector<VulkanExtension> m_requestedExtensions;
     std::vector<VulkanDeviceFeature> m_requestedFeatures;
-    VulkanMemoryProviderType m_memoryProviderType = VulkanMemoryProviderType::Default;
+    VulkanMemoryProviderType m_memoryProviderType;
 };
 
 struct VulkanDeviceFeaturesAssembleData {

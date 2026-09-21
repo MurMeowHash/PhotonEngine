@@ -15,4 +15,6 @@ namespace Photon::Core {
         int m_versionMinor;
         int m_versionPatch;
     };
+
+    inline int InvalidIndex = -1;
 }

@@ -7,6 +7,7 @@ target_sources(CoreModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RuntimeAttributes.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CoreUtils.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/EngineDataConfiguration.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/BuildConfiguration.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CoreGlobals.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/PlatformInteractor.cpp

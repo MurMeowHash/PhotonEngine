@@ -33,6 +33,9 @@ target_sources(VulkanRHLModule
         ## Device
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDevice.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceFeature.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceProvider.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanDeviceConfiguration.h
 
         ## Globals
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanGlobals.h
@@ -71,6 +74,11 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSemaphore.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSynchronizationFactory.h
 
+        ## RHL
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanDynamicRHL.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLLoop.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLFactory.h
+
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanMemoryCommon.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanDeviceMemory.cpp
@@ -94,6 +102,8 @@ target_sources(VulkanRHLModule
         ## Device
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDevice.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceFeature.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceFactory.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceProvider.cpp
 
         ## Command Buffers
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CommandBuffers/VulkanCommandBuffer.cpp
@@ -120,6 +130,12 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanTimelineSemaphore.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSemaphore.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSynchronizationFactory.cpp
+
+        ## RHL
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLLoop.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLFactory.cpp
+
 )
 
 target_include_directories(VulkanRHLModule
@@ -136,6 +152,7 @@ target_link_libraries(VulkanRHLModule
         MemoryModule
         PRIVATE
         DebugModule
+        EngineLoopModule.Core
 )
 
 if(MSVC)
