@@ -47,6 +47,7 @@ public:
 public:
     [[nodiscard]] bool Create(const VulkanDeviceCreateInfo& createInfo);
     [[nodiscard]] vk::raii::Device& GetHandle();
+    [[nodiscard]] const vk::raii::PhysicalDevice& GetPhysicalHandle() const;
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
     [[nodiscard]] bool TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue* vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;

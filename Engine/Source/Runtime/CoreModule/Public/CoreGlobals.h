@@ -18,3 +18,10 @@ namespace Photon::Core {
 
     inline int InvalidIndex = -1;
 }
+
+namespace Photon {
+    enum class Result {
+        Success = 0,
+        UnknownFailure = 1,
+    };
+}

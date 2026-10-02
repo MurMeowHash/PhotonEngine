@@ -8,38 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Third Party Dependencies
 # ==========================================
 
-# ---------- GLFW ----------
-set(GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/glfw3")
-add_library(glfw3 STATIC IMPORTED)
-
-if(WIN32)
-    if(EXISTS "${GLFW_DIR}/lib/glfw3.lib")
-        set(GLFW_LIB_FILE "${GLFW_DIR}/lib/glfw3.lib")
-    elseif(EXISTS "${GLFW_DIR}/lib/libglfw3.a")
-        set(GLFW_LIB_FILE "${GLFW_DIR}/lib/libglfw3.a")
-    elseif(EXISTS "${GLFW_DIR}/lib/libglfw3dll.a")
-        set(GLFW_LIB_FILE "${GLFW_DIR}/lib/libglfw3dll.a")
-    else()
-        message(FATAL_ERROR "GLFW library not found")
-    endif()
-
-    set_target_properties(glfw3 PROPERTIES
-            IMPORTED_LOCATION "${GLFW_LIB_FILE}"
-            INTERFACE_INCLUDE_DIRECTORIES "${GLFW_DIR}/include"
-    )
-
-elseif(APPLE)
-    message(FATAL_ERROR "GLFW setup for macOS not implemented yet")
-else()
-    find_package(X11 REQUIRED)
-    find_package(Threads REQUIRED)
-
-    set_target_properties(glfw3 PROPERTIES
-            IMPORTED_LOCATION "${GLFW_DIR}/lib/libglfw3.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${GLFW_DIR}/include"
-    )
-endif()
-
 # ---------- GLM (header-only) ----------
 set(GLM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/glm")
 add_library(glm INTERFACE)

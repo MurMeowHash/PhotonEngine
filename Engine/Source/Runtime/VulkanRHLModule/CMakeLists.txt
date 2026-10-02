@@ -79,6 +79,14 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLLoop.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLFactory.h
 
+        ## Resources
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImage.h
+
+        ## Window
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanSwapChain.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanSurface.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanWindowFactory.h
+
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanMemoryCommon.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanDeviceMemory.cpp
@@ -135,6 +143,14 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLLoop.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLFactory.cpp
+
+        ## Resources
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImage.cpp
+
+        ## Window
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanSwapChain.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanSurface.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanWindowFactory.cpp
 
 )
 

@@ -3,8 +3,10 @@ add_library(DebugModule STATIC)
 target_sources(DebugModule
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Logger.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/DebugModule.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Logger.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/DebugModule.cpp
 )
 
 target_include_directories(DebugModule
@@ -12,6 +14,12 @@ target_include_directories(DebugModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private
+)
+
+target_link_libraries(DebugModule
+        PRIVATE
+        ModuleBaseModule.Core
+        CoreModule
 )
 
 if(MSVC)

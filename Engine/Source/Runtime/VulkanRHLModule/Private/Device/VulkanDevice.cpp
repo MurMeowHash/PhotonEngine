@@ -70,6 +70,10 @@ vk::raii::Device & VulkanDevice::GetHandle() {
     return m_handle;
 }
 
+const vk::raii::PhysicalDevice & VulkanDevice::GetPhysicalHandle() const {
+    return m_physicalDevice;
+}
+
 std::set<VulkanQueue *> VulkanDevice::GetOperatingQueues() const {
     std::set<VulkanQueue*> queues;
     for (const std::pair<const vk::QueueFlagBits, VulkanQueue*>& queueData : m_deviceQueues) {

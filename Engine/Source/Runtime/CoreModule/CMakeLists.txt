@@ -8,6 +8,8 @@ target_sources(CoreModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CoreUtils.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/EngineDataConfiguration.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/BuildConfiguration.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Blueprints/BlueprintDescriptor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Blueprints/BlueprintProvider.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CoreGlobals.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/PlatformInteractor.cpp
@@ -18,6 +20,11 @@ target_include_directories(CoreModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private
+)
+
+target_link_libraries(CoreModule
+        PUBLIC
+        MemoryModule
 )
 
 if(MSVC)
