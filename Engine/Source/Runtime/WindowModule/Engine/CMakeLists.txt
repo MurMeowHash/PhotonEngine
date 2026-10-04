@@ -2,11 +2,11 @@ add_library(WindowModule.Engine STATIC)
 
 target_sources(WindowModule.Engine
         PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/MainWindow.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/MainWindowProcessor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/GameWindow.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/GameWindowProcessor.h
         PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/MainWindow.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/MainWindowProcessor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/GameWindow.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/GameWindowProcessor.cpp
 )
 
 target_include_directories(WindowModule.Engine
@@ -20,6 +20,7 @@ target_link_libraries(WindowModule.Engine
         PRIVATE
         WindowModule.Core
         CoreModule
+        RenderModule
 )
 
 if(MSVC)

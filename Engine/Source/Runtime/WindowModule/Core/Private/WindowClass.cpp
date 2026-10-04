@@ -34,7 +34,10 @@ LRESULT WindowClass::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
         switch (msg) {
             case WM_CLOSE:
-                engineWindow->m_windowProcessor->ProcessWindowCloseRequest();
+                engineWindow->OnWindowCloseRequested();
+                break;
+            case WM_SIZE:
+                engineWindow->OnWindowResized(LOWORD(lParam), HIWORD(lParam));
                 break;
         }
     }

@@ -10,11 +10,11 @@ public:
     : Range<TMemory>(beginBytes, endBytes) {}
 
     [[nodiscard]] TMemory GetAlignedSize(TMemory alignment) const {
-        return this->GetEnd() - Rat::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
+        return this->GetEnd() - Photon::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
     }
 
     [[nodiscard]] TMemory GetAlignedBegin(TMemory alignment) const {
-        return Rat::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
+        return Photon::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
     }
 
     void ShrinkForwardAligned(TMemory shift, TMemory alignment) {

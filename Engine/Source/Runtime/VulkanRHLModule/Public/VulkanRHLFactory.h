@@ -1,6 +1,8 @@
 #pragma once
 #include "VulkanDynamicRHL.h"
+#include "IVulkanRHLFactory.h"
 
-namespace Photon::Vulkan::RHLFactory {
-    VulkanDynamicRHL* CreateVulkanDynamicRHL(bool* isValid);
-};
+class VulkanRHLFactory : public IVulkanRHLFactory {
+public:
+    VulkanDynamicRHL* CreateVulkanDynamicRHL(const VulkanDynamicRHLCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams) override;
+};;

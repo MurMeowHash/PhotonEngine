@@ -7,8 +7,18 @@
 
 template<typename TBlueprint, typename TDescriptor>
 requires std::is_base_of_v<BlueprintDescriptor, TDescriptor>
-class BlueprintProvider {
+class BlueprintProvider { // TODO: rename to CacheProvider
 public:
+    virtual ~BlueprintProvider(){
+        for (auto& [identifier, blueprint] : m_blueprints)
+            blueprint->~TBlueprint();
+
+        if (m_isNativeAllocator) {
+            m_allocator->FreeMemory();
+            delete m_allocator;
+        }
+    }
+
     TBlueprint* PoolBlueprint(const TDescriptor& desc) {
         size_t descIdentifier = desc.GetIdentifier();
         auto blueprintIterator = m_blueprints.find(descIdentifier);
@@ -32,14 +42,6 @@ protected:
         }
 
         m_allocator = allocator;
-    }
-
-    virtual ~BlueprintProvider() {
-        if (!m_isNativeAllocator)
-            return;
-
-        m_allocator->FreeMemory();
-        delete m_allocator;
     }
 
     virtual TBlueprint* CreateBlueprint(const TDescriptor& desc, void* allocatedMemory) = 0;

@@ -7,6 +7,8 @@
 #include "Memory/VulkanMemoryProviderType.h"
 #include "Pipelines/VulkanPipelineProvider.h"
 #include "Queue/VulkanQueue.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 
 struct VulkanDeviceCreateInfo {
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
@@ -45,7 +47,7 @@ public:
     ~VulkanDevice() override;
     [[nodiscard]] bool TryGetAvailableExtensions(std::vector<vk::ExtensionProperties> &availableExtensions) const override;
 public:
-    [[nodiscard]] bool Create(const VulkanDeviceCreateInfo& createInfo);
+    [[nodiscard]] static VulkanDevice* Create(const VulkanDeviceCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] vk::raii::Device& GetHandle();
     [[nodiscard]] const vk::raii::PhysicalDevice& GetPhysicalHandle() const;
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;

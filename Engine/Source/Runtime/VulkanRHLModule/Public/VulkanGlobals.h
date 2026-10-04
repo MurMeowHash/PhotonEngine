@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "VulkanDynamicRHL.h"
 
 namespace Photon::Vulkan {
     struct VulkanApiVersion {
@@ -21,5 +20,11 @@ namespace Photon::Vulkan {
         RenderingOnly = 1u << 1,
     };
 
-    inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;
+    enum class ImageType {
+        None = 0,
+        p1D = 1,
+        p2D = 2,
+        p3D = 3,
+        pCubeMap = 4,
+    };
 }

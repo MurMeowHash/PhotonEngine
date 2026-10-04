@@ -1,10 +1,8 @@
 #include "../Public/VulkanRHLFactory.h"
 
-VulkanDynamicRHL * Photon::Vulkan::RHLFactory::CreateVulkanDynamicRHL(bool *isValid) {
-    VulkanDynamicRHL* dynamicRHL = new VulkanDynamicRHL();
-    bool isInitialized = dynamicRHL->Initialize();
-    if (isValid)
-        *isValid = isInitialized;
-
-    return dynamicRHL;
+VulkanDynamicRHL* VulkanRHLFactory::CreateVulkanDynamicRHL(const VulkanDynamicRHLCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams) {
+    VulkanDynamicRHL* vulkanDynamicRHL = Photon::AllocateObject<VulkanDynamicRHL>(inOutCreateParams);
+    Photon::Result rhlCreateResult = vulkanDynamicRHL->Create(createInfo);
+    Photon::PushResult(rhlCreateResult, inOutCreateParams);
+    return vulkanDynamicRHL;
 }

@@ -9,15 +9,19 @@ target_sources(WindowModule.Core
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/WindowModule.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/WindowGlobals.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/IWindowProcessor.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/DefaultWindowProcessor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/GenericWindowProcessor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/WindowEventDispatcher.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/Viewport.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/ViewportService.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/WindowClass.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/WindowClassProvider.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/WindowModule.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/DefaultWindowProcessor.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/GenericWindowProcessor.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/WindowEventDispatcher.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/Viewport.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/ViewportService.cpp
 )
 
 target_include_directories(WindowModule.Core
@@ -33,6 +37,9 @@ target_link_libraries(WindowModule.Core
         ModuleBaseModule.Core ## TODO: why the hell it forces to be public
         PRIVATE
         CoreModule
+        RenderModule
+        VulkanRHLModule
+        MathModule
 )
 
 if(MSVC)

@@ -14,13 +14,13 @@ void *LinearAllocator::AllocateMemory(size_t memorySize) {
     }
 
     size_t alignment = alignof(std::max_align_t);
-    size_t alignedOffset = Rat::MemoryOperationsCommon::AlignForward(m_tailChunk->m_size, alignment);
+    size_t alignedOffset = Photon::MemoryOperationsCommon::AlignForward(m_tailChunk->m_size, alignment);
 
     if(alignedOffset + memorySize > m_tailChunk->m_capacity) {
         m_tailChunk->m_next = new MemoryChunk(m_uniformChunkSize);
         m_tailChunk = m_tailChunk->m_next;
 
-        alignedOffset = Rat::MemoryOperationsCommon::AlignForward<size_t>(0, alignment);
+        alignedOffset = Photon::MemoryOperationsCommon::AlignForward<size_t>(0, alignment);
     }
 
     if(!m_tailChunk->IsChunkValid())

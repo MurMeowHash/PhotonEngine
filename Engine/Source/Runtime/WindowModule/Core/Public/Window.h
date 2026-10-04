@@ -7,8 +7,7 @@
 #include "WindowModule.h"
 #include "IWindowProcessor.h"
 #include "ModuleGlobals.h"
-
-using Photon::Module::g_activeModuleSequence;
+#include "Viewport/ViewportService.h"
 
 struct WindowCreateInfo {
     uint32_t m_width;
@@ -24,50 +23,24 @@ public:
 
     template<std::derived_from<Window> TWindow>
     static TWindow* Create(const WindowCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr) {
-        WindowModule* windowModule = nullptr;
         TWindow* window = Photon::AllocateObject<TWindow, Photon::Result>(inOutCreateParams);
-        if (!g_activeModuleSequence->TryResolveModule<WindowModule>(windowModule)) {
-            Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
-            return window;
-        }
-
-        WindowClassDescriptor desc;
-        desc.m_className = GENERIC_WINDOW_CLASS_NAME;
-        WindowClass* windowClass = windowModule->GetWindowClassProvider()->PoolBlueprint(desc);
-        HWND nativeHandle = CreateWindowExA(
-            0,
-            windowClass->GetNativeName(),
-            createInfo.m_title,
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            static_cast<int>(createInfo.m_width),
-            static_cast<int>(createInfo.m_height),
-            nullptr,
-            nullptr,
-            GetModuleHandleA(nullptr),
-            window
-        );
-
-        if (nativeHandle == nullptr) {
-            Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
-            return window;
-        }
-
-        window->m_handle = nativeHandle;
-        window->m_windowProcessor = static_cast<Window*>(window)->CreateWindowProcessor();
-        Photon::Result windowShowResult = window->Show();
-        UpdateWindow(window->m_handle);
-
-        Photon::PushResult(windowShowResult, inOutCreateParams);
+        Photon::Result windowCreateResult = window->CreateInternal(createInfo);
+        Photon::PushResult(windowCreateResult, inOutCreateParams);
         return window;
     }
 
     [[nodiscard]] Photon::Result Show() const;
     [[nodiscard]] Photon::Result Hide() const;
-
+    [[nodiscard]] uint32_t GetWidth() const;
+    [[nodiscard]] uint32_t GetHeight() const;
+    [[nodiscard]] HWND GetHandle() const;
 protected:
+    uint32_t m_width{};
+    uint32_t m_height{};
+    ViewportService* m_viewportService = nullptr;
+
     virtual IWindowProcessor* CreateWindowProcessor();
+    [[nodiscard]] virtual Photon::Result PostInitialize();
 
 private:
     static constexpr const char* GENERIC_WINDOW_CLASS_NAME = "GenericWindowClass";
@@ -75,5 +48,9 @@ private:
     HWND m_handle = nullptr;
     IWindowProcessor* m_windowProcessor = nullptr;
 
+    [[nodiscard]] Photon::Result CreateInternal(const WindowCreateInfo& createInfo);
     [[nodiscard]] Photon::Result SetActiveWindow(bool isActive) const;
+
+    void OnWindowCloseRequested();
+    void OnWindowResized(uint32_t newWidth, uint32_t newHeight);
 };

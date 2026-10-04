@@ -2,6 +2,8 @@
 
 #define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vulkan_raii.hpp>
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 
 class VulkanInstance;
 
@@ -11,7 +13,7 @@ struct VulkanDebuggerCreateInfo {
 
 class VulkanDebugger {
 public:
-    [[nodiscard]] bool Create(const VulkanDebuggerCreateInfo& createInfo);
+    [[nodiscard]] static VulkanDebugger* Create(const VulkanDebuggerCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
 private:
     vk::raii::DebugUtilsMessengerEXT m_handle = nullptr;
 

@@ -3,7 +3,7 @@
 #include "IEngineLoop.h"
 
 class ModuleSequence;
-class MainWindow;
+class GameWindow;
 
 class CoreLoop : public IEngineLoop {
 public:
@@ -12,7 +12,7 @@ public:
     bool Exit() override;
 
 private:
-    MainWindow* m_mainWindow = nullptr;
+    GameWindow* m_gameWindow = nullptr;
 
-    [[nodiscard]] bool CreateMainWindow();
+    [[nodiscard]] bool CreateGameWindow();
 };

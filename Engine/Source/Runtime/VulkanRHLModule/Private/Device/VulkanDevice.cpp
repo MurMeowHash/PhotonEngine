@@ -34,36 +34,39 @@ bool VulkanDevice::TryGetAvailableExtensions(std::vector<vk::ExtensionProperties
     return true;
 }
 
-bool VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo) {
-    m_physicalDevice = createInfo.m_physicalDevice;
-    SetApiVersion(m_physicalDevice.getProperties2().properties.apiVersion);
+VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanDevice* instance = Photon::AllocateObject<VulkanDevice>(inOutCreateParams);
+    instance->m_physicalDevice = createInfo.m_physicalDevice;
+    instance->SetApiVersion(instance->m_physicalDevice.getProperties2().properties.apiVersion);
 
-    QueueInitializeInfo queueInitializationInfo = InitializeDeviceQueues(createInfo.m_requestedQueues);
-    ProcessExtensionsRequest(createInfo.m_requestedExtensions);
-    VulkanDeviceFeaturesAssembleData featuresAssembleData = AssembleDeviceFeatures(createInfo.m_requestedFeatures);
+    QueueInitializeInfo queueInitializationInfo = instance->InitializeDeviceQueues(createInfo.m_requestedQueues);
+    instance->ProcessExtensionsRequest(createInfo.m_requestedExtensions);
+    VulkanDeviceFeaturesAssembleData featuresAssembleData = instance->AssembleDeviceFeatures(createInfo.m_requestedFeatures);
 
-    vk::DeviceCreateInfo deviceCreateInfo;
+    vk::DeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.queueCreateInfoCount = queueInitializationInfo.m_vulkanCreateInfo.size();
     deviceCreateInfo.pQueueCreateInfos = queueInitializationInfo.m_vulkanCreateInfo.data();
-    std::vector<const char*> extensions = QueryExtensionNames(VulkanExtensionQueryFilter::Supported | VulkanExtensionQueryFilter::Required);
+    std::vector<const char*> extensions = instance->QueryExtensionNames(VulkanExtensionQueryFilter::Supported | VulkanExtensionQueryFilter::Required);
     deviceCreateInfo.enabledExtensionCount = extensions.size();
     deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
     deviceCreateInfo.pNext = &featuresAssembleData.m_featuresChain;
 
-    vk::ResultValue<vk::raii::Device> deviceWrapper = m_physicalDevice.createDevice(deviceCreateInfo);
-    if(deviceWrapper.result != vk::Result::eSuccess)
-        return false;
+    vk::ResultValue<vk::raii::Device> deviceWrapper = instance->m_physicalDevice.createDevice(deviceCreateInfo);
+    if(deviceWrapper.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return instance;
+    }
 
-    m_features = featuresAssembleData.m_queryResult;
-
-    m_handle = std::move(deviceWrapper.value);
-    ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties), std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
-    InitializeMemoryProvider(createInfo.m_memoryProviderType);
-    InitializePipelineProvider();
+    instance->m_features = featuresAssembleData.m_queryResult;
+    instance->m_handle = std::move(deviceWrapper.value);
+    instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties), std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
+    instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
+    instance->InitializePipelineProvider();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
-    return true;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
 vk::raii::Device & VulkanDevice::GetHandle() {

@@ -1,11 +1,13 @@
 #include "../../Public/Instance/VulkanDebugger.h"
 #include "CoreUtils.h"
 #include "Logger.h"
-#include "../Public/Instance/VulkanInstance.h"
+#include "Instance/VulkanInstance.h"
 
-bool VulkanDebugger::Create(const VulkanDebuggerCreateInfo &createInfo) {
-    if (!createInfo.m_vulkanInstance->IsExtensionSupported(vk::EXTDebugUtilsExtensionName))
-        return false;
+VulkanDebugger* VulkanDebugger::Create(const VulkanDebuggerCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    if (!createInfo.m_vulkanInstance->IsExtensionSupported(vk::EXTDebugUtilsExtensionName)) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
 
     vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT;
     debugUtilsMessengerCreateInfoEXT.messageSeverity =
@@ -21,16 +23,20 @@ bool VulkanDebugger::Create(const VulkanDebuggerCreateInfo &createInfo) {
     vk::ResultValue<vk::raii::DebugUtilsMessengerEXT> debugMessangerWrapper =
         createInfo.m_vulkanInstance->GetHandle().createDebugUtilsMessengerEXT(debugUtilsMessengerCreateInfoEXT);
 
-    if(debugMessangerWrapper.result != vk::Result::eSuccess)
-        return false;
+    if(debugMessangerWrapper.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
 
-    m_handle = std::move(debugMessangerWrapper.value);
-    return true;
+    VulkanDebugger* instance = Photon::AllocateObject<VulkanDebugger>(inOutCreateParams);
+    instance->m_handle = std::move(debugMessangerWrapper.value);
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
 vk::Bool32 VulkanDebugger::VulkanDebugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity,
-    vk::DebugUtilsMessageTypeFlagsEXT type,
-    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData, void *) {
+                                               vk::DebugUtilsMessageTypeFlagsEXT type,
+                                               const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData, void *) {
     std::string typeStr = (type & vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation) ? "Validation" :
                           (type & vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance) ? "Performance" : "General";
 

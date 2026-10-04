@@ -2,8 +2,8 @@
 
 #define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vulkan_raii.hpp>
-#include <unordered_map>
-
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 #include "VulkanDebugger.h"
 #include "Entity/VulkanEntity.h"
 
@@ -25,13 +25,12 @@ public:
     ~VulkanInstance() override;
     [[nodiscard]] bool TryGetAvailableExtensions(std::vector<vk::ExtensionProperties> &availableExtensions) const override;
 public:
-    [[nodiscard]] bool Create(const VulkanInstanceCreateInfo& createInfo);
+    [[nodiscard]] static VulkanInstance* Create(const VulkanInstanceCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] const vk::raii::Instance& GetHandle() const;
 private:
     vk::raii::Context m_vulkanContext;
     vk::raii::Instance m_handle = nullptr;
     VulkanDebugger* m_vulkanDebugger = nullptr;
 
-    [[nodiscard]] bool CreateInstance(const VulkanInstanceCreateInfo &createInfo);
     [[nodiscard]] std::vector<const char*> FilterValidationLayers(const std::vector<const char*>& requestedLayers, uint32_t& droppedLayersCount) const;
 };

@@ -28,12 +28,10 @@ target_sources(VulkanRHLModule
         ## Instance
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Instance/VulkanInstance.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Instance/VulkanDebugger.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Instance/VulkanInstanceFactory.h
 
         ## Device
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDevice.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceFeature.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Device/VulkanDeviceProvider.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanDeviceConfiguration.h
 
@@ -76,16 +74,20 @@ target_sources(VulkanRHLModule
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanDynamicRHL.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLLoop.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLModule.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/IVulkanRHLFactory.h
 
         ## Resources
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImage.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageView.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewDescriptor.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewCache.h
 
-        ## Window
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanSwapChain.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanSurface.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Window/VulkanWindowFactory.h
+        ## Viewport
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSwapChain.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSurface.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanRHLViewport.h
 
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Memory/VulkanMemoryCommon.cpp
@@ -105,12 +107,10 @@ target_sources(VulkanRHLModule
         ## Instance
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Instance/VulkanInstance.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Instance/VulkanDebugger.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Instance/VulkanInstanceFactory.cpp
 
         ## Device
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDevice.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceFeature.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceFactory.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Device/VulkanDeviceProvider.cpp
 
         ## Command Buffers
@@ -141,16 +141,18 @@ target_sources(VulkanRHLModule
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLLoop.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLFactory.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLModule.cpp
 
         ## Resources
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImage.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageView.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageViewCache.cpp
 
-        ## Window
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanSwapChain.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanSurface.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Window/VulkanWindowFactory.cpp
+        ## Viewport
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSwapChain.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSurface.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanRHLViewport.cpp
 
 )
 
@@ -168,7 +170,8 @@ target_link_libraries(VulkanRHLModule
         MemoryModule
         PRIVATE
         DebugModule
-        EngineLoopModule.Core
+        FactoryModule
+        ModuleBaseModule.Core
 )
 
 if(MSVC)

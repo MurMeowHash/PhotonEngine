@@ -3,7 +3,6 @@
 #include "EngineDataConfiguration.h"
 #include "VulkanUtils.h"
 #include "Configurations/VulkanExtensionsConfiguration.h"
-#include "Instance/VulkanInstanceFactory.h"
 
 using Photon::Core::Flags::operator|;
 
@@ -20,58 +19,63 @@ bool VulkanInstance::TryGetAvailableExtensions(std::vector<vk::ExtensionProperti
     return true;
 }
 
-bool VulkanInstance::Create(const VulkanInstanceCreateInfo &createInfo) {
-    bool isInstanceCreated = CreateInstance(createInfo);
-    if (!isInstanceCreated)
-        return false;
-
-    VulkanDebuggerCreateInfo debuggerCreateInfo {this};
-    bool isDebuggerValid;
-    m_vulkanDebugger = Photon::Vulkan::InstanceFactory::CreateVulkanDebugger(debuggerCreateInfo, &isDebuggerValid);
-    return isDebuggerValid || Photon::Core::Flags::IsFlagSet(createInfo.m_createFlags, VulkanInstanceCreateFlags::AllowDropDebug);
-}
-
-const vk::raii::Instance & VulkanInstance::GetHandle() const {
-    return m_handle;
-}
-
-bool VulkanInstance::CreateInstance(const VulkanInstanceCreateInfo &createInfo) {
+VulkanInstance* VulkanInstance::Create(const VulkanInstanceCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanInstance* instance = Photon::AllocateObject<VulkanInstance>(inOutCreateParams);
     uint32_t apiVersion = Photon::Vulkan::EngineToVulkanApiVersion(Photon::EngineDataConfiguration::g_vulkanVersion);
-    SetApiVersion(apiVersion);
-    vk::ApplicationInfo appInfo;
+    instance->SetApiVersion(apiVersion);
+    vk::ApplicationInfo appInfo{};
     appInfo.pEngineName = Photon::EngineDataConfiguration::g_engineName;
     appInfo.engineVersion = Photon::Vulkan::EngineToVulkanVersion(Photon::EngineDataConfiguration::g_engineVersion);
     appInfo.pApplicationName = Photon::EngineDataConfiguration::g_applicationName;
     appInfo.applicationVersion = Photon::Vulkan::EngineToVulkanVersion(Photon::EngineDataConfiguration::g_applicationVersion);
     appInfo.apiVersion = apiVersion;
 
-    vk::InstanceCreateInfo instanceCreateInfo;
+    vk::InstanceCreateInfo instanceCreateInfo{};
     instanceCreateInfo.pApplicationInfo = &appInfo;
 
     uint32_t droppedLayersCount = 0;
-    std::vector<const char*> filteredLayers = FilterValidationLayers(createInfo.m_requestedLayers, droppedLayersCount);
-    if (droppedLayersCount != 0 && !Photon::Core::Flags::IsFlagSet(createInfo.m_createFlags, VulkanInstanceCreateFlags::AllowDropLayers))
-        return false;
+    std::vector<const char*> filteredLayers = instance->FilterValidationLayers(createInfo.m_requestedLayers, droppedLayersCount);
+    if (droppedLayersCount != 0 && !Photon::Core::Flags::IsFlagSet(createInfo.m_createFlags, VulkanInstanceCreateFlags::AllowDropLayers)) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return instance;
+    }
 
     instanceCreateInfo.ppEnabledLayerNames = filteredLayers.data();
     instanceCreateInfo.enabledLayerCount = filteredLayers.size();
 
-    ProcessExtensionsRequest(createInfo.m_requestedExtensions);
+    instance->ProcessExtensionsRequest(createInfo.m_requestedExtensions);
     std::unordered_set<const char*> excludedExtensions;
-    if (!IsExtensionSupported(vk::EXTDebugUtilsExtensionName)
+    if (!instance->IsExtensionSupported(vk::EXTDebugUtilsExtensionName)
         && Photon::Core::Flags::IsFlagSet(createInfo.m_createFlags, VulkanInstanceCreateFlags::AllowDropDebug))
         excludedExtensions.emplace(vk::EXTDebugUtilsExtensionName);
 
-    std::vector<const char*> targetExtensions = QueryExtensionNames(VulkanExtensionQueryFilter::Supported | VulkanExtensionQueryFilter::Required, &excludedExtensions);
+    std::vector<const char*> targetExtensions = instance->QueryExtensionNames(VulkanExtensionQueryFilter::Supported | VulkanExtensionQueryFilter::Required, &excludedExtensions);
     instanceCreateInfo.ppEnabledExtensionNames = targetExtensions.data();
     instanceCreateInfo.enabledExtensionCount = targetExtensions.size();
 
-    vk::ResultValue<vk::raii::Instance> instanceCreateWrapper = m_vulkanContext.createInstance(instanceCreateInfo);
-    if (instanceCreateWrapper.result != vk::Result::eSuccess)
-        return false;
+    vk::ResultValue<vk::raii::Instance> instanceCreateWrapper = instance->m_vulkanContext.createInstance(instanceCreateInfo);
+    if (instanceCreateWrapper.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return instance;
+    }
 
-    m_handle = std::move(instanceCreateWrapper.value);
-    return true;
+    instance->m_handle = std::move(instanceCreateWrapper.value);
+    VulkanDebuggerCreateInfo debuggerCreateInfo {instance};
+    InOutCreateParams<Photon::Result> debuggerInOutCreateParams{};
+    VulkanDebugger* debugger = VulkanDebugger::Create(debuggerCreateInfo, &debuggerInOutCreateParams);
+    if (debuggerInOutCreateParams.m_result != Photon::Result::Success
+        && !Photon::Core::Flags::IsFlagSet(createInfo.m_createFlags, VulkanInstanceCreateFlags::AllowDropDebug)) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return instance;
+    }
+
+    instance->m_vulkanDebugger = debugger;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
+}
+
+const vk::raii::Instance & VulkanInstance::GetHandle() const {
+    return m_handle;
 }
 
 std::vector<const char *> VulkanInstance::FilterValidationLayers(const std::vector<const char *> &requestedLayers, uint32_t &droppedLayersCount) const {

@@ -15,6 +15,7 @@ target_link_libraries(ModuleBaseModule.Engine
         ModuleBaseModule.Core
         WindowModule.Core
         DebugModule
+        VulkanRHLModule
 )
 
 if(MSVC)
