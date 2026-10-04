@@ -34,6 +34,7 @@ public:
     [[nodiscard]] uint32_t GetWidth() const;
     [[nodiscard]] uint32_t GetHeight() const;
     [[nodiscard]] HWND GetHandle() const;
+    void RedrawContent() const;
 protected:
     uint32_t m_width{};
     uint32_t m_height{};

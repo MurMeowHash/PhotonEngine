@@ -20,7 +20,6 @@ target_link_libraries(EngineLoopModule.Engine
         PRIVATE
         EngineLoopModule.Core
         VulkanRHLModule
-        RenderModule
         WindowModule.Core
         WindowModule.Engine
         ModuleBaseModule.Core

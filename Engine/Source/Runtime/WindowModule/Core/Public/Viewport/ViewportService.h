@@ -17,6 +17,7 @@ public:
     ~ViewportService();
     static ViewportService* Create(const ViewportServiceCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] Photon::Result AddViewport(const RenderRect& renderRect);
+    void RedrawViewports() const;
 private:
     std::vector<Viewport> m_viewports;
     VulkanRHLViewport* m_vulkanRHLViewport = nullptr;

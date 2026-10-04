@@ -1,5 +1,4 @@
 #include "../Public/CoreLoop.h"
-#include "RendererFactory.h"
 #include "ModuleSequence.h"
 #include "EngineModuleGlobals.h"
 #include "GameWindow.h"
@@ -32,10 +31,7 @@ bool CoreLoop::Tick() {
 
     windowModule->GetWindowEventDispatcher()->DispatchEvents();
 
-    IRenderer* renderer = Photon::RendererFactory::CreateRenderer(RendererType::Forward);
-    renderer->Render();
-    delete renderer;
-
+    m_gameWindow->RedrawContent();
     return true;
 }
 

@@ -34,6 +34,10 @@ HWND Window::GetHandle() const {
     return m_handle;
 }
 
+void Window::RedrawContent() const {
+    m_viewportService->RedrawViewports();
+}
+
 IWindowProcessor* Window::CreateWindowProcessor() {
     return new GenericWindowProcessor();
 }

@@ -7,6 +7,7 @@ target_sources(RenderModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RendererGlobals.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RendererFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RenderData/RenderTarget.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/RenderData/RenderSceneInput.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/ForwardRenderer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/RendererFactory.cpp
@@ -24,6 +25,7 @@ target_link_libraries(RenderModule
         PRIVATE
         CoreModule
         VulkanRHLModule
+        DebugModule
 )
 
 if(MSVC)

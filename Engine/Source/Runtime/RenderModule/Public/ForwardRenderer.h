@@ -3,5 +3,5 @@
 
 class ForwardRenderer : public IRenderer {
 public:
-    void Render() override;
+    void Render(const RenderSceneInput& renderSceneInput) override;
 };

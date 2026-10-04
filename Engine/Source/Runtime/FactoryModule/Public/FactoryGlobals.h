@@ -10,12 +10,12 @@ struct InOutCreateParams {
 };
 
 namespace Photon {
-    template<typename TObject, typename TResult> requires std::is_enum_v<TResult>
-    inline TObject* AllocateObject(InOutCreateParams<TResult>* createParams) {
+    template<typename TObject, typename TResult, typename... Args> requires std::is_enum_v<TResult>
+    inline TObject* AllocateObject(InOutCreateParams<TResult>* createParams, const Args&...ctorArgs) {
         if (createParams == nullptr || createParams->m_preAllocatedMemory == nullptr)
-            return new TObject();
+            return new TObject(ctorArgs...);
         else
-            return new (createParams->m_preAllocatedMemory) TObject();
+            return new (createParams->m_preAllocatedMemory) TObject(ctorArgs...);
     }
 
     template<typename TResult> requires std::is_enum_v<TResult>

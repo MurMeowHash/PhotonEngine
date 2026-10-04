@@ -48,3 +48,9 @@ Photon::Result ViewportService::AddViewport(const RenderRect &renderRect) {
     m_viewports.emplace_back(renderRect, m_vulkanRHLViewport);
     return Photon::Result::Success;
 }
+
+void ViewportService::RedrawViewports() const {
+    for (const Viewport& viewport: m_viewports) {
+        viewport.GetProcessor()->RedrawViewport();
+    }
+}
