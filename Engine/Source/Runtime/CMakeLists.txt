@@ -13,3 +13,12 @@ add_subdirectory(WindowModule/Engine)
 add_subdirectory(FactoryModule)
 add_subdirectory(ModuleBaseModule/Core)
 add_subdirectory(ModuleBaseModule/Engine)
+add_subdirectory(EngineModule/Core)
+
+if(PHOTON_ENVIRONMENT_GAME)
+    add_subdirectory(EngineModule/Game)
+else()
+    add_subdirectory(EngineModule/Mock)
+endif()
+
+add_subdirectory(ViewportModule)

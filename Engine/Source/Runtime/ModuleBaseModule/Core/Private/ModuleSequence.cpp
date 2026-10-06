@@ -43,6 +43,8 @@ void ModuleSequence::ResolveSequenceBlueprint(const std::vector<ModuleBlueprint>
     m_sequence.reserve(sequenceBlueprint.size());
     for (const ModuleBlueprint& moduleBlueprint: sequenceBlueprint) {
         m_sequence.emplace_back(moduleBlueprint.m_moduleCreateFunc());
-        m_moduleAccessMap[moduleBlueprint.m_moduleTypeIndex] = m_sequence.size() - 1;
+        for (std::type_index bindDest: moduleBlueprint.m_moduleBindDestinations) {
+            m_moduleAccessMap[bindDest] = m_sequence.size() - 1;
+        }
     }
 }

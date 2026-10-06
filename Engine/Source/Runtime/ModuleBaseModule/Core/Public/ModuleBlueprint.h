@@ -4,18 +4,35 @@
 #include <typeindex>
 #include "ModuleBase.h"
 
-struct ModuleBlueprint {
-    template<typename TModule> requires std::is_base_of_v<ModuleBase, TModule>
-    static ModuleBlueprint Create() {
-        ModuleBlueprint blueprint;
-        blueprint.m_moduleCreateFunc = []() {
-            return new TModule();
-        };
+template<std::derived_from<ModuleBase> TSrcModule>
+struct ModuleBlueprintPendingBinding;
 
-        blueprint.m_moduleTypeIndex = std::type_index(typeid(TModule));
-        return blueprint;
+struct ModuleBlueprint {
+    template<std::derived_from<ModuleBase> TModule>
+    static ModuleBlueprintPendingBinding<TModule> Bind() {
+        return ModuleBlueprintPendingBinding<TModule>();
     }
 
     std::function<ModuleBase*()> m_moduleCreateFunc;
-    std::type_index m_moduleTypeIndex = typeid(void);
+    std::vector<std::type_index> m_moduleBindDestinations;
+};
+
+template<std::derived_from<ModuleBase> TSrcModule>
+struct ModuleBlueprintPendingBinding {
+    template<std::derived_from<ModuleBase> TDestModule>
+    ModuleBlueprintPendingBinding& To() {
+        m_bindingDestinations.emplace_back(std::type_index(typeid(TDestModule)));
+        return *this;
+    }
+
+    ModuleBlueprint Finalize() {
+        ModuleBlueprint blueprint;
+        blueprint.m_moduleCreateFunc = []() {
+            return new TSrcModule();
+        };
+        blueprint.m_moduleBindDestinations = m_bindingDestinations;
+        return blueprint;
+    }
+private:
+    std::vector<std::type_index> m_bindingDestinations;
 };

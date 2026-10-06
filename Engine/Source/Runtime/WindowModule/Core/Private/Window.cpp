@@ -4,13 +4,14 @@
 #include "WindowModule.h"
 #include "ModuleSequence.h"
 #include "ModuleGlobals.h"
+#include "Viewport.h"
+#include "ViewportInteractor.h"
 #include "VulkanRHLModule.h"
 
 using Photon::Module::g_activeModuleSequence;
 
 Window::~Window() {
     delete m_windowProcessor;
-    delete m_viewportService;
     DestroyWindow(m_handle);
 }
 
@@ -34,24 +35,19 @@ HWND Window::GetHandle() const {
     return m_handle;
 }
 
-void Window::RedrawContent() const {
-    m_viewportService->RedrawViewports();
+void Window::AttachViewport(ViewportInteractor *viewport) {
+    m_viewport = viewport;
+}
+
+void Window::UpdateViewports() const {
+    if (m_viewport == nullptr)
+        return;
+
+    m_viewport->ChangeViewportSize(m_width, m_height);
 }
 
 IWindowProcessor* Window::CreateWindowProcessor() {
     return new GenericWindowProcessor();
-}
-
-Photon::Result Window::PostInitialize() {
-    ViewportServiceCreateInfo viewportServiceCreateInfo{};
-    viewportServiceCreateInfo.m_window = this;
-    InOutCreateParams<Photon::Result> inOutCreateParams{};
-    ViewportService* viewportService = ViewportService::Create(viewportServiceCreateInfo, &inOutCreateParams);
-    if (inOutCreateParams.m_result != Photon::Result::Success)
-        return inOutCreateParams.m_result;
-
-    m_viewportService = viewportService;
-    return Photon::Result::Success;
 }
 
 Photon::Result Window::CreateInternal(const WindowCreateInfo &createInfo) {
@@ -84,12 +80,12 @@ Photon::Result Window::CreateInternal(const WindowCreateInfo &createInfo) {
     m_width = createInfo.m_width;
     m_height = createInfo.m_height;
     m_windowProcessor = CreateWindowProcessor();
+    m_windowProcessor->SetWindow(this);
     Photon::Result windowResult = Show();
     if (windowResult != Photon::Result::Success)
         return windowResult;
 
     UpdateWindow(m_handle);
-    windowResult = PostInitialize();
 
     return windowResult;
 }

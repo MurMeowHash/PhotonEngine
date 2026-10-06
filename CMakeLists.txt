@@ -9,4 +9,31 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+## Build Configuration
+
+set(PHOTON_TARGET_TYPES Game Editor)
+
+set(PHOTON_TARGET_TYPE "Game" CACHE STRING "Game | Editor")
+set_property(CACHE PHOTON_TARGET_TYPE PROPERTY STRINGS Game Editor)
+
+if(NOT PHOTON_TARGET_TYPE IN_LIST PHOTON_TARGET_TYPES)
+    message(FATAL_ERROR "Invalid PHOTON_TARGET_TYPE: ${PHOTON_TARGET_TYPE}. Allowed: ${PHOTON_TARGET_TYPES}")
+endif()
+
+string(TOUPPER "${PHOTON_TARGET_TYPE}" PHOTON_TARGET_TYPE_UPPER)
+add_library(PhotonBuildConfig INTERFACE)
+target_compile_definitions(PhotonBuildConfig
+        INTERFACE
+        PHOTON_ENVIRONMENT=PHOTON_ENVIRONMENT_${PHOTON_TARGET_TYPE_UPPER}
+)
+
+foreach(_type IN LISTS PHOTON_TARGET_TYPES)
+    string(TOUPPER "${_type}" _upper)
+    if(PHOTON_TARGET_TYPE STREQUAL _type)
+        set(PHOTON_ENVIRONMENT_${_upper} TRUE)
+    else()
+        set(PHOTON_ENVIRONMENT_${_upper} FALSE)
+    endif()
+endforeach()
+
 add_subdirectory(Engine)

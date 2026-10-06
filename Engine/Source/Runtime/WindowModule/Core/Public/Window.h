@@ -4,10 +4,10 @@
 #include <cstdint>
 #include "FactoryGlobals.h"
 #include "CoreGlobals.h"
-#include "WindowModule.h"
 #include "IWindowProcessor.h"
 #include "ModuleGlobals.h"
-#include "Viewport/ViewportService.h"
+
+class ViewportInteractor;
 
 struct WindowCreateInfo {
     uint32_t m_width;
@@ -34,20 +34,21 @@ public:
     [[nodiscard]] uint32_t GetWidth() const;
     [[nodiscard]] uint32_t GetHeight() const;
     [[nodiscard]] HWND GetHandle() const;
-    void RedrawContent() const;
+
+    void AttachViewport(ViewportInteractor* viewport);
+    void UpdateViewports() const;
 protected:
     uint32_t m_width{};
     uint32_t m_height{};
-    ViewportService* m_viewportService = nullptr;
 
     virtual IWindowProcessor* CreateWindowProcessor();
-    [[nodiscard]] virtual Photon::Result PostInitialize();
 
 private:
     static constexpr const char* GENERIC_WINDOW_CLASS_NAME = "GenericWindowClass";
 
     HWND m_handle = nullptr;
     IWindowProcessor* m_windowProcessor = nullptr;
+    ViewportInteractor* m_viewport = nullptr;
 
     [[nodiscard]] Photon::Result CreateInternal(const WindowCreateInfo& createInfo);
     [[nodiscard]] Photon::Result SetActiveWindow(bool isActive) const;

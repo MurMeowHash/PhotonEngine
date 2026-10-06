@@ -1,10 +1,7 @@
 #include "../Public/CoreLoop.h"
 #include "ModuleSequence.h"
 #include "EngineModuleGlobals.h"
-#include "GameWindow.h"
 #include "ModuleGlobals.h"
-#include "Window.h"
-#include "FactoryGlobals.h"
 
 using Photon::Module::g_activeModuleSequence;
 
@@ -18,7 +15,13 @@ bool CoreLoop::Initialize() {
             return false;
     }
 
-    if (!CreateGameWindow())
+    EngineModule* engineModule;
+    if (!g_activeModuleSequence->TryResolveModule(engineModule))
+        return false;
+
+    m_engine = engineModule->GetEngineFactory()->CreateEngine();
+    Photon::Result engineInitializeResult = m_engine->Initialize();
+    if (engineInitializeResult != Photon::Result::Success)
         return false;
 
     return true;
@@ -30,13 +33,16 @@ bool CoreLoop::Tick() {
         return false;
 
     windowModule->GetWindowEventDispatcher()->DispatchEvents();
+    Photon::Result engineTickResult = m_engine->Tick();
+    if (engineTickResult != Photon::Result::Success)
+        return false;
 
-    m_gameWindow->RedrawContent();
     return true;
 }
 
 bool CoreLoop::Exit() {
-    delete m_gameWindow;
+    Photon::Result engineExitResult = m_engine->Exit();
+    delete m_engine;
 
     while (g_activeModuleSequence->HasNextTerminateModule()) {
         ModuleBase* module = g_activeModuleSequence->GetNextTerminateModule();
@@ -46,11 +52,4 @@ bool CoreLoop::Exit() {
     delete g_activeModuleSequence;
     g_activeModuleSequence = nullptr;
     return true;
-}
-
-bool CoreLoop::CreateGameWindow() {
-    WindowCreateInfo createInfo(1920, 1200, false, "Photon Engine"); // TODO: create configuration
-    InOutCreateParams<Photon::Result> inOutCreateParams;
-    m_gameWindow = Window::Create<GameWindow>(createInfo, &inOutCreateParams);
-    return inOutCreateParams.m_result == Photon::Result::Success;
 }

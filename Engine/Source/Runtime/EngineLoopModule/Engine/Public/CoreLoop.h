@@ -4,6 +4,7 @@
 
 class ModuleSequence;
 class GameWindow;
+class IEngine;
 
 class CoreLoop : public IEngineLoop {
 public:
@@ -12,7 +13,5 @@ public:
     bool Exit() override;
 
 private:
-    GameWindow* m_gameWindow = nullptr;
-
-    [[nodiscard]] bool CreateGameWindow();
+    IEngine* m_engine = nullptr;
 };

@@ -19,13 +19,9 @@ target_include_directories(EngineLoopModule.Engine
 target_link_libraries(EngineLoopModule.Engine
         PRIVATE
         EngineLoopModule.Core
-        VulkanRHLModule
-        WindowModule.Core
-        WindowModule.Engine
         ModuleBaseModule.Core
         ModuleBaseModule.Engine
-        FactoryModule
-        DebugModule
+        EngineModule.Core
 )
 
 if(MSVC)

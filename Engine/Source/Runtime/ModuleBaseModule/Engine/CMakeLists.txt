@@ -16,7 +16,22 @@ target_link_libraries(ModuleBaseModule.Engine
         WindowModule.Core
         DebugModule
         VulkanRHLModule
+        EngineModule.Core
 )
+
+if(PHOTON_ENVIRONMENT_GAME)
+    target_link_libraries(ModuleBaseModule.Core
+            INTERFACE
+            EngineModule.Game
+    )
+else()
+    target_link_libraries(ModuleBaseModule.Core
+            INTERFACE
+            EngineModule.Mock
+            PhotonBuildConfig
+            CoreModule
+    )
+endif()
 
 if(MSVC)
     target_compile_options(ModuleBaseModule.Engine INTERFACE /W4)
