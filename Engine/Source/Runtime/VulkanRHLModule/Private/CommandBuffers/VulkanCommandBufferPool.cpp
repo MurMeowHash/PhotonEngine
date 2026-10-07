@@ -1,6 +1,5 @@
 #include "../../Public/CommandBuffers/VulkanCommandBufferPool.h"
 #include "CoreUtils.h"
-#include "CommandBuffers/VulkanCommandBufferFactory.h"
 #include "Queue/VulkanQueue.h"
 
 VulkanCommandBufferPool::~VulkanCommandBufferPool() {
@@ -11,8 +10,8 @@ VulkanCommandBufferPool::~VulkanCommandBufferPool() {
     }
 }
 
-bool VulkanCommandBufferPool::Create(const VulkanCommandBufferPoolCreateInfo &createInfo) {
-    vk::CommandPoolCreateInfo poolCreateInfo;
+VulkanCommandBufferPool* VulkanCommandBufferPool::Create(const VulkanCommandBufferPoolCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    vk::CommandPoolCreateInfo poolCreateInfo{};
     if (Photon::Core::Flags::IsFlagSet(VulkanCommandBufferCreateFlags::AllowDedicatedReset, createInfo.m_createFlags))
         poolCreateInfo.flags |= vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
@@ -24,16 +23,19 @@ bool VulkanCommandBufferPool::Create(const VulkanCommandBufferPoolCreateInfo &cr
     vk::ResultValue<vk::raii::CommandPool> poolCreateResult =
         createInfo.m_vulkanDevice->GetHandle().createCommandPool(poolCreateInfo);
 
-    if (poolCreateResult.result != vk::Result::eSuccess)
-        return false;
+    if (poolCreateResult.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
 
-    m_handle = std::move(poolCreateResult.value);
-    m_poolDevice = createInfo.m_vulkanDevice;
-    m_commandBufferType = createInfo.m_commandBufferType;
-    m_commandBufferLifetime = createInfo.m_commandBufferLifetime;
-
-    PopulatePool(createInfo.m_initialPoolSize);
-    return true;
+    VulkanCommandBufferPool* instance = Photon::AllocateObject<VulkanCommandBufferPool>(inOutCreateParams);
+    instance->m_handle = std::move(poolCreateResult.value);
+    instance->m_poolDevice = createInfo.m_vulkanDevice;
+    instance->m_commandBufferType = createInfo.m_commandBufferType;
+    instance->m_commandBufferLifetime = createInfo.m_commandBufferLifetime;
+    Photon::Result poolPopulateResult = instance->PopulatePool(createInfo.m_initialPoolSize);
+    Photon::PushResult(poolPopulateResult, inOutCreateParams);
+    return instance;
 }
 
 const vk::CommandPool& VulkanCommandBufferPool::GetHandle() const {
@@ -48,13 +50,18 @@ VulkanCommandBufferLifetime VulkanCommandBufferPool::GetCommandBufferLifetime() 
     return m_commandBufferLifetime;
 }
 
-VulkanCommandBuffer* VulkanCommandBufferPool::PopCommandBuffer() {
-    if (m_commandBufferPool.empty())
-        if (!TryExtendPool())
+VulkanCommandBuffer* VulkanCommandBufferPool::PopCommandBuffer(Photon::Result& popResult) {
+    if (m_commandBufferPool.empty()) {
+        Photon::Result extendResult = TryExtendPool();
+        if (extendResult != Photon::Result::Success) {
+            popResult = extendResult;
             return nullptr;
+        }
+    }
 
     VulkanCommandBuffer* pooledBuffer = m_commandBufferPool.front();
     m_commandBufferPool.pop();
+    popResult = Photon::Result::Success;
     return pooledBuffer;
 }
 
@@ -62,23 +69,22 @@ void VulkanCommandBufferPool::ReturnCommandBuffer(VulkanCommandBuffer *commandBu
     m_commandBufferPool.emplace(commandBuffer);
 }
 
-bool VulkanCommandBufferPool::TryExtendPool() {
+Photon::Result VulkanCommandBufferPool::TryExtendPool() {
     VulkanCommandBufferCreateInfo createInfo(m_commandBufferType, *m_handle, m_poolDevice);
-    bool isValid;
-    VulkanCommandBuffer* commandBuffer = Photon::Vulkan::CommandBufferFactory::CreateCommandBuffer(createInfo, &isValid);
-    if (isValid)
-        m_commandBufferPool.emplace(commandBuffer);
-    else
-        delete commandBuffer;
+    InOutCreateParams<Photon::Result> inOutCreateParams{};
+    VulkanCommandBuffer* commandBuffer = VulkanCommandBuffer::Create(createInfo, &inOutCreateParams);
+    if (inOutCreateParams.m_result != Photon::Result::Success)
+        return inOutCreateParams.m_result;
 
-    return isValid;
+    m_commandBufferPool.emplace(commandBuffer);
+    return Photon::Result::Success;
 }
 
-void VulkanCommandBufferPool::PopulatePool(uint32_t poolSize) {
+Photon::Result VulkanCommandBufferPool::PopulatePool(uint32_t poolSize) {
     if (poolSize == 0)
-        return;
+        return Photon::Result::Success;
 
-    vk::CommandBufferAllocateInfo allocateInfo;
+    vk::CommandBufferAllocateInfo allocateInfo{};
     allocateInfo.level = Photon::Vulkan::DeriveLevelFromType(m_commandBufferType);
     allocateInfo.commandBufferCount = poolSize;
     allocateInfo.commandPool = m_handle;
@@ -87,9 +93,17 @@ void VulkanCommandBufferPool::PopulatePool(uint32_t poolSize) {
         m_poolDevice->GetHandle().allocateCommandBuffers(allocateInfo);
 
     if (bufferAllocatedResult.result != vk::Result::eSuccess)
-        return;
+        return Photon::Result::UnknownFailure;
 
     for (vk::raii::CommandBuffer& commandBuffer : bufferAllocatedResult.value) {
-        m_commandBufferPool.emplace(Photon::Vulkan::CommandBufferFactory::CreateCommandBuffer(m_commandBufferType, std::move(commandBuffer)));
+        VulkanCommandBufferExistingCreateInfo createInfo{m_commandBufferType, std::move(commandBuffer)};
+        InOutCreateParams<Photon::Result> inOutCreateParams{};
+        VulkanCommandBuffer* vkCmdBuffer = VulkanCommandBuffer::Create(createInfo, &inOutCreateParams);
+        if (inOutCreateParams.m_result != Photon::Result::Success)
+            return inOutCreateParams.m_result;
+
+        m_commandBufferPool.emplace(vkCmdBuffer);
     }
+
+    return Photon::Result::Success;
 }

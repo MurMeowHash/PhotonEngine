@@ -65,7 +65,7 @@ private:
     VulkanPipelineProvider* m_pipelineProvider = nullptr;
 
     QueueInitializeInfo InitializeDeviceQueues(vk::QueueFlags requestedQueues);
-    void ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
+    [[nodiscard]] Photon::Result ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
         std::unordered_map<vk::QueueFlagBits, uint32_t>&& queueFamilyRequestInfo);
 
     [[nodiscard]] VulkanDeviceFeaturesAssembleData AssembleDeviceFeatures(const std::vector<VulkanDeviceFeature>& requestedFeatures);

@@ -5,6 +5,8 @@
 #include <queue>
 #include <cstdint>
 #include "CommandBuffers/VulkanCommandBufferGlobals.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 
 class VulkanDevice;
 class VulkanCommandBufferPool;
@@ -18,10 +20,10 @@ struct VulkanQueueCreateInfo {
 class VulkanQueue {
 public:
     ~VulkanQueue();
-    void CreateQueue(const VulkanQueueCreateInfo &createInfo);
+    static VulkanQueue* Create(const VulkanQueueCreateInfo &createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] uint32_t GetQueueFamilyIndex() const;
     [[nodiscard]] VulkanCommandBufferPool* AcquireCommandBufferPool(VulkanCommandBufferType commandBufferType,
-        VulkanCommandBufferLifetime commandBufferLifetime);
+        VulkanCommandBufferLifetime commandBufferLifetime, Photon::Result& acquireResult);
     void ReturnCommandBufferPool(VulkanCommandBufferPool *commandBufferPool);
 private:
     vk::raii::Queue m_handle = nullptr;

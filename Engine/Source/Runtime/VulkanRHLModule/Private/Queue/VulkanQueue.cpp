@@ -1,7 +1,6 @@
 #include "../../Public/Queue/VulkanQueue.h"
 #include "Device/VulkanDevice.h"
 #include "CommandBuffers/VulkanCommandBufferPool.h"
-#include "CommandBuffers/VulkanCommandBufferPoolFactory.h"
 
 VulkanQueue::~VulkanQueue() {
     for (auto& commandBufferPool : m_commandBufferPools) {
@@ -15,10 +14,13 @@ VulkanQueue::~VulkanQueue() {
     }
 }
 
-void VulkanQueue::CreateQueue(const VulkanQueueCreateInfo &createInfo) {
-    m_handle = createInfo.m_vulkanDevice->GetHandle().getQueue(createInfo.m_queueFamilyIndex, createInfo.m_queueIndex);
-    m_vulkanDevice = createInfo.m_vulkanDevice;
-    m_queueFamilyIndex = createInfo.m_queueFamilyIndex;
+VulkanQueue* VulkanQueue::Create(const VulkanQueueCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanQueue* instance = Photon::AllocateObject<VulkanQueue>(inOutCreateParams);
+    instance->m_handle = createInfo.m_vulkanDevice->GetHandle().getQueue(createInfo.m_queueFamilyIndex, createInfo.m_queueIndex);
+    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    instance->m_queueFamilyIndex = createInfo.m_queueFamilyIndex;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
 uint32_t VulkanQueue::GetQueueFamilyIndex() const {
@@ -26,13 +28,14 @@ uint32_t VulkanQueue::GetQueueFamilyIndex() const {
 }
 
 VulkanCommandBufferPool* VulkanQueue::AcquireCommandBufferPool(VulkanCommandBufferType commandBufferType,
-    VulkanCommandBufferLifetime commandBufferLifetime) {
+    VulkanCommandBufferLifetime commandBufferLifetime, Photon::Result& acquireResult) {
     auto commandBufferPoolsIterator = m_commandBufferPools.find(commandBufferType);
     if (commandBufferPoolsIterator != m_commandBufferPools.end()) {
         auto commandPoolIterator = commandBufferPoolsIterator->second.find(commandBufferLifetime);
         if (commandPoolIterator != commandBufferPoolsIterator->second.end() && !commandPoolIterator->second.empty()) {
             VulkanCommandBufferPool* commandBufferPool = commandPoolIterator->second.front();
             commandPoolIterator->second.pop();
+            acquireResult = Photon::Result::Success;
             return commandBufferPool;
         }
     }
@@ -45,7 +48,10 @@ VulkanCommandBufferPool* VulkanQueue::AcquireCommandBufferPool(VulkanCommandBuff
         this,
         0);
 
-    return Photon::Vulkan::CommandBufferPoolFactory::CreateCommandBufferPool(createInfo, nullptr);
+    InOutCreateParams<Photon::Result> inOutCreateParams{};
+    VulkanCommandBufferPool* commandBufferPool = VulkanCommandBufferPool::Create(createInfo, &inOutCreateParams);
+    acquireResult = inOutCreateParams.m_result;
+    return commandBufferPool;
 }
 
 void VulkanQueue::ReturnCommandBufferPool(VulkanCommandBufferPool *commandBufferPool) {

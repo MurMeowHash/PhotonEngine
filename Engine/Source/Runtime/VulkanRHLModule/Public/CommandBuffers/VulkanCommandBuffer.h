@@ -3,7 +3,9 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vulkan_raii.hpp>
 #include "VulkanCommandBufferGlobals.h"
-#include "../Device/VulkanDevice.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
+#include "Device/VulkanDevice.h"
 
 struct VulkanCommandBufferCreateInfo {
     VulkanCommandBufferType m_commandBufferType;
@@ -11,10 +13,15 @@ struct VulkanCommandBufferCreateInfo {
     VulkanDevice* m_vulkanDevice;
 };
 
+struct VulkanCommandBufferExistingCreateInfo {
+    VulkanCommandBufferType m_commandBufferType;
+    vk::raii::CommandBuffer&& m_commandBuffer;
+};
+
 class VulkanCommandBuffer {
 public:
-    [[nodiscard]] bool Create(const VulkanCommandBufferCreateInfo &createInfo);
-    void Create(VulkanCommandBufferType commandBufferType, vk::raii::CommandBuffer &&commandBuffer);
+    static VulkanCommandBuffer* Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+    static VulkanCommandBuffer* Create(const VulkanCommandBufferExistingCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] VulkanCommandBufferType GetCommandBufferType() const;
     [[nodiscard]] const vk::CommandBuffer& GetHandle() const;
 

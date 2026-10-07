@@ -1,25 +1,31 @@
 #include "../../Public/CommandBuffers/VulkanCommandBuffer.h"
 
-bool VulkanCommandBuffer::Create(const VulkanCommandBufferCreateInfo &createInfo) {
-    vk::CommandBufferAllocateInfo allocateInfo;
+VulkanCommandBuffer * VulkanCommandBuffer::Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    vk::CommandBufferAllocateInfo allocateInfo{};
     allocateInfo.level = Photon::Vulkan::DeriveLevelFromType(createInfo.m_commandBufferType);
     allocateInfo.commandBufferCount = 1;
     allocateInfo.commandPool = createInfo.m_commandPool;
     vk::ResultValue<std::vector<vk::raii::CommandBuffer>> commandBufferAllocateRes =
         createInfo.m_vulkanDevice->GetHandle().allocateCommandBuffers(allocateInfo);
 
-    if (commandBufferAllocateRes.result != vk::Result::eSuccess)
-        return false;
+    if (commandBufferAllocateRes.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
 
-    m_handle = std::move(commandBufferAllocateRes.value.front());
-    m_commandBufferType = createInfo.m_commandBufferType;
-
-    return true;
+    VulkanCommandBuffer* instance = Photon::AllocateObject<VulkanCommandBuffer>(inOutCreateParams);
+    instance->m_handle = std::move(commandBufferAllocateRes.value.front());
+    instance->m_commandBufferType = createInfo.m_commandBufferType;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
-void VulkanCommandBuffer::Create(VulkanCommandBufferType commandBufferType, vk::raii::CommandBuffer &&commandBuffer) {
-    m_handle = std::move(commandBuffer);
-    m_commandBufferType = commandBufferType;
+VulkanCommandBuffer* VulkanCommandBuffer::Create(const VulkanCommandBufferExistingCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanCommandBuffer* instance = Photon::AllocateObject<VulkanCommandBuffer>(inOutCreateParams);
+    instance->m_handle = std::move(createInfo.m_commandBuffer);
+    instance->m_commandBufferType = createInfo.m_commandBufferType;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
 VulkanCommandBufferType VulkanCommandBuffer::GetCommandBufferType() const {

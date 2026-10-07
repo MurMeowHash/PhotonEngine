@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <vulkan/vulkan_raii.hpp>
 #include "VulkanCommandBuffer.h"
-#include "../Device/VulkanDevice.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
+#include "Device/VulkanDevice.h"
 #include "VulkanCommandBufferGlobals.h"
 
 enum class VulkanCommandBufferCreateFlags : uint32_t {
@@ -27,11 +29,11 @@ class VulkanCommandBufferPool {
 public:
     ~VulkanCommandBufferPool();
 
-    [[nodiscard]] bool Create(const VulkanCommandBufferPoolCreateInfo &createInfo);
+    static VulkanCommandBufferPool* Create(const VulkanCommandBufferPoolCreateInfo &createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] const vk::CommandPool& GetHandle() const;
     [[nodiscard]] VulkanCommandBufferType GetCommandBufferType() const;
     [[nodiscard]] VulkanCommandBufferLifetime GetCommandBufferLifetime() const;
-    [[nodiscard]] VulkanCommandBuffer* PopCommandBuffer();
+    [[nodiscard]] VulkanCommandBuffer* PopCommandBuffer(Photon::Result& popResult);
     void ReturnCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
 private:
@@ -41,6 +43,6 @@ private:
     VulkanDevice* m_poolDevice = nullptr;
     std::queue<VulkanCommandBuffer*> m_commandBufferPool;
 
-    [[nodiscard]] bool TryExtendPool();
-    void PopulatePool(uint32_t poolSize);
+    [[nodiscard]] Photon::Result TryExtendPool();
+    [[nodiscard]] Photon::Result PopulatePool(uint32_t poolSize);
 };

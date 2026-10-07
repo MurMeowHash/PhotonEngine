@@ -47,12 +47,10 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBuffer.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBufferPool.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBufferGlobals.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBufferFactory.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBufferPoolFactory.h
 
         ## Queue
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanQueue.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanQueueFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkBatch.h
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanShaderModule.h
@@ -116,12 +114,10 @@ target_sources(VulkanRHLModule
         ## Command Buffers
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CommandBuffers/VulkanCommandBuffer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CommandBuffers/VulkanCommandBufferPool.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/CommandBuffers/VulkanCommandBufferFactory.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/CommandBuffers/VulkanCommandBufferPoolFactory.cpp
 
         ## Queue
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanQueue.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanQueueFactory.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkBatch.cpp
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanShaderModule.cpp

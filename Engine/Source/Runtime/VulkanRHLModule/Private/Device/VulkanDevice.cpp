@@ -3,7 +3,6 @@
 #include "LinearAllocator.h"
 #include "Memory/VulkanDeviceMemoryProviderFactory.h"
 #include "Memory/Configurations/VulkanAllocationConfiguration.h"
-#include "Queue/VulkanQueueFactory.h"
 
 using Photon::Core::Flags::operator|;
 
@@ -59,13 +58,14 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
 
     instance->m_features = featuresAssembleData.m_queryResult;
     instance->m_handle = std::move(deviceWrapper.value);
-    instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties), std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
+    Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
+        std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
     instance->InitializePipelineProvider();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
-    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    Photon::PushResult(queueObtainResult, inOutCreateParams);
     return instance;
 }
 
@@ -167,7 +167,7 @@ QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requeste
     return queueInitializeInfo;
 }
 
-void VulkanDevice::ObtainQueues(std::unordered_map<uint32_t, uint32_t> &&queueFamilyRequestProperties,
+Photon::Result VulkanDevice::ObtainQueues(std::unordered_map<uint32_t, uint32_t> &&queueFamilyRequestProperties,
     std::unordered_map<vk::QueueFlagBits, uint32_t> &&queueFamilyRequestInfo) {
     std::vector<std::vector<VulkanQueue*>> createdQueues(m_physicalDevice.getQueueFamilyProperties2().size(), std::vector<VulkanQueue*>());
     m_deviceQueues.clear();
@@ -176,15 +176,21 @@ void VulkanDevice::ObtainQueues(std::unordered_map<uint32_t, uint32_t> &&queueFa
         if (createdQueues[requestQueueInfo.second].size() >= queueFamilyRequestProperties[requestQueueInfo.second])
             m_deviceQueues.emplace(requestQueueInfo.first, createdQueues[requestQueueInfo.second][0]);
         else {
-            VulkanQueueCreateInfo queueCreateInfo;
+            VulkanQueueCreateInfo queueCreateInfo{};
             queueCreateInfo.m_vulkanDevice = this;
             queueCreateInfo.m_queueFamilyIndex = requestQueueInfo.second;
             queueCreateInfo.m_queueIndex = createdQueues[requestQueueInfo.second].size();
-            VulkanQueue* queue = Photon::Vulkan::QueueFactory::CreateQueue(queueCreateInfo);
+            InOutCreateParams<Photon::Result> inOutCreateParams{};
+            VulkanQueue* queue = VulkanQueue::Create(queueCreateInfo, &inOutCreateParams);
+            if (inOutCreateParams.m_result != Photon::Result::Success)
+                return inOutCreateParams.m_result;
+
             m_deviceQueues.emplace(requestQueueInfo.first, queue);
             createdQueues[requestQueueInfo.second].emplace_back(queue);
         }
     }
+
+    return Photon::Result::Success;
 }
 
 VulkanDeviceFeaturesAssembleData VulkanDevice::AssembleDeviceFeatures(const std::vector<VulkanDeviceFeature> &requestedFeatures) {
