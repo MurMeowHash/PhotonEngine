@@ -1,6 +1,8 @@
 #pragma once
 
 #include "VulkanSemaphore.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 
 class VulkanDevice;
 
@@ -11,10 +13,13 @@ struct VulkanTimelineSemaphoreCreateInfo {
 
 class VulkanTimelineSemaphore : public VulkanSemaphore {
 public:
-    [[nodiscard]] bool Create(const VulkanTimelineSemaphoreCreateInfo& createInfo);
-    bool WaitForValue(uint64_t waitValue, uint64_t timeout = UINT64_MAX) const;
-    bool SignalValue(uint64_t signalValue) const;
-    [[nodiscard]] bool TryGetCurrentValue(uint64_t& value) const;
+    [[nodiscard]] VulkanSemaphoreLockResult ScheduleAcquire() override;
+    [[nodiscard]] VulkanSemaphoreLockResult ScheduleRelease() override;
+public:
+    static VulkanTimelineSemaphore* Create(const VulkanTimelineSemaphoreCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+    [[nodiscard]] uint64_t GetCurrentScheduledValue() const;
+    [[nodiscard]] Photon::Result TryGetCurrentTimelineValue(uint64_t& value) const;
 private:
     VulkanDevice* m_vulkanDevice = nullptr;
+    uint64_t m_timelineValue = 0;
 };

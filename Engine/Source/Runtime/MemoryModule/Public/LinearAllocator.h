@@ -23,6 +23,8 @@ private:
 
     size_t m_uniformChunkSize;
 
+    void ClearChunkReferences();
+
     friend class LinearToLinearAllocatorAdopter;
     friend class LinearToSimpleAllocatorAdopter;
     friend class SimpleToLinearAllocatorAdopter;

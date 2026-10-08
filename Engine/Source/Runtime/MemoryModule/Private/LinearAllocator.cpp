@@ -17,9 +17,11 @@ void *LinearAllocator::AllocateMemory(size_t memorySize) {
     size_t alignedOffset = Photon::MemoryOperationsCommon::AlignForward(m_tailChunk->m_size, alignment);
 
     if(alignedOffset + memorySize > m_tailChunk->m_capacity) {
-        m_tailChunk->m_next = new MemoryChunk(m_uniformChunkSize);
-        m_tailChunk = m_tailChunk->m_next;
+        if (m_tailChunk->m_next == nullptr) {
+            m_tailChunk->m_next = new MemoryChunk(m_uniformChunkSize);
+        }
 
+        m_tailChunk = m_tailChunk->m_next;
         alignedOffset = Photon::MemoryOperationsCommon::AlignForward<size_t>(0, alignment);
     }
 
@@ -40,12 +42,12 @@ void LinearAllocator::FreeMemory() {
         delete inspectedChunk;
     }
 
-    InvalidateAllocator();
+    ClearChunkReferences();
 }
 
 void LinearAllocator::InvalidateAllocator() {
-    m_rootChunk = nullptr;
-    m_tailChunk = nullptr;
+    m_tailChunk = m_rootChunk;
+    m_tailChunk->InvalidateChunk();
 }
 
 size_t LinearAllocator::GetAllocatedMemorySize() const {
@@ -58,4 +60,9 @@ size_t LinearAllocator::GetAllocatedMemorySize() const {
     }
 
     return totalMemorySize;
+}
+
+void LinearAllocator::ClearChunkReferences() {
+    m_rootChunk = nullptr;
+    m_tailChunk = nullptr;
 }

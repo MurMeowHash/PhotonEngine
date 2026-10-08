@@ -18,5 +18,5 @@ void LinearToLinearAllocatorAdopter::Adopt(IAllocator* dest, IAllocator* src) {
         destLinear->m_tailChunk = srcLinear->m_tailChunk;
     }
 
-    srcLinear->InvalidateAllocator();
+    srcLinear->ClearChunkReferences();
 }

@@ -20,6 +20,10 @@ struct MemoryChunk {
         m_size = 0;
     }
 
+    void InvalidateChunk() {
+        m_size = 0;
+    }
+
     MemoryChunk* m_next;
     size_t m_capacity;
     size_t m_size;

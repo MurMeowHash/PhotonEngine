@@ -7,9 +7,13 @@
 #include "CommandBuffers/VulkanCommandBufferGlobals.h"
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
+#include "VulkanWorkContextPool.h"
 
 class VulkanDevice;
 class VulkanCommandBufferPool;
+struct VulkanWorkBatch;
+class VulkanWorkContext;
+class VulkanTimelineSemaphore;
 
 struct VulkanQueueCreateInfo {
     VulkanDevice* m_vulkanDevice;
@@ -25,10 +29,20 @@ public:
     [[nodiscard]] VulkanCommandBufferPool* AcquireCommandBufferPool(VulkanCommandBufferType commandBufferType,
         VulkanCommandBufferLifetime commandBufferLifetime, Photon::Result& acquireResult);
     void ReturnCommandBufferPool(VulkanCommandBufferPool *commandBufferPool);
+    [[nodiscard]] Photon::Result SubmitWorkBatches(VulkanWorkContext* vulkanWorkContext);
+    //TODO Multithreading: ideally launch dedicated thread for this process and not calling it from public API
+    void ProcessInterruptQueue();
+    [[nodiscard]] VulkanWorkContextPool* GetWorkContextPool() const;
 private:
     vk::raii::Queue m_handle = nullptr;
     uint32_t m_queueFamilyIndex = 0;
     VulkanDevice* m_vulkanDevice = nullptr;
+    std::vector<VulkanWorkContext*> m_pendingInterruptContexts;
+    VulkanTimelineSemaphore* m_workBatchesTimelineSemaphore = nullptr;
+    VulkanWorkContextPool* m_workContextPool = nullptr;
 
     std::map<VulkanCommandBufferType, std::map<VulkanCommandBufferLifetime, std::queue<VulkanCommandBufferPool*>>> m_commandBufferPools;
+
+    [[nodiscard]] Photon::Result CreateWorkContextPool();
+    [[nodiscard]] Photon::Result CreateTimelineSemaphore();
 };

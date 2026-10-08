@@ -32,6 +32,17 @@ VulkanCommandBufferType VulkanCommandBuffer::GetCommandBufferType() const {
     return m_commandBufferType;
 }
 
-const vk::CommandBuffer& VulkanCommandBuffer::GetHandle() const {
+vk::CommandBuffer VulkanCommandBuffer::GetHandle() const {
     return *m_handle;
+}
+
+Photon::Result VulkanCommandBuffer::Begin() const {
+    vk::CommandBufferBeginInfo beginInfo{};
+    vk::Result beginResult = m_handle.begin(beginInfo);
+    return beginResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
+}
+
+Photon::Result VulkanCommandBuffer::End() const {
+    vk::Result endResult = m_handle.end();
+    return endResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
 }

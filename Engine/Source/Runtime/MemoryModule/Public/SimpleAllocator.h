@@ -24,6 +24,9 @@ public:
     [[nodiscard]] size_t GetAllocatedMemorySize() const override;
 private:
     std::vector<MemoryCell> m_allocatedMemoryCells;
+    size_t m_currentCellPointer = 0;
+
+    void ClearMemoryCells();
 
     friend class SimpleToSimpleAllocatorAdopter;
     friend class LinearToSimpleAllocatorAdopter;

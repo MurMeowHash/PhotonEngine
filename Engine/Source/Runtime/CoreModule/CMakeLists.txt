@@ -11,6 +11,7 @@ target_sources(CoreModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Blueprints/BlueprintDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Blueprints/BlueprintProvider.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/PhotonGlobals.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pools/PhotonPool.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CoreGlobals.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/PlatformInteractor.cpp
@@ -26,6 +27,7 @@ target_include_directories(CoreModule
 target_link_libraries(CoreModule
         PUBLIC
         MemoryModule
+        FactoryModule
         INTERFACE
         PhotonBuildConfig
 )

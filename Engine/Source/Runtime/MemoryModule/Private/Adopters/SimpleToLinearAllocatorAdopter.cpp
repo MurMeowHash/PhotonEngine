@@ -18,4 +18,6 @@ void SimpleToLinearAllocatorAdopter::Adopt(IAllocator *dest, IAllocator *src) {
             destLinear->m_tailChunk = destLinear->m_tailChunk->m_next;
         }
     }
+
+    srcSimple->ClearMemoryCells();
 }

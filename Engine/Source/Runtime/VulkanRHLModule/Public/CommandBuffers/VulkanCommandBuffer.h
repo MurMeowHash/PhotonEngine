@@ -23,8 +23,9 @@ public:
     static VulkanCommandBuffer* Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     static VulkanCommandBuffer* Create(const VulkanCommandBufferExistingCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] VulkanCommandBufferType GetCommandBufferType() const;
-    [[nodiscard]] const vk::CommandBuffer& GetHandle() const;
-
+    [[nodiscard]] vk::CommandBuffer GetHandle() const;
+    [[nodiscard]] Photon::Result Begin() const;
+    [[nodiscard]] Photon::Result End() const;
 private:
     VulkanCommandBufferType m_commandBufferType = VulkanCommandBufferType::None;
     vk::raii::CommandBuffer m_handle = nullptr;

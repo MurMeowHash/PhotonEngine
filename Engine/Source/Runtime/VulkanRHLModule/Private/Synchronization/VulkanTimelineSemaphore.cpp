@@ -1,7 +1,16 @@
 #include "../../Public/Synchronization/VulkanTimelineSemaphore.h"
 #include "Device/VulkanDevice.h"
 
-bool VulkanTimelineSemaphore::Create(const VulkanTimelineSemaphoreCreateInfo &createInfo) {
+VulkanSemaphoreLockResult VulkanTimelineSemaphore::ScheduleAcquire() {
+    return VulkanSemaphoreLockResult(*m_handle, m_timelineValue);
+}
+
+VulkanSemaphoreLockResult VulkanTimelineSemaphore::ScheduleRelease() {
+    ++m_timelineValue;
+    return VulkanSemaphoreLockResult(*m_handle, m_timelineValue);
+}
+
+VulkanTimelineSemaphore * VulkanTimelineSemaphore::Create(const VulkanTimelineSemaphoreCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
     vk::SemaphoreTypeCreateInfo semaphoreTypeCreateInfo;
     semaphoreTypeCreateInfo.semaphoreType = vk::SemaphoreType::eTimeline;
     semaphoreTypeCreateInfo.initialValue = createInfo.m_initialValue;
@@ -14,38 +23,28 @@ bool VulkanTimelineSemaphore::Create(const VulkanTimelineSemaphoreCreateInfo &cr
     vk::ResultValue<vk::raii::Semaphore> semaphoreWrapper = createInfo.m_vulkanDevice->GetHandle().createSemaphore(
         semaphoreStructureChain.get<vk::SemaphoreCreateInfo>());
 
-    if (semaphoreWrapper.result != vk::Result::eSuccess)
-        return false;
+    if (semaphoreWrapper.result != vk::Result::eSuccess) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
 
-    m_handle = std::move(semaphoreWrapper.value);
-    m_vulkanDevice = createInfo.m_vulkanDevice;
-    return true;
+    VulkanTimelineSemaphore* instance = Photon::AllocateObject<VulkanTimelineSemaphore>(inOutCreateParams);
+    instance->m_handle = std::move(semaphoreWrapper.value);
+    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    instance->m_timelineValue = createInfo.m_initialValue;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
-bool VulkanTimelineSemaphore::WaitForValue(uint64_t waitValue, uint64_t timeout) const {
-    vk::SemaphoreWaitInfo waitInfo;
-    waitInfo.pValues = &waitValue;
-    waitInfo.semaphoreCount = 1;
-    waitInfo.pSemaphores = &*m_handle;
-
-    vk::Result waitResult = m_vulkanDevice->GetHandle().waitSemaphores(waitInfo, timeout);
-    return waitResult == vk::Result::eSuccess;
+uint64_t VulkanTimelineSemaphore::GetCurrentScheduledValue() const {
+    return m_timelineValue;
 }
 
-bool VulkanTimelineSemaphore::SignalValue(uint64_t signalValue) const {
-    vk::SemaphoreSignalInfo signalInfo;
-    signalInfo.value = signalValue;
-    signalInfo.semaphore = *m_handle;
+Photon::Result VulkanTimelineSemaphore::TryGetCurrentTimelineValue(uint64_t& value) const {
+    vk::ResultValue<uint64_t> valueWrapper = m_handle.getCounterValue();
+    if (valueWrapper.result != vk::Result::eSuccess)
+        return Photon::Result::UnknownFailure;
 
-    vk::Result signalResult = m_vulkanDevice->GetHandle().signalSemaphore(signalInfo);
-    return signalResult == vk::Result::eSuccess;
-}
-
-bool VulkanTimelineSemaphore::TryGetCurrentValue(uint64_t &value) const {
-    vk::ResultValue<uint64_t> valueGetWrapper = m_handle.getCounterValue();
-    if (valueGetWrapper.result != vk::Result::eSuccess)
-        return false;
-
-    value = valueGetWrapper.value;
-    return true;
+    value = valueWrapper.value;
+    return Photon::Result::Success;
 }

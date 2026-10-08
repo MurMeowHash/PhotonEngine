@@ -1,6 +1,8 @@
 #pragma once
 
 #include "VulkanSemaphore.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 
 class VulkanDevice;
 
@@ -10,5 +12,8 @@ struct VulkanBinarySemaphoreCreateInfo {
 
 class VulkanBinarySemaphore : public VulkanSemaphore {
 public:
-    [[nodiscard]] bool Create(const VulkanBinarySemaphoreCreateInfo& createInfo);
+    [[nodiscard]] VulkanSemaphoreLockResult ScheduleAcquire() override;
+    [[nodiscard]] VulkanSemaphoreLockResult ScheduleRelease() override;
+public:
+    static VulkanBinarySemaphore* Create(const VulkanBinarySemaphoreCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
 };

@@ -11,4 +11,7 @@ void SimpleToSimpleAllocatorAdopter::Adopt(IAllocator *dest, IAllocator *src) {
     destSimple->m_allocatedMemoryCells.insert(destSimple->m_allocatedMemoryCells.end(),
                                               srcSimple->m_allocatedMemoryCells.begin(),
                                               srcSimple->m_allocatedMemoryCells.end());
+
+    destSimple->m_currentCellPointer += srcSimple->m_currentCellPointer;
+    srcSimple->ClearMemoryCells();
 }
