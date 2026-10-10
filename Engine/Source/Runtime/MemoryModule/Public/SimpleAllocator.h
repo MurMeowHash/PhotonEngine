@@ -17,6 +17,7 @@ class SimpleToLinearAllocatorAdopter;
 
 class SimpleAllocator : public AllocatorBase {
 public:
+    ~SimpleAllocator() override;
     explicit SimpleAllocator(size_t allocateCapacity);
     void* AllocateMemory(size_t memorySize) override;
     void FreeMemory() override;

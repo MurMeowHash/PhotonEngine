@@ -52,7 +52,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanQueue.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkBatch.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkContext.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkContextPool.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkPools.h
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanShaderModule.h
@@ -77,6 +77,9 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLModule.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/IVulkanRHLFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLGraphicsWorkContext.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandList.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandWorkContext.h
 
         ## Resources
         ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
@@ -121,7 +124,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanQueue.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkBatch.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkContext.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkContextPool.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkPools.cpp
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanShaderModule.cpp
@@ -143,6 +146,9 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLFactory.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLModule.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLGraphicsWorkContext.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandList.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandWorkContext.cpp
 
         ## Resources
         ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp

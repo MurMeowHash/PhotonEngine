@@ -2,6 +2,10 @@
 #include <cassert>
 #include "MemoryOperationsCommon.h"
 
+LinearAllocator::~LinearAllocator() {
+    LinearAllocator::FreeMemory();
+}
+
 LinearAllocator::LinearAllocator(size_t uniformChunkSize)
 : AllocatorBase(typeid(LinearAllocator)), m_uniformChunkSize(uniformChunkSize) { }
 

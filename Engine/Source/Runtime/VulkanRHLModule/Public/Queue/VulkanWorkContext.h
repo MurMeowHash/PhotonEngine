@@ -3,16 +3,11 @@
 #include <vector>
 #include "VulkanWorkBatch.h"
 #include "CoreGlobals.h"
-#include "FactoryGlobals.h"
 #include "CommandBuffers/VulkanCommandBufferPool.h"
 
 class VulkanQueue;
 class IAllocator;
-class VulkanWorkContextPool;
-
-struct VulkanWorkContextCreateInfo {
-    VulkanQueue* m_vulkanQueue;
-};
+class VulkanDevice;
 
 enum class VulkanWorkStage : uint8_t {
     Wait = 0,
@@ -20,31 +15,39 @@ enum class VulkanWorkStage : uint8_t {
     Signal = 2,
 };
 
+struct VulkanWorkSubmitInfo {
+    std::vector<VulkanWorkBatch*> m_workBatches;
+    VulkanCommandBufferPool* m_commandBufferPool;
+    IAllocator* m_workAllocator;
+    size_t m_finishedBatches;
+
+    void FinishBatch(size_t batchIndex);
+    void DisposeBatch(size_t batchIndex);
+    [[nodiscard]] bool IsAllBatchesFinished() const;
+    void Dispose(VulkanQueue* vulkanQueue, VulkanWorkAllocatorPool* workAllocatorPool);
+};
+
 class VulkanWorkContext {
-    friend class VulkanWorkContextPool;
 public:
-    ~VulkanWorkContext();
-    static VulkanWorkContext* Create(const VulkanWorkContextCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+    virtual ~VulkanWorkContext();
+    void Initialize(VulkanQueue* workQueue, VulkanDevice* vulkanDevice);
     VulkanWorkBatch* GetWorkBatch(VulkanWorkStage stage);
     void AddWaitSemaphore(VulkanSemaphore* semaphore, vk::PipelineStageFlags2 waitFlags);
     void AddSignalSemaphore(VulkanSemaphore* semaphore);
     [[nodiscard]] Photon::Result GetCommandBuffer(VulkanCommandBuffer*& commandBuffer);
-    [[nodiscard]] Photon::Result PackWorkBatches();
-    [[nodiscard]] std::vector<VulkanWorkBatch*> GetAllWorkBatches() const;
-    void DisposePackedBatch(size_t batchIndex);
-    [[nodiscard]] bool HasAnyBatches() const;
+    [[nodiscard]] Photon::Result PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo);
+
+protected:
+    VulkanQueue* m_workQueue = nullptr;
+
 private:
-    VulkanQueue* m_vulkanQueue = nullptr;
+    VulkanDevice* m_vulkanDevice = nullptr;
 
     std::vector<VulkanWorkBatch*> m_workBatches;
     VulkanWorkStage m_currentStage{};
     VulkanCommandBufferPool* m_commandBufferPool = nullptr;
     IAllocator* m_workAllocator = nullptr;
-    bool m_isBatchesPacked{};
 
     VulkanWorkBatch* CreateWorkBatch();
-    [[nodiscard]] Photon::Result StartCommandBuffer(VulkanWorkBatch* vulkanWorkBatch, VulkanCommandBuffer*& commandBuffer) const;
-    void RemovePackedBatch(size_t batchIndex);
-
-    void ClearBatches() const;
+    [[nodiscard]] Photon::Result StartCommandBuffer(VulkanWorkBatch* vulkanWorkBatch, VulkanCommandBuffer*& commandBuffer);
 };

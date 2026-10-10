@@ -9,6 +9,7 @@ using Photon::Core::Flags::operator|=;
 using Photon::Core::Flags::operator|;
 
 VulkanDynamicRHL::~VulkanDynamicRHL() {
+    delete m_immediateRHlCommandList;
     delete m_vulkanDevice;
     delete m_vulkanInstance;
 }
@@ -22,13 +23,26 @@ VulkanRHLViewport* VulkanDynamicRHL::CreateVulkanRHLViewport(const RHLViewportCr
     return VulkanRHLViewport::Create(vulkanCreateInfo, inOutCreateParams);
 }
 
+VulkanDevice* VulkanDynamicRHL::GetVulkanDevice() const {
+    return m_vulkanDevice;
+}
+
+VulkanRHLCommandList* VulkanDynamicRHL::GetImmediateRHLCommandList() const {
+    return m_immediateRHlCommandList;
+}
+
 Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLCreateInfo &createInfo) {
     Photon::Result createResult = CreateVulkanInstance();
     if (createResult != Photon::Result::Success)
         return Photon::Result::UnknownFailure;
 
     createResult = CreateVulkanDevice();
-    return createResult;
+    if (createResult != Photon::Result::Success)
+        return Photon::Result::UnknownFailure;
+
+    InOutCreateParams<Photon::Result> commandListInOut;
+    m_immediateRHlCommandList = VulkanRHLCommandList::Create({}, &commandListInOut);
+    return commandListInOut.m_result;
 }
 
 Photon::Result VulkanDynamicRHL::CreateVulkanInstance() {

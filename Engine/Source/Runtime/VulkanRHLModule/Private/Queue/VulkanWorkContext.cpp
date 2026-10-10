@@ -1,28 +1,48 @@
 #include "../../Public/Queue/VulkanWorkContext.h"
-#include "LinearAllocator.h"
 
-VulkanWorkContext::~VulkanWorkContext() {
-    ClearBatches();
-    delete m_workAllocator;
-    m_vulkanQueue->ReturnCommandBufferPool(m_commandBufferPool);
+void VulkanWorkSubmitInfo::FinishBatch(size_t batchIndex) {
+    if (batchIndex >= m_workBatches.size())
+        return;
+
+    m_workBatches[batchIndex]->m_batchStatus = VulkanWorkBatchStatus::Finished;
+    for (VulkanCommandBuffer* cmdBuffer: m_workBatches[batchIndex]->m_commandBuffers)
+        m_commandBufferPool->ReturnCommandBuffer(cmdBuffer);
+
+    ++m_finishedBatches;
 }
 
-VulkanWorkContext* VulkanWorkContext::Create(const VulkanWorkContextCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
-    Photon::Result acquireResult;
-    VulkanCommandBufferPool* commandBufferPool =
-        createInfo.m_vulkanQueue->AcquireCommandBufferPool(VulkanCommandBufferType::Primary, VulkanCommandBufferLifetime::LongLived, acquireResult);
+void VulkanWorkSubmitInfo::DisposeBatch(size_t batchIndex) {
+    if (batchIndex >= m_workBatches.size())
+        return;
 
-    if (acquireResult != Photon::Result::Success) {
-        Photon::PushResult(acquireResult, inOutCreateParams);
-        return nullptr;
-    }
+    for (VulkanCommandBuffer* cmdBuffer : m_workBatches[batchIndex]->m_commandBuffers)
+        m_commandBufferPool->ReturnCommandBuffer(cmdBuffer);
 
-    VulkanWorkContext* instance = Photon::AllocateObject<VulkanWorkContext>(inOutCreateParams);
-    instance->m_vulkanQueue = createInfo.m_vulkanQueue;
-    instance->m_commandBufferPool = commandBufferPool;
-    instance->m_workAllocator = new LinearAllocator(sizeof(VulkanWorkBatch) * 8ull);
-    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
-    return instance;
+    std::swap(m_workBatches[batchIndex], m_workBatches.back());
+    m_workBatches.pop_back();
+}
+
+bool VulkanWorkSubmitInfo::IsAllBatchesFinished() const {
+    return m_finishedBatches >= m_workBatches.size();
+}
+
+void VulkanWorkSubmitInfo::Dispose(VulkanQueue *vulkanQueue, VulkanWorkAllocatorPool *workAllocatorPool) {
+    vulkanQueue->ReturnCommandBufferPool(m_commandBufferPool);
+    for (VulkanWorkBatch* workBatch : m_workBatches)
+        workBatch->~VulkanWorkBatch();
+
+    m_workBatches.clear();
+    workAllocatorPool->ReturnObject(m_workAllocator);
+}
+
+VulkanWorkContext::~VulkanWorkContext() {
+    m_vulkanDevice->GetWorkAllocatorPool()->ReturnObject(m_workAllocator);
+    m_workQueue->ReturnCommandBufferPool(m_commandBufferPool);
+}
+
+void VulkanWorkContext::Initialize(VulkanQueue *workQueue, VulkanDevice *vulkanDevice) {
+    m_vulkanDevice = vulkanDevice;
+    m_workQueue = workQueue;
 }
 
 VulkanWorkBatch* VulkanWorkContext::GetWorkBatch(VulkanWorkStage stage) {
@@ -54,47 +74,52 @@ Photon::Result VulkanWorkContext::GetCommandBuffer(VulkanCommandBuffer *&command
     return Photon::Result::Success;
 }
 
-Photon::Result VulkanWorkContext::PackWorkBatches() {
+Photon::Result VulkanWorkContext::PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo) {
     for (VulkanWorkBatch* workBatch : m_workBatches) {
         for (VulkanCommandBuffer* commandBuffer : workBatch->m_commandBuffers) {
             Photon::Result endResult = commandBuffer->End();
             if (endResult != Photon::Result::Success)
                 return endResult;
         }
+
+        workBatch->m_batchStatus = VulkanWorkBatchStatus::Packed;
     }
 
-    m_isBatchesPacked = true;
+    workSubmitInfo.m_workBatches = std::move(m_workBatches);
+    workSubmitInfo.m_commandBufferPool = m_commandBufferPool;
+    workSubmitInfo.m_workAllocator = m_workAllocator;
+
+    m_workBatches.clear();
+    m_commandBufferPool = nullptr;
+    m_workAllocator = nullptr;
     return Photon::Result::Success;
 }
 
-std::vector<VulkanWorkBatch*> VulkanWorkContext::GetAllWorkBatches() const {
-    return m_workBatches;
-}
-
-void VulkanWorkContext::DisposePackedBatch(size_t batchIndex) {
-    if (!m_isBatchesPacked || batchIndex >= m_workBatches.size())
-        return;
-
-    for (VulkanCommandBuffer* commandBuffer : m_workBatches[batchIndex]->m_commandBuffers)
-        m_commandBufferPool->ReturnCommandBuffer(commandBuffer);
-
-    RemovePackedBatch(batchIndex);
-}
-
-bool VulkanWorkContext::HasAnyBatches() const {
-    return !m_workBatches.empty();
-}
-
 VulkanWorkBatch* VulkanWorkContext::CreateWorkBatch() {
+    if (m_workAllocator == nullptr) {
+        Photon::Result allocatorAcquireResult;
+        m_workAllocator = m_vulkanDevice->GetWorkAllocatorPool()->PopObject(allocatorAcquireResult);
+    }
+
     InOutCreateParams<Photon::Result> inOutCreateParams{};
     inOutCreateParams.m_preAllocatedMemory = m_workAllocator->AllocateMemory(sizeof(VulkanWorkBatch));
     VulkanWorkBatch* workBatch = Photon::AllocateObject<VulkanWorkBatch>(&inOutCreateParams);
+    workBatch->m_batchStatus = VulkanWorkBatchStatus::Recorded;
     m_workBatches.emplace_back(workBatch);
     m_currentStage = VulkanWorkStage::Wait;
     return workBatch;
 }
 
-Photon::Result VulkanWorkContext::StartCommandBuffer(VulkanWorkBatch *vulkanWorkBatch, VulkanCommandBuffer *&commandBuffer) const {
+Photon::Result VulkanWorkContext::StartCommandBuffer(VulkanWorkBatch *vulkanWorkBatch, VulkanCommandBuffer *&commandBuffer) {
+    if (m_commandBufferPool == nullptr) {
+        Photon::Result acquireResult;
+        m_commandBufferPool = m_workQueue->AcquireCommandBufferPool(VulkanCommandBufferType::Primary,
+            VulkanCommandBufferLifetime::LongLived, acquireResult);
+
+        if (acquireResult != Photon::Result::Success)
+            return acquireResult;
+    }
+
     Photon::Result popResult;
     VulkanCommandBuffer* cmdBuffer = m_commandBufferPool->PopCommandBuffer(popResult);
     if (popResult != Photon::Result::Success)
@@ -109,19 +134,4 @@ Photon::Result VulkanWorkContext::StartCommandBuffer(VulkanWorkBatch *vulkanWork
     vulkanWorkBatch->m_commandBuffers.emplace_back(commandBuffer);
     commandBuffer = cmdBuffer;
     return Photon::Result::Success;
-}
-
-void VulkanWorkContext::RemovePackedBatch(size_t batchIndex) {
-    if (!m_isBatchesPacked || m_workBatches.empty())
-        return;
-
-    std::swap(m_workBatches[batchIndex], m_workBatches[m_workBatches.size() - 1]);
-    m_workBatches.pop_back();
-}
-
-void VulkanWorkContext::ClearBatches() const {
-    for (VulkanWorkBatch* workBatch: m_workBatches)
-        workBatch->~VulkanWorkBatch();
-
-    m_workAllocator->FreeMemory();
 }

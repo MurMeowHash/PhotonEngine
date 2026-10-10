@@ -37,6 +37,9 @@ public:
     }
 
     void ReturnObject(T* object) {
+        if (object == nullptr)
+            return;
+
         DisposeObject(object);
         m_pool.emplace(object);
     }

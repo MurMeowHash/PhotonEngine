@@ -22,6 +22,8 @@ VulkanDevice::~VulkanDevice() {
     for (std::pair<const vk::QueueFlagBits, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
     }
+
+    delete m_workAllocatorPool;
 }
 
 bool VulkanDevice::TryGetAvailableExtensions(std::vector<vk::ExtensionProperties> &availableExtensions) const {
@@ -58,6 +60,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
 
     instance->m_features = featuresAssembleData.m_queryResult;
     instance->m_handle = std::move(deviceWrapper.value);
+    instance->InitializeWorkAllocatorPool();
     Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
         std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
@@ -86,7 +89,7 @@ std::set<VulkanQueue *> VulkanDevice::GetOperatingQueues() const {
     return queues;
 }
 
-bool VulkanDevice::TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue *vulkanQueue) const {
+bool VulkanDevice::TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue*& vulkanQueue) const {
     auto queueIterator = m_deviceQueues.find(queueFlagBits);
     if (queueIterator == m_deviceQueues.end())
         return false;
@@ -101,6 +104,14 @@ IVulkanDeviceMemoryProvider * VulkanDevice::GetMemoryProvider() const {
 
 VulkanPipelineProvider * VulkanDevice::GetPipelineProvider() const {
     return m_pipelineProvider;
+}
+
+VulkanWorkAllocatorPool * VulkanDevice::GetWorkAllocatorPool() const {
+    return m_workAllocatorPool;
+}
+
+void VulkanDevice::WaitIdle() const {
+    vk::Result waitResult = m_handle.waitIdle();
 }
 
 QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requestedQueues) {
@@ -252,4 +263,8 @@ void VulkanDevice::InitializeMemoryProvider(VulkanMemoryProviderType memoryProvi
 
 void VulkanDevice::InitializePipelineProvider() {
     m_pipelineProvider = new VulkanPipelineProvider(this);
+}
+
+void VulkanDevice::InitializeWorkAllocatorPool() {
+    m_workAllocatorPool = VulkanWorkAllocatorPool::Create(VulkanWorkAllocatorPoolCreateInfo());
 }

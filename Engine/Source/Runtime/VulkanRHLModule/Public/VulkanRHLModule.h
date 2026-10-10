@@ -10,7 +10,6 @@ public:
     void Terminate() override;
 
     [[nodiscard]] VulkanDynamicRHL* GetVulkanDynamicRHL() const;
-
 private:
     IVulkanRHLFactory* m_vulkanRHLFactory = nullptr;
     VulkanDynamicRHL* m_vulkanDynamicRHL = nullptr;

@@ -10,6 +10,7 @@ class SimpleToLinearAllocatorAdopter;
 
 class LinearAllocator : public AllocatorBase {
 public:
+    ~LinearAllocator() override;
     explicit LinearAllocator(size_t uniformChunkSize);
 
     void* AllocateMemory(size_t memorySize) override;

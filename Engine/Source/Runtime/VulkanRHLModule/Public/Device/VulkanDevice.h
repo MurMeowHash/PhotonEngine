@@ -9,6 +9,7 @@
 #include "Queue/VulkanQueue.h"
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
+#include "Queue/VulkanWorkPools.h"
 
 struct VulkanDeviceCreateInfo {
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
@@ -51,9 +52,11 @@ public:
     [[nodiscard]] vk::raii::Device& GetHandle();
     [[nodiscard]] const vk::raii::PhysicalDevice& GetPhysicalHandle() const;
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
-    [[nodiscard]] bool TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue* vulkanQueue) const;
+    [[nodiscard]] bool TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue*& vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
     [[nodiscard]] VulkanPipelineProvider* GetPipelineProvider() const;
+    [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
+    void WaitIdle() const;
 private:
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
     vk::raii::Device m_handle = nullptr;
@@ -63,6 +66,7 @@ private:
 
     IVulkanDeviceMemoryProvider* m_memoryProvider = nullptr;
     VulkanPipelineProvider* m_pipelineProvider = nullptr;
+    VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
 
     QueueInitializeInfo InitializeDeviceQueues(vk::QueueFlags requestedQueues);
     [[nodiscard]] Photon::Result ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
@@ -76,4 +80,5 @@ private:
                 VulkanDeviceFeaturesAssembleData& assembleData);
     void InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType);
     void InitializePipelineProvider();
+    void InitializeWorkAllocatorPool();
 };

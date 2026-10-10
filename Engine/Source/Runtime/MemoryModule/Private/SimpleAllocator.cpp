@@ -1,6 +1,10 @@
 #include "../Public/SimpleAllocator.h"
 #include <cstdlib>
 
+SimpleAllocator::~SimpleAllocator() {
+    SimpleAllocator::FreeMemory();
+}
+
 SimpleAllocator::SimpleAllocator(size_t allocateCapacity)
 : AllocatorBase(typeid(SimpleAllocator)) {
     m_allocatedMemoryCells.reserve(allocateCapacity);

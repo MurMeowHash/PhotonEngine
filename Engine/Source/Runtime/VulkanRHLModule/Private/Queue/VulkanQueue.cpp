@@ -16,7 +16,6 @@ VulkanQueue::~VulkanQueue() {
         }
     }
 
-    delete m_workContextPool;
     delete m_workBatchesTimelineSemaphore;
 }
 
@@ -25,12 +24,6 @@ VulkanQueue* VulkanQueue::Create(const VulkanQueueCreateInfo &createInfo, InOutC
     instance->m_handle = createInfo.m_vulkanDevice->GetHandle().getQueue(createInfo.m_queueFamilyIndex, createInfo.m_queueIndex);
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
     instance->m_queueFamilyIndex = createInfo.m_queueFamilyIndex;
-    Photon::Result workContextPoolResult = instance->CreateWorkContextPool();
-    if (workContextPoolResult != Photon::Result::Success) {
-        Photon::PushResult(workContextPoolResult, inOutCreateParams);
-        return instance;
-    }
-
     Photon::Result timelineSemaphoreResult = instance->CreateTimelineSemaphore();
     Photon::PushResult(timelineSemaphoreResult, inOutCreateParams);
     return instance;
@@ -68,20 +61,21 @@ VulkanCommandBufferPool* VulkanQueue::AcquireCommandBufferPool(VulkanCommandBuff
 }
 
 void VulkanQueue::ReturnCommandBufferPool(VulkanCommandBufferPool *commandBufferPool) {
+    if (commandBufferPool == nullptr)
+        return;
+
     m_commandBufferPools[commandBufferPool->GetCommandBufferType()][commandBufferPool->GetCommandBufferLifetime()].emplace(commandBufferPool);
 }
 
-Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkContext* vulkanWorkContext) {
-    std::vector<VulkanWorkBatch*> workBatches = vulkanWorkContext->GetAllWorkBatches();
-
-    if (workBatches.empty()) {
-        m_pendingInterruptContexts.emplace_back(vulkanWorkContext);
+Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitInfo) {
+    if (workSubmitInfo.m_workBatches.empty()) {
+        m_pendingInterruptQueue.emplace_back(std::move(workSubmitInfo));
         return Photon::Result::Success;
     }
 
     std::vector<vk::SubmitInfo2> submitInfos;
-    submitInfos.reserve(workBatches.size());
-    for (VulkanWorkBatch* workBatch : workBatches) {
+    submitInfos.reserve(workSubmitInfo.m_workBatches.size());
+    for (VulkanWorkBatch* workBatch : workSubmitInfo.m_workBatches) {
         assert(workBatch->m_waitSemaphores.size() == workBatch->m_waitSemaphoresFlags.size());
 
         std::vector<vk::SemaphoreSubmitInfo> waitSemaphoresInfo(workBatch->m_waitSemaphores.size());
@@ -117,53 +111,40 @@ Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkContext* vulkanWorkConte
     }
 
     vk::Result submitResult = m_handle.submit2(submitInfos);
-    m_pendingInterruptContexts.emplace_back(vulkanWorkContext);
+    m_pendingInterruptQueue.emplace_back(std::move(workSubmitInfo));
     return submitResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
 }
 
 void VulkanQueue::ProcessInterruptQueue() {
-    if (m_pendingInterruptContexts.empty())
+    if (m_pendingInterruptQueue.empty())
         return;
 
-    std::vector<size_t> contextsIndicesToDispose;
-    contextsIndicesToDispose.reserve(m_pendingInterruptContexts.size());
+    std::vector<size_t> workSubmitInfosToDispose;
+    workSubmitInfosToDispose.reserve(m_pendingInterruptQueue.size());
 
-    for (size_t i = 0; i < m_pendingInterruptContexts.size(); i++) {
-        std::vector<VulkanWorkBatch*> workBatches = m_pendingInterruptContexts[i]->GetAllWorkBatches();
-        for (size_t batchIndex = 0; batchIndex < workBatches.size(); batchIndex++) {
+    for (size_t i = 0; i < m_pendingInterruptQueue.size(); i++) {
+        VulkanWorkSubmitInfo& workSubmitInfo = m_pendingInterruptQueue[i];
+        for (size_t batchIndex = 0; batchIndex < workSubmitInfo.m_workBatches.size(); batchIndex++) {
+            if (workSubmitInfo.m_workBatches[batchIndex]->m_batchStatus == VulkanWorkBatchStatus::Finished)
+                continue;
+
             uint64_t workBatchSemaphoreTimelineValue;
             if (m_workBatchesTimelineSemaphore->TryGetCurrentTimelineValue(workBatchSemaphoreTimelineValue) != Photon::Result::Success)
                 continue;
 
-            if (workBatches[batchIndex]->m_timelineSemaphoreFinishedValue <= workBatchSemaphoreTimelineValue)
-                m_pendingInterruptContexts[i]->DisposePackedBatch(batchIndex);
+            if (workSubmitInfo.m_workBatches[batchIndex]->m_timelineSemaphoreFinishedValue <= workBatchSemaphoreTimelineValue)
+                workSubmitInfo.FinishBatch(batchIndex);
         }
 
-        if (!m_pendingInterruptContexts[i]->HasAnyBatches())
-            contextsIndicesToDispose.emplace_back(i);
+        if (workSubmitInfo.IsAllBatchesFinished())
+            workSubmitInfosToDispose.emplace_back(i);
     }
 
-    for (size_t contextIndex : contextsIndicesToDispose) {
-        m_workContextPool->ReturnObject(m_pendingInterruptContexts[contextIndex]);
-        std::swap(m_pendingInterruptContexts[contextIndex], m_pendingInterruptContexts[m_pendingInterruptContexts.size() - 1]);
-        m_pendingInterruptContexts.pop_back();
+    for (size_t workSubmitIndex : workSubmitInfosToDispose) {
+        m_pendingInterruptQueue[workSubmitIndex].Dispose(this, m_vulkanDevice->GetWorkAllocatorPool());
+        std::swap(m_pendingInterruptQueue[workSubmitIndex], m_pendingInterruptQueue.back());
+        m_pendingInterruptQueue.pop_back();
     }
-}
-
-VulkanWorkContextPool* VulkanQueue::GetWorkContextPool() const {
-    return m_workContextPool;
-}
-
-Photon::Result VulkanQueue::CreateWorkContextPool() {
-    VulkanWorkContextPoolCreateInfo createInfo{};
-    createInfo.m_vulkanQueue = this;
-    InOutCreateParams<Photon::Result> inOutCreateParams{};
-    VulkanWorkContextPool* workContextPool = VulkanWorkContextPool::Create(createInfo, &inOutCreateParams);
-    if (inOutCreateParams.m_result != Photon::Result::Success)
-        return inOutCreateParams.m_result;
-
-    m_workContextPool = workContextPool;
-    return Photon::Result::Success;
 }
 
 Photon::Result VulkanQueue::CreateTimelineSemaphore() {

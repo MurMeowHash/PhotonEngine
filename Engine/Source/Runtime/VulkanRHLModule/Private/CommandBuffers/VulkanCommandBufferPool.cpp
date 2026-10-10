@@ -66,6 +66,7 @@ VulkanCommandBuffer* VulkanCommandBufferPool::PopCommandBuffer(Photon::Result& p
 }
 
 void VulkanCommandBufferPool::ReturnCommandBuffer(VulkanCommandBuffer *commandBuffer) {
+    //TODO: command buffer should be reset when returned to pool
     m_commandBufferPool.emplace(commandBuffer);
 }
 
