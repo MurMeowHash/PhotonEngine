@@ -34,7 +34,7 @@ public:
     VulkanWorkBatch* GetWorkBatch(VulkanWorkStage stage);
     void AddWaitSemaphore(VulkanSemaphore* semaphore, vk::PipelineStageFlags2 waitFlags);
     void AddSignalSemaphore(VulkanSemaphore* semaphore);
-    [[nodiscard]] Photon::Result GetCommandBuffer(VulkanCommandBuffer*& commandBuffer);
+    [[nodiscard]] VulkanCommandBuffer* GetCommandBuffer();
     [[nodiscard]] Photon::Result PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo);
 
 protected:

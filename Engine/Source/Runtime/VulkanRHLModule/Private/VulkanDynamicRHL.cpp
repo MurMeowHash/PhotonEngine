@@ -5,9 +5,6 @@
 #include "Configurations/VulkanInstanceConfiguration.h"
 #include "Device/VulkanDeviceProvider.h"
 
-using Photon::Core::Flags::operator|=;
-using Photon::Core::Flags::operator|;
-
 VulkanDynamicRHL::~VulkanDynamicRHL() {
     delete m_immediateRHlCommandList;
     delete m_vulkanDevice;
@@ -31,6 +28,16 @@ VulkanRHLCommandList* VulkanDynamicRHL::GetImmediateRHLCommandList() const {
     return m_immediateRHlCommandList;
 }
 
+void VulkanDynamicRHL::TransitionTexture(VulkanRHLTexture *rhlTexture, RHLPipelineUsage srcUsage, RHLPipelineUsage dstUsage) const {
+    uint32_t srcQueueFamilyIndex, dstQueueFamilyIndex;
+    ResolveTransitionQueueFamilyIndices(srcUsage, dstUsage, srcQueueFamilyIndex, dstQueueFamilyIndex);
+    ImageTransitionScope srcScope = ResolveImageTransitionScopeFromUsage(srcUsage, srcQueueFamilyIndex);
+    ImageTransitionScope dstScope = ResolveImageTransitionScopeFromUsage(dstUsage, dstQueueFamilyIndex);
+    VulkanPipelineBarrier barrier;
+    barrier.TransitionFullImage(rhlTexture, srcScope, dstScope);
+    m_immediateRHlCommandList->GetGraphicsContext()->GetCommandBuffer()->ExecutePipelineBarrier(std::move(barrier));
+}
+
 Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLCreateInfo &createInfo) {
     Photon::Result createResult = CreateVulkanInstance();
     if (createResult != Photon::Result::Success)
@@ -46,6 +53,8 @@ Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLC
 }
 
 Photon::Result VulkanDynamicRHL::CreateVulkanInstance() {
+    using Photon::Core::Flags::operator|=;
+
     VulkanInstanceCreateInfo instanceCreateInfo{};
     instanceCreateInfo.m_requestedExtensions = Photon::Vulkan::ExtensionsConfiguration::g_instanceExtensions;
     instanceCreateInfo.m_requestedLayers = Photon::Vulkan::VulkanInstanceConfiguration::g_validationLayers;
@@ -59,6 +68,8 @@ Photon::Result VulkanDynamicRHL::CreateVulkanInstance() {
 }
 
 Photon::Result VulkanDynamicRHL::CreateVulkanDevice() {
+    using Photon::Core::Flags::operator|;
+
     vk::raii::PhysicalDevice suitableDevice = nullptr;
     if (!Photon::Vulkan::DeviceProvider::TryFindVulkanDevice(m_vulkanInstance->GetHandle(), 0,
         Photon::Vulkan::DeviceSearchFlags::AllowNonGpu | Photon::Vulkan::DeviceSearchFlags::RenderingOnly, &suitableDevice))
@@ -73,4 +84,51 @@ Photon::Result VulkanDynamicRHL::CreateVulkanDevice() {
     InOutCreateParams<Photon::Result> inOutCreateParams{};
     m_vulkanDevice = VulkanDevice::Create(deviceCreateInfo, &inOutCreateParams);
     return inOutCreateParams.m_result;
+}
+
+ImageTransitionScope VulkanDynamicRHL::ResolveImageTransitionScopeFromUsage(RHLPipelineUsage usage, uint32_t queueFamilyIndex) const {
+    ImageTransitionScope transitionScope{};
+    transitionScope.m_queueFamilyIndex = queueFamilyIndex;
+    switch (usage) {
+        case RHLPipelineUsage::Unknown:
+            transitionScope.m_layout = vk::ImageLayout::eUndefined;
+            transitionScope.m_stage = vk::PipelineStageFlagBits2::eAllCommands;
+            transitionScope.m_access = vk::AccessFlagBits2::eMemoryRead | vk::AccessFlagBits2::eMemoryWrite;
+            break;
+        case RHLPipelineUsage::RenderOutput:
+            transitionScope.m_layout = vk::ImageLayout::eColorAttachmentOptimal;
+            transitionScope.m_stage = vk::PipelineStageFlagBits2::eColorAttachmentOutput;
+            transitionScope.m_access = vk::AccessFlagBits2::eColorAttachmentWrite;
+            break;
+        default:
+            assert(false);
+    }
+
+    return transitionScope;
+}
+
+void VulkanDynamicRHL::ResolveTransitionQueueFamilyIndices(RHLPipelineUsage srcUsage, RHLPipelineUsage dstUsage,
+    uint32_t &srcQueueFamilyIndex, uint32_t &dstQueueFamilyIndex) const {
+    srcQueueFamilyIndex = GetQueueFamilyFromPipeline(srcUsage);
+    dstQueueFamilyIndex = GetQueueFamilyFromPipeline(dstUsage);
+
+    if (srcQueueFamilyIndex == vk::QueueFamilyIgnored && dstQueueFamilyIndex != vk::QueueFamilyIgnored)
+        srcQueueFamilyIndex = dstQueueFamilyIndex;
+    else if (srcQueueFamilyIndex != vk::QueueFamilyIgnored && dstQueueFamilyIndex == vk::QueueFamilyIgnored)
+        dstQueueFamilyIndex = srcQueueFamilyIndex;
+}
+
+uint32_t VulkanDynamicRHL::GetQueueFamilyFromPipeline(RHLPipelineUsage pipelineUsage) const {
+    vk::QueueFlagBits queueType;
+    switch (pipelineUsage) {
+        case RHLPipelineUsage::RenderOutput:
+            queueType = vk::QueueFlagBits::eGraphics;
+            break;
+        default:
+            return vk::QueueFamilyIgnored;
+    }
+
+    VulkanQueue* queue;
+    bool queueAcquired = m_vulkanDevice->TryGetQueue(queueType, queue);
+    return queueAcquired ? queue->GetQueueFamilyIndex() : vk::QueueFamilyIgnored;
 }

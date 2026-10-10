@@ -6,6 +6,7 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 #include "Device/VulkanDevice.h"
+#include "Synchronization/VulkanPipelineBarrier.h"
 
 struct VulkanCommandBufferCreateInfo {
     VulkanCommandBufferType m_commandBufferType;
@@ -26,6 +27,7 @@ public:
     [[nodiscard]] vk::CommandBuffer GetHandle() const;
     [[nodiscard]] Photon::Result Begin() const;
     [[nodiscard]] Photon::Result End() const;
+    void ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelineBarrier) const;
 private:
     VulkanCommandBufferType m_commandBufferType = VulkanCommandBufferType::None;
     vk::raii::CommandBuffer m_handle = nullptr;

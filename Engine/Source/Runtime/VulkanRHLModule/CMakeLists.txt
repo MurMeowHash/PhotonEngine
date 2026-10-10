@@ -71,6 +71,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanTimelineSemaphore.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSemaphore.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSynchronizationFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanPipelineBarrier.h
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanDynamicRHL.h
@@ -141,6 +142,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanTimelineSemaphore.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSemaphore.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSynchronizationFactory.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanPipelineBarrier.cpp
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp

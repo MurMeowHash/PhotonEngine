@@ -63,15 +63,15 @@ void VulkanWorkContext::AddSignalSemaphore(VulkanSemaphore *semaphore) {
     workBatch->m_signalSemaphores.emplace_back(semaphore);
 }
 
-Photon::Result VulkanWorkContext::GetCommandBuffer(VulkanCommandBuffer *&commandBuffer) {
+VulkanCommandBuffer* VulkanWorkContext::GetCommandBuffer() {
     VulkanWorkBatch* workBatch = GetWorkBatch(VulkanWorkStage::Record);
     if (workBatch->m_commandBuffers.empty()) {
+        VulkanCommandBuffer* commandBuffer;
         Photon::Result startResult = StartCommandBuffer(workBatch, commandBuffer);
-        return startResult;
+        return commandBuffer;
     }
 
-    commandBuffer = workBatch->m_commandBuffers[workBatch->m_commandBuffers.size() - 1];
-    return Photon::Result::Success;
+    return workBatch->m_commandBuffers[workBatch->m_commandBuffers.size() - 1];
 }
 
 Photon::Result VulkanWorkContext::PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo) {

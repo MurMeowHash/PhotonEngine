@@ -18,6 +18,8 @@ struct VulkanImageViewCreateInfo {
 class VulkanImageView {
 public:
     static VulkanImageView* Create(const VulkanImageViewCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+    [[nodiscard]] vk::ImageSubresourceRange GetSubresourceRange() const;
 private:
     vk::raii::ImageView m_handle = nullptr;
+    vk::ImageSubresourceRange m_subresource{};
 };

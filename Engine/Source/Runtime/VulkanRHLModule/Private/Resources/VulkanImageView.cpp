@@ -18,6 +18,11 @@ VulkanImageView* VulkanImageView::Create(const VulkanImageViewCreateInfo &create
 
     VulkanImageView* instance = Photon::AllocateObject<VulkanImageView>(inOutCreateParams);
     instance->m_handle = std::move(imageViewWrapper.value);
+    instance->m_subresource = createInfo.m_desc.m_subresourceRange;
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
+}
+
+vk::ImageSubresourceRange VulkanImageView::GetSubresourceRange() const {
+    return m_subresource;
 }

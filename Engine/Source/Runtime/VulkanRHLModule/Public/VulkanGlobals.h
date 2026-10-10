@@ -35,5 +35,10 @@ namespace Photon::Vulkan {
         Graphics = 1,
     };
 
+    enum class RHLPipelineUsage {
+        Unknown = 0,
+        RenderOutput = 1,
+    };
+
     inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;
 }
