@@ -1,6 +1,10 @@
 #include "../../Public/Synchronization/VulkanTimelineSemaphore.h"
 #include "Device/VulkanDevice.h"
 
+VulkanSemaphoreType VulkanTimelineSemaphore::GetSemaphoreType() const {
+    return VulkanSemaphoreType::Timeline;
+}
+
 VulkanSemaphoreLockResult VulkanTimelineSemaphore::ScheduleAcquire() {
     return VulkanSemaphoreLockResult(*m_handle, m_timelineValue);
 }

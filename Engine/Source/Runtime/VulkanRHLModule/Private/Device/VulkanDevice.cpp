@@ -3,6 +3,7 @@
 #include "LinearAllocator.h"
 #include "Memory/VulkanDeviceMemoryProviderFactory.h"
 #include "Memory/Configurations/VulkanAllocationConfiguration.h"
+#include "Synchronization/VulkanTimelineSemaphore.h"
 
 using Photon::Core::Flags::operator|;
 
@@ -23,6 +24,7 @@ VulkanDevice::~VulkanDevice() {
         delete queue.second;
     }
 
+    delete m_binarySemaphorePool;
     delete m_workAllocatorPool;
 }
 
@@ -61,6 +63,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->m_features = featuresAssembleData.m_queryResult;
     instance->m_handle = std::move(deviceWrapper.value);
     instance->InitializeWorkAllocatorPool();
+    instance->InitializeBinarySemaphorePool();
     Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
         std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
@@ -267,4 +270,11 @@ void VulkanDevice::InitializePipelineProvider() {
 
 void VulkanDevice::InitializeWorkAllocatorPool() {
     m_workAllocatorPool = VulkanWorkAllocatorPool::Create(VulkanWorkAllocatorPoolCreateInfo());
+}
+
+void VulkanDevice::InitializeBinarySemaphorePool() {
+    VulkanBinarySemaphorePoolCreateInfo createInfo{};
+    createInfo.m_vulkanDevice = this;
+    InOutCreateParams<Photon::Result> inOut;
+    m_binarySemaphorePool = VulkanBinarySemaphorePool::Create(createInfo, &inOut);
 }

@@ -72,6 +72,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSemaphore.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSynchronizationFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanPipelineBarrier.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanSemaphorePool.h
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanDynamicRHL.h
@@ -83,10 +84,12 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandWorkContext.h
 
         ## Resources
-        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageView.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewCache.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLResource.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanResourceTransition.h
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSwapChain.h
@@ -143,6 +146,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSemaphore.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSynchronizationFactory.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanPipelineBarrier.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanSemaphorePool.cpp
 
         ## RHL
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanDynamicRHL.cpp
@@ -153,9 +157,11 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandWorkContext.cpp
 
         ## Resources
-        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageView.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageViewCache.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageViewCache.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLResource.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanResourceTransition.cpp
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSwapChain.cpp

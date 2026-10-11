@@ -39,9 +39,9 @@ public:
 
 protected:
     VulkanQueue* m_workQueue = nullptr;
+    VulkanDevice* m_vulkanDevice = nullptr;
 
 private:
-    VulkanDevice* m_vulkanDevice = nullptr;
 
     std::vector<VulkanWorkBatch*> m_workBatches;
     VulkanWorkStage m_currentStage{};

@@ -28,6 +28,7 @@ public:
     void UpdateViewportSize(VulkanRHLCommandList* rhlCommandList, uint32_t viewportWidth, uint32_t viewportHeight);
     void SetBlockUntilVBlank(VulkanRHLCommandList* rhlCommandList, bool isBlocked);
     void ReleaseActiveBackBuffer();
+    void Present();
 private:
     VulkanDevice* m_vulkanDevice = nullptr;
     VulkanSurface* m_vulkanSurface = nullptr;

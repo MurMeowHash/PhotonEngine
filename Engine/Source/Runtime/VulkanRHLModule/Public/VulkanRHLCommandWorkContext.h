@@ -3,13 +3,19 @@
 #include "CoreGlobals.h"
 #include "VulkanGlobals.h"
 #include "Queue/VulkanWorkContext.h"
+#include "Resources/VulkanResourceTransition.h"
 
 class VulkanRHLCommandWorkContext : public VulkanWorkContext {
 public:
     [[nodiscard]] Photon::Result FinalizeWork();
+    void BeginTransition(const VulkanRHLPendingTransition& pendingTransition);
+    void EndTransition(const VulkanRHLPendingTransition& pendingTransition);
 protected:
-    virtual Photon::Vulkan::RHLWorkType GetVulkanRHLWorkType() = 0;
+    virtual RHLWorkType GetVulkanRHLWorkType() = 0;
     [[nodiscard]] Photon::Result InitializeContext();
 private:
-    static vk::QueueFlagBits GetQueueTypeByRHLWork(Photon::Vulkan::RHLWorkType rhlWorkType);
+    static VulkanPipelineImageTransitionScope CreatePipelineImageTransitionScope(const VulkanImageTransitionScope& scope,
+        uint32_t queueFamily, bool ignoreStageAccess);
+
+    void ProcessTransition(const VulkanRHLPendingTransition& pendingTransition, bool ignoreSrcStageAccess, bool ignoreDestStageAccess);
 };

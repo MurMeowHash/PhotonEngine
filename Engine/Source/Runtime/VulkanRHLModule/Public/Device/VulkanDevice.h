@@ -10,6 +10,8 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 #include "Queue/VulkanWorkPools.h"
+#include "Synchronization/VulkanSemaphorePool.h"
+#include "Synchronization/VulkanTimelineSemaphore.h"
 
 struct VulkanDeviceCreateInfo {
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
@@ -56,6 +58,37 @@ public:
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
     [[nodiscard]] VulkanPipelineProvider* GetPipelineProvider() const;
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
+
+    template<std::derived_from<VulkanSemaphore> TSemaphore>
+    [[nodiscard]] Photon::Result TryAllocateSemaphore(TSemaphore*& outSema) {
+        if constexpr (std::is_same_v<TSemaphore, VulkanBinarySemaphore>) {
+            Photon::Result popResult;
+            outSema = m_binarySemaphorePool->PopObject(popResult);
+            return popResult;
+        }
+        else if constexpr (std::is_same_v<TSemaphore, VulkanTimelineSemaphore>) {
+            VulkanTimelineSemaphoreCreateInfo createInfo{};
+            createInfo.m_vulkanDevice = this;
+            createInfo.m_initialValue = 0;
+            InOutCreateParams<Photon::Result> inOut{};
+            outSema = VulkanTimelineSemaphore::Create(createInfo, &inOut);
+            return inOut.m_result;
+        }
+        else {
+            return Photon::Result::UnknownFailure;
+        }
+    }
+
+    template<std::derived_from<VulkanSemaphore> TSemaphore>
+    void ReleaseSemaphore(TSemaphore* semaphore) const {
+        if constexpr (std::is_same_v<TSemaphore, VulkanBinarySemaphore>)
+            m_binarySemaphorePool->ReturnObject(static_cast<VulkanBinarySemaphore*>(semaphore));
+        else if constexpr (std::is_same_v<TSemaphore, VulkanTimelineSemaphore>)
+            delete semaphore;
+        else
+            static_assert(false);
+    }
+
     void WaitIdle() const;
 private:
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
@@ -67,6 +100,7 @@ private:
     IVulkanDeviceMemoryProvider* m_memoryProvider = nullptr;
     VulkanPipelineProvider* m_pipelineProvider = nullptr;
     VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
+    VulkanBinarySemaphorePool* m_binarySemaphorePool = nullptr;
 
     QueueInitializeInfo InitializeDeviceQueues(vk::QueueFlags requestedQueues);
     [[nodiscard]] Photon::Result ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
@@ -81,4 +115,5 @@ private:
     void InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType);
     void InitializePipelineProvider();
     void InitializeWorkAllocatorPool();
+    void InitializeBinarySemaphorePool();
 };

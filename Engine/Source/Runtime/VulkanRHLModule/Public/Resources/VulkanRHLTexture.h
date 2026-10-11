@@ -6,6 +6,7 @@
 #include "FactoryGlobals.h"
 #include "Resources/VulkanImageViewCache.h"
 #include "VulkanGlobals.h"
+#include "VulkanRHLResource.h"
 
 class VulkanDevice;
 
@@ -18,9 +19,9 @@ struct VulkanImageCreateInfo {
     uint32_t m_mipLevels;
 };
 
-class VulkanRHLTexture {
+class VulkanRHLTexture : public VulkanRHLResource {
 public:
-    ~VulkanRHLTexture();
+    ~VulkanRHLTexture() override;
     static VulkanRHLTexture* Create(const VulkanImageCreateInfo& createInfo);
     [[nodiscard]] vk::Image GetHandle() const;
     [[nodiscard]] VulkanImageView* GetDefaultImageView() const;

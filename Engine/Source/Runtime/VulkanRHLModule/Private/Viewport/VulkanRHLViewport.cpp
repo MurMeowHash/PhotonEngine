@@ -83,6 +83,10 @@ void VulkanRHLViewport::ReleaseActiveBackBuffer() {
     m_activeSwapChainImage = nullptr;
 }
 
+void VulkanRHLViewport::Present() {
+    //you are the one who should submit rhl command list and present
+}
+
 void VulkanRHLViewport::RecreateSwapChain(VulkanRHLCommandList* rhlCommandList) {
     rhlCommandList->Submit();
     ReleaseActiveBackBuffer();

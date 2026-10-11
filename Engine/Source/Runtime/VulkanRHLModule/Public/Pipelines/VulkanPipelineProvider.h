@@ -3,7 +3,7 @@
 #include "VulkanGraphicsPipeline.h"
 #include <unordered_map>
 #include "VulkanComputePipeline.h"
-
+//TODO: Transition to RHL layer and lower translation should create vulkan graphics/compute pipelines
 class VulkanPipelineProvider {
 public:
     explicit VulkanPipelineProvider(VulkanDevice* vulkanDevice);

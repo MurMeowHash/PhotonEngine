@@ -1,22 +1,20 @@
 #pragma once
 
-#define VULKAN_HPP_NO_EXCEPTIONS
-#include <vulkan/vulkan_raii.hpp>
+#include "Resources/VulkanResourceTransition.h"
 
 class VulkanRHLTexture;
 
-struct ImageTransitionScope {
-    vk::ImageLayout m_layout;
+struct VulkanPipelineImageTransitionScope {
     vk::PipelineStageFlags2 m_stage;
     vk::AccessFlags2 m_access;
-    uint32_t m_queueFamilyIndex;
+    vk::ImageLayout m_layout;
+    uint32_t m_queueFamily;
 };
 
 class VulkanPipelineBarrier {
 public:
-    void TransitionImage(VulkanRHLTexture* vulkanImage, ImageTransitionScope srcScope,
-        ImageTransitionScope dstScope, vk::ImageSubresourceRange subresourceRange);
-    void TransitionFullImage(VulkanRHLTexture* vulkanImage, ImageTransitionScope srcScope, ImageTransitionScope dstScope);
+    void TransitionImage(VulkanRHLTexture* vulkanImage, const VulkanPipelineImageTransitionScope& srcScope,
+        const VulkanPipelineImageTransitionScope& destScope, vk::ImageSubresourceRange subresourceRange);
 
     [[nodiscard]] vk::DependencyInfo PackDependencyInfo() const;
 private:
