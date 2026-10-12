@@ -1,6 +1,6 @@
 #pragma once
 #include "VulkanBinarySemaphore.h"
-#include "Pools/PhotonPool.h"
+#include "Pools/PhotonSafePool.h"
 
 class VulkanDevice;
 
@@ -8,7 +8,7 @@ struct VulkanBinarySemaphorePoolCreateInfo {
     VulkanDevice* m_vulkanDevice;
 };
 
-class VulkanBinarySemaphorePool : public PhotonPool<VulkanBinarySemaphore> {
+class VulkanBinarySemaphorePool : public PhotonSafePool<VulkanBinarySemaphore> {
 protected:
     VulkanBinarySemaphore* CreateObject(InOutCreateParams<Photon::Result> *inOutCreateParams) override;
 

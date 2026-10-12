@@ -66,8 +66,8 @@ bool VulkanRHLPendingTransition::IsCrossQueue() const {
     return m_srcVulkanQueue != m_destVulkanQueue;
 }
 
-VulkanBinarySemaphore * VulkanRHLPendingTransition::GetTransitionSemaphore() const {
-    return m_transitionSemaphore; // TODO: how to dispose
+std::shared_ptr<VulkanBinarySemaphore> VulkanRHLPendingTransition::GetTransitionSemaphore() const {
+    return m_transitionSemaphore;
 }
 
 void VulkanRHLPendingTransition::FillBasicResourceTransitionScope(VulkanResourceTransitionScope &transitionScope, RHLPipelineUsage usage) {

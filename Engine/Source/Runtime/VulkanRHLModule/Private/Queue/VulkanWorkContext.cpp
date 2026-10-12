@@ -52,13 +52,13 @@ VulkanWorkBatch* VulkanWorkContext::GetWorkBatch(VulkanWorkStage stage) {
     return m_workBatches[m_workBatches.size() - 1];
 }
 
-void VulkanWorkContext::AddWaitSemaphore(VulkanSemaphore *semaphore, vk::PipelineStageFlags2 waitFlags) {
+void VulkanWorkContext::AddWaitSemaphore(std::shared_ptr<VulkanSemaphore> semaphore, vk::PipelineStageFlags2 waitFlags) {
     VulkanWorkBatch* workBatch = GetWorkBatch(VulkanWorkStage::Wait);
     workBatch->m_waitSemaphores.emplace_back(semaphore);
     workBatch->m_waitSemaphoresFlags.emplace_back(waitFlags);
 }
 
-void VulkanWorkContext::AddSignalSemaphore(VulkanSemaphore *semaphore) {
+void VulkanWorkContext::AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> semaphore) {
     VulkanWorkBatch* workBatch = GetWorkBatch(VulkanWorkStage::Signal);
     workBatch->m_signalSemaphores.emplace_back(semaphore);
 }

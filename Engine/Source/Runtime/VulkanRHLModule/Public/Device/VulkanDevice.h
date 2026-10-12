@@ -60,10 +60,10 @@ public:
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
-    [[nodiscard]] Photon::Result TryAllocateSemaphore(TSemaphore*& outSema) {
+    [[nodiscard]] Photon::Result TryAllocateSemaphore(std::shared_ptr<TSemaphore>& outSema) {
         if constexpr (std::is_same_v<TSemaphore, VulkanBinarySemaphore>) {
             Photon::Result popResult;
-            outSema = m_binarySemaphorePool->PopObject(popResult);
+            outSema = m_binarySemaphorePool->PopObjectSafe(popResult);
             return popResult;
         }
         else if constexpr (std::is_same_v<TSemaphore, VulkanTimelineSemaphore>) {
@@ -71,7 +71,7 @@ public:
             createInfo.m_vulkanDevice = this;
             createInfo.m_initialValue = 0;
             InOutCreateParams<Photon::Result> inOut{};
-            outSema = VulkanTimelineSemaphore::Create(createInfo, &inOut);
+            outSema = std::make_shared<TSemaphore>(VulkanTimelineSemaphore::Create(createInfo, &inOut));
             return inOut.m_result;
         }
         else {
@@ -79,14 +79,8 @@ public:
         }
     }
 
-    template<std::derived_from<VulkanSemaphore> TSemaphore>
-    void ReleaseSemaphore(TSemaphore* semaphore) const {
-        if constexpr (std::is_same_v<TSemaphore, VulkanBinarySemaphore>)
-            m_binarySemaphorePool->ReturnObject(static_cast<VulkanBinarySemaphore*>(semaphore));
-        else if constexpr (std::is_same_v<TSemaphore, VulkanTimelineSemaphore>)
-            delete semaphore;
-        else
-            static_assert(false);
+    void ReleaseSemaphore(std::shared_ptr<VulkanSemaphore>& semaphore) const {
+        semaphore.reset();
     }
 
     void WaitIdle() const;

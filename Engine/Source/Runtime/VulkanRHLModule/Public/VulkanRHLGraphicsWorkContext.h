@@ -8,8 +8,8 @@ struct VulkanRHLGraphicsWorkContextCreateInfo {
 };
 
 class VulkanRHLGraphicsWorkContext : public VulkanRHLCommandWorkContext {
-protected:
-    Photon::Vulkan::RHLWorkType GetVulkanRHLWorkType() override;
+public:
+    RHLWorkType GetVulkanRHLWorkType() override;
 
 public:
     static VulkanRHLGraphicsWorkContext* Create([[maybe_unused]] const VulkanRHLGraphicsWorkContextCreateInfo& createInfo,

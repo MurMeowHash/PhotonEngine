@@ -4,6 +4,7 @@
 #include "VulkanWorkBatch.h"
 #include "CoreGlobals.h"
 #include "CommandBuffers/VulkanCommandBufferPool.h"
+#include <memory>
 
 class VulkanQueue;
 class IAllocator;
@@ -32,8 +33,8 @@ public:
     virtual ~VulkanWorkContext();
     void Initialize(VulkanQueue* workQueue, VulkanDevice* vulkanDevice);
     VulkanWorkBatch* GetWorkBatch(VulkanWorkStage stage);
-    void AddWaitSemaphore(VulkanSemaphore* semaphore, vk::PipelineStageFlags2 waitFlags);
-    void AddSignalSemaphore(VulkanSemaphore* semaphore);
+    void AddWaitSemaphore(std::shared_ptr<VulkanSemaphore> semaphore, vk::PipelineStageFlags2 waitFlags);
+    void AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> semaphore);
     [[nodiscard]] VulkanCommandBuffer* GetCommandBuffer();
     [[nodiscard]] Photon::Result PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo);
 

@@ -12,6 +12,7 @@ target_sources(CoreModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Blueprints/BlueprintProvider.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/PhotonGlobals.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pools/PhotonPool.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pools/PhotonSafePool.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/CoreGlobals.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/PlatformInteractor.cpp

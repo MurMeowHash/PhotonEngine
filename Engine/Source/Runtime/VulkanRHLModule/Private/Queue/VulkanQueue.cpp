@@ -93,7 +93,7 @@ Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitI
 
         std::vector<vk::SemaphoreSubmitInfo> signalSemaphoresInfo;
         signalSemaphoresInfo.reserve(workBatch->m_signalSemaphores.size() + 1);
-        for (VulkanSemaphore* signalSemaphore: workBatch->m_signalSemaphores)
+        for (std::shared_ptr<VulkanSemaphore>& signalSemaphore: workBatch->m_signalSemaphores)
             signalSemaphoresInfo.emplace_back(signalSemaphore->ScheduleReleaseSubmit());
 
         signalSemaphoresInfo.emplace_back(m_workBatchesTimelineSemaphore->ScheduleReleaseSubmit());

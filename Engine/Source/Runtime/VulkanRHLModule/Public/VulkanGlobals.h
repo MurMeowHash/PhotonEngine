@@ -31,7 +31,7 @@ namespace Photon::Vulkan {
         pCubeMap = 4,
     };
 
-    enum class RHLWorkType {
+    enum class RHLWorkType : uint32_t {
         Graphics = 0,
     };
 
