@@ -115,6 +115,10 @@ Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitI
     return submitResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
 }
 
+vk::Queue VulkanQueue::GetHandle() const {
+    return m_handle;
+}
+
 void VulkanQueue::ProcessInterruptQueue() {
     if (m_pendingInterruptQueue.empty())
         return;

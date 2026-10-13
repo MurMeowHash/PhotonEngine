@@ -43,6 +43,10 @@ void VulkanRHLCommandList::Transition(VulkanRHLTextureTransition &&textureTransi
     Transition(transitionBatch);
 }
 
+void VulkanRHLCommandList::EndRenderingViewport(VulkanRHLViewport *rhlViewport) {
+    rhlViewport->Present(this);
+}
+
 void VulkanRHLCommandList::AddGeneralWorkContext(VulkanRHLCommandWorkContext *workContext) {
     m_workContexts[static_cast<uint32_t>(workContext->GetVulkanRHLWorkType())] = workContext;
 }

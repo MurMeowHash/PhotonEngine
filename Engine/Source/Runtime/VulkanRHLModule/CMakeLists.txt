@@ -82,6 +82,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLGraphicsWorkContext.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandList.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandWorkContext.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLComputeWorkContext.h
 
         ## Resources
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
@@ -155,6 +156,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLGraphicsWorkContext.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandList.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandWorkContext.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLComputeWorkContext.cpp
 
         ## Resources
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp

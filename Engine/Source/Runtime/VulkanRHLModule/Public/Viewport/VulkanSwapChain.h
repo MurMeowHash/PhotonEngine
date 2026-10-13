@@ -10,6 +10,7 @@ class VulkanDevice;
 class VulkanSurface;
 class VulkanSwapChain;
 class VulkanBinarySemaphore;
+class VulkanQueue;
 
 struct VulkanSwapChainCreateInfo {
     VulkanDevice* m_vulkanDevice;
@@ -33,22 +34,25 @@ public:
     [[nodiscard]] static VulkanSwapChain* Create(const VulkanSwapChainCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] static bool CanEverRender(VulkanSwapChainState swapChainState);
     [[nodiscard]] vk::SwapchainKHR GetHandle() const;
-    [[nodiscard]] VulkanSwapChainState TryAcquireNextImage(VulkanRHLTexture *&swapChainImage, VulkanBinarySemaphore *&acquireSemaphore);
+    [[nodiscard]] VulkanSwapChainState TryAcquireNextImageIndex(uint32_t& imageIndex, std::shared_ptr<VulkanBinarySemaphore>& acquireSemaphore) const;
+    [[nodiscard]] VulkanRHLTexture* GetImageByIndex(uint32_t imageIndex) const;
+    [[nodiscard]] bool TryGetImageByIndex(uint32_t imageIndex, VulkanRHLTexture*& outImage) const;
+    [[nodiscard]] uint32_t GetImagesCount() const;
+    [[nodiscard]] VulkanSwapChainState Present(uint32_t imageIndex, const std::shared_ptr<VulkanBinarySemaphore>& renderFinishedSemaphore) const;
 private:
     vk::SwapchainKHR m_handle = nullptr;
     std::vector<VulkanRHLTexture*> m_images;
-    std::vector<VulkanBinarySemaphore*> m_acquireSemaphores;
-    int32_t m_currentAcquireImageIndex = -1;
     vk::Format m_format{};
 
     VulkanDevice* m_vulkanDevice = nullptr;
+    VulkanQueue* m_presentQueue = nullptr;
 
     [[nodiscard]] Photon::Result RetrieveImages(uint32_t arrayLayers);
-    [[nodiscard]] Photon::Result CreateAcquireSemaphores(uint32_t semaphoresCount);
 
     [[nodiscard]] static uint32_t GetSwapChainMinImageCount(const vk::SurfaceCapabilitiesKHR& surfaceProperties);
     [[nodiscard]] static bool TryGetSurfaceFormat(VulkanDevice* vulkanDevice, VulkanSurface* vulkanSurface, VkSurfaceFormatKHR& surfaceFormat);
     [[nodiscard]] static vk::Extent2D GetClampedExtents(uint32_t preferredWidth, uint32_t preferredHeight, const vk::SurfaceCapabilitiesKHR& surfaceProperties);
     [[nodiscard]] static vk::PresentModeKHR GetPresentMode(VulkanDevice* vulkanDevice, VulkanSurface* vulkanSurface, bool vSyncEnabled);
     [[nodiscard]] static VulkanSwapChainState ResolveSwapChainStateByVulkanResult(vk::Result vkResult);
+    [[nodiscard]] static Photon::Result TryRetrievePresentQueue(VulkanDevice* device, VulkanSurface* surface, VulkanQueue*& presentQueue);
 };

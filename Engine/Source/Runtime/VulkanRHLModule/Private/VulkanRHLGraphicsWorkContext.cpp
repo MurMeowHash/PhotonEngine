@@ -4,8 +4,8 @@
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
 
-Photon::Vulkan::RHLWorkType VulkanRHLGraphicsWorkContext::GetVulkanRHLWorkType() {
-    return Photon::Vulkan::RHLWorkType::Graphics;
+RHLWorkType VulkanRHLGraphicsWorkContext::GetVulkanRHLWorkType() {
+    return RHLWorkType::Graphics;
 }
 
 VulkanRHLGraphicsWorkContext* VulkanRHLGraphicsWorkContext::Create([[maybe_unused]] const VulkanRHLGraphicsWorkContextCreateInfo &createInfo,

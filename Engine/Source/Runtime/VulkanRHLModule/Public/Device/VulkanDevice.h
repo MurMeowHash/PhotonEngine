@@ -79,7 +79,8 @@ public:
         }
     }
 
-    void ReleaseSemaphore(std::shared_ptr<VulkanSemaphore>& semaphore) const {
+    template<std::derived_from<VulkanSemaphore> TSemaphore>
+    void ReleaseSemaphore(std::shared_ptr<TSemaphore>& semaphore) const {
         semaphore.reset();
     }
 

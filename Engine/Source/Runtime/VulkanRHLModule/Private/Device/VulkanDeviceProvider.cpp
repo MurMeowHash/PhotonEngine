@@ -19,7 +19,7 @@ namespace Photon::Vulkan::DeviceProvider {
     };
 
     [[nodiscard]] uint64_t EncodeDeviceId(uint32_t vendorID, uint32_t deviceID) {
-        return static_cast<uint64_t>(vendorID) << sizeof(vendorID) |
+        return static_cast<uint64_t>(vendorID) << sizeof(vendorID) * 8u |
             static_cast<uint64_t>(deviceID);
     }
 

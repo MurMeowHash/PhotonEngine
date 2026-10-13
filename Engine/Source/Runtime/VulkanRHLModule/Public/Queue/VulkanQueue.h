@@ -30,6 +30,7 @@ public:
         VulkanCommandBufferLifetime commandBufferLifetime, Photon::Result& acquireResult);
     void ReturnCommandBufferPool(VulkanCommandBufferPool *commandBufferPool);
     [[nodiscard]] Photon::Result SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitInfo);
+    [[nodiscard]] vk::Queue GetHandle() const;
     //TODO Multithreading: ideally launch dedicated thread for this process and not calling it from public API
     void ProcessInterruptQueue();
 private:

@@ -4,6 +4,8 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 
+class VulkanRHLViewport;
+
 struct VulkanRHLCommandListCreateInfo {
 
 };
@@ -23,6 +25,7 @@ public:
     void Submit() const;
     void Transition(const VulkanRHLResourceTransitionRequestBatch& transitionRequests) const;
     void Transition(VulkanRHLTextureTransition&& textureTransition) const;
+    void EndRenderingViewport(VulkanRHLViewport* rhlViewport);
 private:
     enum { WorkTypeCount = static_cast<uint32_t>(RHLWorkType::Graphics) + 1 };
 

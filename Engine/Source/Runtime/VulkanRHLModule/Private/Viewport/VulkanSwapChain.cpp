@@ -5,10 +5,6 @@
 
 VulkanSwapChain::~VulkanSwapChain() {
     m_vulkanDevice->WaitIdle();
-
-    for (VulkanBinarySemaphore* semaphore : m_acquireSemaphores)
-        delete semaphore;
-
     (*m_vulkanDevice->GetHandle()).destroySwapchainKHR(m_handle);
 }
 
@@ -53,14 +49,19 @@ VulkanSwapChain* VulkanSwapChain::Create(const VulkanSwapChainCreateInfo &create
         return nullptr;
     }
 
+    VulkanQueue* presentQueue;
+    Photon::Result presentQueueRetrieveResult = TryRetrievePresentQueue(createInfo.m_vulkanDevice, createInfo.m_vulkanSurface, presentQueue);
+    if (presentQueueRetrieveResult != Photon::Result::Success) {
+        Photon::PushResult(presentQueueRetrieveResult, inOutCreateParams);
+        return nullptr;
+    }
+
     VulkanSwapChain* instance = Photon::AllocateObject<VulkanSwapChain>(inOutCreateParams);
     instance->m_handle = swapChainWrapper.value;
     instance->m_format = surfaceFormat.format;
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    instance->m_presentQueue = presentQueue;
     Photon::Result imageRetrieveResult = instance->RetrieveImages(chainArrayLayers);
-    if (imageRetrieveResult == Photon::Result::Success)
-        imageRetrieveResult = instance->CreateAcquireSemaphores(instance->m_images.size());
-
     Photon::PushResult(imageRetrieveResult, inOutCreateParams);
     return instance;
 }
@@ -69,17 +70,47 @@ vk::SwapchainKHR VulkanSwapChain::GetHandle() const {
     return m_handle;
 }
 
-VulkanSwapChainState VulkanSwapChain::TryAcquireNextImage(VulkanRHLTexture *&swapChainImage, VulkanBinarySemaphore *&acquireSemaphore) {
-    m_currentAcquireImageIndex = (m_currentAcquireImageIndex + 1) % m_images.size();
-    acquireSemaphore = m_acquireSemaphores[m_currentAcquireImageIndex];
+VulkanSwapChainState VulkanSwapChain::TryAcquireNextImageIndex(uint32_t& imageIndex, std::shared_ptr<VulkanBinarySemaphore>& acquireSemaphore) const {
+    if (m_vulkanDevice->TryAllocateSemaphore(acquireSemaphore) != Photon::Result::Success)
+        return VulkanSwapChainState::Unknown;
+
     VulkanSemaphoreLockResult acquireSemaphoreLock = acquireSemaphore->ScheduleAcquire();
     vk::ResultValue<uint32_t> acquiredImageWrapper = (*m_vulkanDevice->GetHandle()).acquireNextImageKHR(m_handle, UINT64_MAX, acquireSemaphoreLock.m_semaphoreHandle);
     VulkanSwapChainState swapChainState = ResolveSwapChainStateByVulkanResult(acquiredImageWrapper.result);
     if (!CanEverRender(swapChainState))
         return swapChainState;
 
-    swapChainImage = m_images[acquiredImageWrapper.value];
+    imageIndex = acquiredImageWrapper.value;
     return swapChainState;
+}
+
+VulkanRHLTexture* VulkanSwapChain::GetImageByIndex(uint32_t imageIndex) const {
+    return m_images[imageIndex];
+}
+
+bool VulkanSwapChain::TryGetImageByIndex(uint32_t imageIndex, VulkanRHLTexture*& outImage) const {
+    if (imageIndex >= m_images.size())
+        return false;
+
+    outImage = m_images[imageIndex];
+    return true;
+}
+
+uint32_t VulkanSwapChain::GetImagesCount() const {
+    return m_images.size();
+}
+
+VulkanSwapChainState VulkanSwapChain::Present(uint32_t imageIndex, const std::shared_ptr<VulkanBinarySemaphore>& renderFinishedSemaphore) const {
+    VulkanSemaphoreLockResult semaphoreAcquire = renderFinishedSemaphore->ScheduleAcquire();
+    vk::PresentInfoKHR presentInfo{};
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &semaphoreAcquire.m_semaphoreHandle;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &m_handle;
+    presentInfo.pImageIndices = &imageIndex;
+
+    vk::Result presentResult = m_presentQueue->GetHandle().presentKHR(&presentInfo);
+    return ResolveSwapChainStateByVulkanResult(presentResult);
 }
 
 Photon::Result VulkanSwapChain::RetrieveImages(uint32_t arrayLayers) {
@@ -97,24 +128,6 @@ Photon::Result VulkanSwapChain::RetrieveImages(uint32_t arrayLayers) {
     for (vk::Image rawImage: imageRetrieveResult.value) {
         createInfo.m_imageHandle = rawImage;
         m_images.emplace_back(VulkanRHLTexture::Create(createInfo));
-    }
-
-    return Photon::Result::Success;
-}
-
-Photon::Result VulkanSwapChain::CreateAcquireSemaphores(uint32_t semaphoresCount) {
-    m_acquireSemaphores.reserve(semaphoresCount);
-
-    VulkanBinarySemaphoreCreateInfo createInfo;
-    createInfo.m_vulkanDevice = m_vulkanDevice;
-    InOutCreateParams<Photon::Result> inOut;
-
-    for (uint32_t i = 0; i < semaphoresCount; i++) {
-        VulkanBinarySemaphore* semaphore = VulkanBinarySemaphore::Create(createInfo, &inOut);
-        if (inOut.m_result == Photon::Result::UnknownFailure)
-            return inOut.m_result;
-
-        m_acquireSemaphores.emplace_back(semaphore);
     }
 
     return Photon::Result::Success;
@@ -180,6 +193,21 @@ VulkanSwapChainState VulkanSwapChain::ResolveSwapChainStateByVulkanResult(vk::Re
         default:
             return VulkanSwapChainState::Unknown;
     }
+}
+
+Photon::Result VulkanSwapChain::TryRetrievePresentQueue(VulkanDevice *device, VulkanSurface* surface, VulkanQueue *&presentQueue) {
+    // Graphics queue does not guarantee present support
+    // Works for now but in the future present queue should be initialized in device and have separate context with commands
+    VulkanQueue* gfxQueue;
+    if (!device->TryGetQueue(vk::QueueFlagBits::eGraphics, gfxQueue))
+        return Photon::Result::UnknownFailure;
+
+    vk::ResultValue<vk::Bool32> presentSupport = device->GetPhysicalHandle().getSurfaceSupportKHR(gfxQueue->GetQueueFamilyIndex(), *surface->GetHandle());
+    if (presentSupport.result != vk::Result::eSuccess || !presentSupport.value)
+        return Photon::Result::UnknownFailure;
+
+    presentQueue = gfxQueue;
+    return Photon::Result::Success;
 }
 
 bool VulkanSwapChain::CanEverRender(VulkanSwapChainState swapChainState) {

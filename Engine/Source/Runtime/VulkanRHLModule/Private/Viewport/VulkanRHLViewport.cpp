@@ -41,20 +41,22 @@ VulkanRHLViewport* VulkanRHLViewport::Create(const VulkanRHLViewportCreateInfo &
     instance->m_isBlockedUntilVBlank = createInfo.m_viewportInfo.m_blockUntilVBlank;
     instance->m_viewportWidth = createInfo.m_viewportInfo.m_viewportWidth;
     instance->m_viewportHeight = createInfo.m_viewportInfo.m_viewportHeight;
-    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    Photon::Result semaResult = instance->CreateRenderFinishedSemaphores(swapChain->GetImagesCount());
+    Photon::PushResult(semaResult, inOutCreateParams);
     return instance;
 }
 
 Photon::Result VulkanRHLViewport::TryGetBackBuffer(VulkanRHLCommandList* rhlCommandList, VulkanRHLTexture *&backBuffer) {
-    if (m_activeSwapChainImage != nullptr) {
-        backBuffer = m_activeSwapChainImage;
+    VulkanRHLTexture* activeSwapChainImage;
+    if (TryGetActiveSwapChainImage(activeSwapChainImage)) {
+        backBuffer = activeSwapChainImage;
         return Photon::Result::Success;
     }
 
-    VulkanRHLTexture* swapChainImage;
-    VulkanBinarySemaphore* acquireSemaphore;
-    VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImage(swapChainImage, acquireSemaphore);
-    if (swapChainState == VulkanSwapChainState::OutOtDate) {
+    uint32_t swapChainImageIndex;
+    std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
+    VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
+    if (swapChainState == VulkanSwapChainState::OutOtDate || m_swapChainRecreateRequested) {
         RecreateSwapChain(rhlCommandList);
         return TryGetBackBuffer(rhlCommandList, backBuffer); // Hope it cant be out of date in every call, or I am fucked
     }
@@ -63,31 +65,65 @@ Photon::Result VulkanRHLViewport::TryGetBackBuffer(VulkanRHLCommandList* rhlComm
         return Photon::Result::UnknownFailure;
 
     rhlCommandList->GetGraphicsContext()->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
-    m_activeSwapChainImage = swapChainImage;
-    backBuffer = m_activeSwapChainImage;
+    m_activeSwapChainImageIndex = swapChainImageIndex;
+    backBuffer = m_vulkanSwapChain->GetImageByIndex(swapChainImageIndex);
     return Photon::Result::Success;
 }
 
-void VulkanRHLViewport::UpdateViewportSize(VulkanRHLCommandList* rhlCommandList, uint32_t viewportWidth, uint32_t viewportHeight) {
+void VulkanRHLViewport::UpdateViewportSize(uint32_t viewportWidth, uint32_t viewportHeight) {
     m_viewportWidth = viewportWidth;
     m_viewportHeight = viewportHeight;
-    RecreateSwapChain(rhlCommandList);
+    RequestSwapChainRecreate();
 }
 
-void VulkanRHLViewport::SetBlockUntilVBlank(VulkanRHLCommandList* rhlCommandList, bool isBlocked) {
+void VulkanRHLViewport::SetBlockUntilVBlank(bool isBlocked) {
     m_isBlockedUntilVBlank = isBlocked;
-    RecreateSwapChain(rhlCommandList);
+    RequestSwapChainRecreate();
 }
 
 void VulkanRHLViewport::ReleaseActiveBackBuffer() {
-    m_activeSwapChainImage = nullptr;
+    m_activeSwapChainImageIndex = -1;
 }
 
-void VulkanRHLViewport::Present() {
-    //you are the one who should submit rhl command list and present
+void VulkanRHLViewport::Present(VulkanRHLCommandList* rhlCommandList) {
+    if (!HasActiveSwapChainImage())
+        return;
+
+    std::shared_ptr<VulkanBinarySemaphore> renderFinishedSemaphore = m_renderFinishedSemaphores[m_activeSwapChainImageIndex];
+    rhlCommandList->GetGraphicsContext()->AddSignalSemaphore(renderFinishedSemaphore);
+    rhlCommandList->Submit();
+
+    VulkanSwapChainState swapChainState = m_vulkanSwapChain->Present(m_activeSwapChainImageIndex, renderFinishedSemaphore);
+    if (swapChainState != VulkanSwapChainState::Healthy || m_swapChainRecreateRequested)
+        RecreateSwapChain(rhlCommandList);
+
+    ReleaseActiveBackBuffer();
+}
+
+Photon::Result VulkanRHLViewport::CreateRenderFinishedSemaphores(uint32_t semaCount) {
+    m_renderFinishedSemaphores.reserve(semaCount);
+
+    for (uint32_t i = 0; i < semaCount; i++) {
+        std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
+        Photon::Result acquireResult = m_vulkanDevice->TryAllocateSemaphore(acquireSemaphore);
+        if (acquireResult != Photon::Result::Success)
+            return acquireResult;
+
+        m_renderFinishedSemaphores.emplace_back(acquireSemaphore);
+    }
+
+    return Photon::Result::Success;
+}
+
+void VulkanRHLViewport::ReleaseRenderFinishedSemaphores() {
+    for (std::shared_ptr<VulkanBinarySemaphore>& semaphore : m_renderFinishedSemaphores)
+        m_vulkanDevice->ReleaseSemaphore(semaphore);
+
+    m_renderFinishedSemaphores.clear();
 }
 
 void VulkanRHLViewport::RecreateSwapChain(VulkanRHLCommandList* rhlCommandList) {
+    CloseSwapChainRecreateRequest();
     rhlCommandList->Submit();
     ReleaseActiveBackBuffer();
 
@@ -106,4 +142,22 @@ void VulkanRHLViewport::RecreateSwapChain(VulkanRHLCommandList* rhlCommandList) 
 
     delete m_vulkanSwapChain;
     m_vulkanSwapChain = newSwapChain;
+    ReleaseRenderFinishedSemaphores();
+    CreateRenderFinishedSemaphores(m_vulkanSwapChain->GetImagesCount());
+}
+
+bool VulkanRHLViewport::TryGetActiveSwapChainImage(VulkanRHLTexture*& outSwapChainImage) const {
+    return m_vulkanSwapChain->TryGetImageByIndex(m_activeSwapChainImageIndex, outSwapChainImage);
+}
+
+bool VulkanRHLViewport::HasActiveSwapChainImage() const {
+    return m_activeSwapChainImageIndex != -1;
+}
+
+void VulkanRHLViewport::RequestSwapChainRecreate() {
+    m_swapChainRecreateRequested = true;
+}
+
+void VulkanRHLViewport::CloseSwapChainRecreateRequest() {
+    m_swapChainRecreateRequested = false;
 }
