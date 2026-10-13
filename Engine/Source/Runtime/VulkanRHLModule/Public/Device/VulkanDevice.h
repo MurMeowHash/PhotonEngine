@@ -12,10 +12,13 @@
 #include "Queue/VulkanWorkPools.h"
 #include "Synchronization/VulkanSemaphorePool.h"
 #include "Synchronization/VulkanTimelineSemaphore.h"
+#include "VulkanGlobals.h"
+
+using Photon::Vulkan::RHLPipeline;
 
 struct VulkanDeviceCreateInfo {
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
-    vk::QueueFlags m_requestedQueues;
+    RHLPipeline m_requestedPipelines = RHLPipeline::None;
     std::vector<VulkanExtension> m_requestedExtensions;
     std::vector<VulkanDeviceFeature> m_requestedFeatures;
     VulkanMemoryProviderType m_memoryProviderType;
@@ -42,7 +45,7 @@ struct QueueInitializeInfo {
     std::vector<vk::DeviceQueueCreateInfo> m_vulkanCreateInfo;
     IAllocator* m_prioritiesAllocator;
     std::unordered_map<uint32_t, uint32_t> m_queueFamilyRequestProperties;
-    std::unordered_map<vk::QueueFlagBits, uint32_t> m_queueFamilyRequestInfo;
+    std::unordered_map<RHLPipeline, uint32_t> m_queueFamilyRequestInfo;
 };
 
 class VulkanDevice : VulkanEntity {
@@ -54,7 +57,7 @@ public:
     [[nodiscard]] vk::raii::Device& GetHandle();
     [[nodiscard]] const vk::raii::PhysicalDevice& GetPhysicalHandle() const;
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
-    [[nodiscard]] bool TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue*& vulkanQueue) const;
+    [[nodiscard]] bool TryGetQueue(RHLPipeline pipeline, VulkanQueue*& vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
     [[nodiscard]] VulkanPipelineProvider* GetPipelineProvider() const;
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
@@ -89,7 +92,7 @@ private:
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
     vk::raii::Device m_handle = nullptr;
 
-    std::unordered_map<vk::QueueFlagBits, VulkanQueue*> m_deviceQueues;
+    std::unordered_map<RHLPipeline, VulkanQueue*> m_deviceQueues;
     std::unordered_map<VulkanDeviceFeatureType, VulkanDeviceFeature> m_features;
 
     IVulkanDeviceMemoryProvider* m_memoryProvider = nullptr;
@@ -97,9 +100,10 @@ private:
     VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
     VulkanBinarySemaphorePool* m_binarySemaphorePool = nullptr;
 
-    QueueInitializeInfo InitializeDeviceQueues(vk::QueueFlags requestedQueues);
+    [[nodiscard]] static bool IsQueueFamilySuitable(RHLPipeline pipeline, vk::QueueFlags queueFamilyFlags);
+    QueueInitializeInfo InitializeDeviceQueues(RHLPipeline requestedPipelines);
     [[nodiscard]] Photon::Result ObtainQueues(std::unordered_map<uint32_t, uint32_t>&& queueFamilyRequestProperties,
-        std::unordered_map<vk::QueueFlagBits, uint32_t>&& queueFamilyRequestInfo);
+        std::unordered_map<RHLPipeline, uint32_t>&& queueFamilyRequestInfo);
 
     [[nodiscard]] VulkanDeviceFeaturesAssembleData AssembleDeviceFeatures(const std::vector<VulkanDeviceFeature>& requestedFeatures);
     VulkanFeatureNative ResolveFeature(VulkanDeviceFeatureType featureType,

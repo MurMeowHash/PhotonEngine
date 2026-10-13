@@ -31,7 +31,9 @@ namespace Photon::Vulkan::DeviceProvider {
     [[nodiscard]] bool IsSupportsGraphics(const std::vector<vk::QueueFamilyProperties2> &deviceQueueFamilies) {
         return std::ranges::any_of(deviceQueueFamilies,
             [](const vk::QueueFamilyProperties2& queueFamilyProperties){
-                return static_cast<bool>(queueFamilyProperties.queueFamilyProperties.queueFlags & vk::QueueFlagBits::eGraphics);
+                vk::QueueFlags queueFlags = queueFamilyProperties.queueFamilyProperties.queueFlags;
+                return static_cast<bool>(queueFlags & vk::QueueFlagBits::eGraphics)
+                    && static_cast<bool>(queueFlags & vk::QueueFlagBits::eCompute);
         });
     }
 

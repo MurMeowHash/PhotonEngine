@@ -23,6 +23,13 @@ namespace Photon::Vulkan {
         RenderingOnly = 1u << 1,
     };
 
+    enum class RHLPipeline : uint32_t {
+        None = 0,
+        Graphics = 1u << 0,
+        DedicatedCompute = 1u << 1,
+        DedicatedTransfer = 1u << 2,
+    };
+
     enum class ImageType {
         None = 0,
         p1D = 1,

@@ -20,7 +20,7 @@ VulkanDevice::~VulkanDevice() {
     delete m_memoryProvider;
     delete m_pipelineProvider;
 
-    for (std::pair<const vk::QueueFlagBits, VulkanQueue *>& queue: m_deviceQueues) {
+    for (std::pair<const RHLPipeline, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
     }
 
@@ -42,7 +42,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->m_physicalDevice = createInfo.m_physicalDevice;
     instance->SetApiVersion(instance->m_physicalDevice.getProperties2().properties.apiVersion);
 
-    QueueInitializeInfo queueInitializationInfo = instance->InitializeDeviceQueues(createInfo.m_requestedQueues);
+    QueueInitializeInfo queueInitializationInfo = instance->InitializeDeviceQueues(createInfo.m_requestedPipelines);
     instance->ProcessExtensionsRequest(createInfo.m_requestedExtensions);
     VulkanDeviceFeaturesAssembleData featuresAssembleData = instance->AssembleDeviceFeatures(createInfo.m_requestedFeatures);
 
@@ -85,15 +85,15 @@ const vk::raii::PhysicalDevice & VulkanDevice::GetPhysicalHandle() const {
 
 std::set<VulkanQueue *> VulkanDevice::GetOperatingQueues() const {
     std::set<VulkanQueue*> queues;
-    for (const std::pair<const vk::QueueFlagBits, VulkanQueue*>& queueData : m_deviceQueues) {
+    for (const std::pair<const RHLPipeline, VulkanQueue*>& queueData : m_deviceQueues) {
         queues.emplace(queueData.second);
     }
 
     return queues;
 }
 
-bool VulkanDevice::TryGetQueue(vk::QueueFlagBits queueFlagBits, VulkanQueue*& vulkanQueue) const {
-    auto queueIterator = m_deviceQueues.find(queueFlagBits);
+bool VulkanDevice::TryGetQueue(RHLPipeline pipeline, VulkanQueue*& vulkanQueue) const {
+    auto queueIterator = m_deviceQueues.find(pipeline);
     if (queueIterator == m_deviceQueues.end())
         return false;
 
@@ -117,12 +117,29 @@ void VulkanDevice::WaitIdle() const {
     vk::Result waitResult = m_handle.waitIdle();
 }
 
-QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requestedQueues) {
+bool VulkanDevice::IsQueueFamilySuitable(RHLPipeline pipeline, vk::QueueFlags queueFamilyFlags) {
+    bool supportsGraphics = static_cast<bool>(queueFamilyFlags & vk::QueueFlagBits::eGraphics);
+    bool supportsCompute = static_cast<bool>(queueFamilyFlags & vk::QueueFlagBits::eCompute);
+    bool supportsTransfer = static_cast<bool>(queueFamilyFlags & vk::QueueFlagBits::eTransfer);
+
+    switch (pipeline) {
+        case RHLPipeline::Graphics:
+            return supportsGraphics && supportsCompute;
+        case RHLPipeline::DedicatedCompute:
+            return supportsCompute && !supportsGraphics;
+        case RHLPipeline::DedicatedTransfer:
+            return supportsTransfer && !supportsGraphics && !supportsCompute;
+        default:
+            return false;
+    }
+}
+
+QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(RHLPipeline requestedPipelines) {
     std::vector<vk::QueueFamilyProperties2> deviceQueueFamilies = m_physicalDevice.getQueueFamilyProperties2();
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 
     std::unordered_map<uint32_t, uint32_t> queueFamilyRequestProperties;
-    std::unordered_map<vk::QueueFlagBits, uint32_t> queueFamilyRequestInfo;
+    std::unordered_map<RHLPipeline, uint32_t> queueFamilyRequestInfo;
     std::unordered_set<uint32_t> stagingQueueFamilies;
     std::vector<uint32_t> candidateQueueFamilies;
     queueFamilyRequestProperties.reserve(deviceQueueFamilies.size());
@@ -131,29 +148,31 @@ QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requeste
 
     uint32_t totalRequestedQueues = 0;
 
-    while(requestedQueues) {
-        vk::QueueFlags::MaskType rawQueueFlags = static_cast<vk::QueueFlags::MaskType>(requestedQueues);
-        vk::QueueFlags::MaskType lowestRawQueueFlag = rawQueueFlags & (~rawQueueFlags + 1);
-        vk::QueueFlagBits inspectedQueueBit = static_cast<vk::QueueFlagBits>(lowestRawQueueFlag);
-        requestedQueues &= ~vk::QueueFlags(inspectedQueueBit);
+    using RawPipelineFlags = std::underlying_type_t<RHLPipeline>;
+    RawPipelineFlags remainingPipelines = static_cast<RawPipelineFlags>(requestedPipelines);
+
+    while(remainingPipelines) {
+        RawPipelineFlags lowestRawPipelineFlag = remainingPipelines & (~remainingPipelines + 1);
+        RHLPipeline inspectedPipeline = static_cast<RHLPipeline>(lowestRawPipelineFlag);
+        remainingPipelines &= ~lowestRawPipelineFlag;
 
         for(size_t i = 0; i < deviceQueueFamilies.size(); i++) {
-            if (deviceQueueFamilies[i].queueFamilyProperties.queueFlags & inspectedQueueBit) {
+            if (IsQueueFamilySuitable(inspectedPipeline, deviceQueueFamilies[i].queueFamilyProperties.queueFlags)) {
                 std::unordered_map<uint32_t, uint32_t>::iterator queueFamilyRequestIterator = queueFamilyRequestProperties.find(i);
                 if (queueFamilyRequestIterator != queueFamilyRequestProperties.end())
                     candidateQueueFamilies.emplace_back(i);
                 else {
                     queueFamilyRequestProperties.emplace(i, 1);
-                    queueFamilyRequestInfo.emplace(inspectedQueueBit, i);
+                    queueFamilyRequestInfo.emplace(inspectedPipeline, i);
                     ++totalRequestedQueues;
                     break;
                 }
             }
         }
 
-        if (!queueFamilyRequestInfo.contains(inspectedQueueBit) && !candidateQueueFamilies.empty()) {
+        if (!queueFamilyRequestInfo.contains(inspectedPipeline) && !candidateQueueFamilies.empty()) {
             ++queueFamilyRequestProperties[candidateQueueFamilies[0]];
-            queueFamilyRequestInfo.emplace(inspectedQueueBit, candidateQueueFamilies[0]);
+            queueFamilyRequestInfo.emplace(inspectedPipeline, candidateQueueFamilies[0]);
             ++totalRequestedQueues;
         }
 
@@ -182,11 +201,11 @@ QueueInitializeInfo VulkanDevice::InitializeDeviceQueues(vk::QueueFlags requeste
 }
 
 Photon::Result VulkanDevice::ObtainQueues(std::unordered_map<uint32_t, uint32_t> &&queueFamilyRequestProperties,
-    std::unordered_map<vk::QueueFlagBits, uint32_t> &&queueFamilyRequestInfo) {
+    std::unordered_map<RHLPipeline, uint32_t> &&queueFamilyRequestInfo) {
     std::vector<std::vector<VulkanQueue*>> createdQueues(m_physicalDevice.getQueueFamilyProperties2().size(), std::vector<VulkanQueue*>());
     m_deviceQueues.clear();
 
-    for(std::pair<const vk::QueueFlagBits, uint32_t> &requestQueueInfo : queueFamilyRequestInfo) {
+    for(std::pair<const RHLPipeline, uint32_t> &requestQueueInfo : queueFamilyRequestInfo) {
         if (createdQueues[requestQueueInfo.second].size() >= queueFamilyRequestProperties[requestQueueInfo.second])
             m_deviceQueues.emplace(requestQueueInfo.first, createdQueues[requestQueueInfo.second][0]);
         else {

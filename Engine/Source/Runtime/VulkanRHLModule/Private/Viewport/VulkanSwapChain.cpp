@@ -199,7 +199,7 @@ Photon::Result VulkanSwapChain::TryRetrievePresentQueue(VulkanDevice *device, Vu
     // Graphics queue does not guarantee present support
     // Works for now but in the future present queue should be initialized in device and have separate context with commands
     VulkanQueue* gfxQueue;
-    if (!device->TryGetQueue(vk::QueueFlagBits::eGraphics, gfxQueue))
+    if (!device->TryGetQueue(RHLPipeline::Graphics, gfxQueue))
         return Photon::Result::UnknownFailure;
 
     vk::ResultValue<vk::Bool32> presentSupport = device->GetPhysicalHandle().getSurfaceSupportKHR(gfxQueue->GetQueueFamilyIndex(), *surface->GetHandle());

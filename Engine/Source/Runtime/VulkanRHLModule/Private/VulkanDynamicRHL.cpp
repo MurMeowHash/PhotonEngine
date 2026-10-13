@@ -79,7 +79,7 @@ Photon::Result VulkanDynamicRHL::CreateVulkanDevice() {
     deviceCreateInfo.m_physicalDevice = suitableDevice;
     deviceCreateInfo.m_requestedExtensions = Photon::Vulkan::ExtensionsConfiguration::g_deviceExtensions;
     deviceCreateInfo.m_requestedFeatures = Photon::Vulkan::DeviceConfiguration::g_deviceFeatures;
-    deviceCreateInfo.m_requestedQueues = vk::QueueFlagBits::eGraphics;
+    deviceCreateInfo.m_requestedPipelines = RHLPipeline::Graphics;
     deviceCreateInfo.m_memoryProviderType = VulkanMemoryProviderType::Default;
     InOutCreateParams<Photon::Result> inOutCreateParams{};
     m_vulkanDevice = VulkanDevice::Create(deviceCreateInfo, &inOutCreateParams);
