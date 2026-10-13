@@ -1,19 +1,20 @@
 #pragma once
 
 #include "CoreGlobals.h"
-#include "VulkanGlobals.h"
 #include "Queue/VulkanWorkContext.h"
 #include "Resources/VulkanResourceTransition.h"
 
 class VulkanRHLCommandWorkContext : public VulkanWorkContext {
 public:
-    virtual RHLWorkType GetVulkanRHLWorkType() = 0;
-
-    [[nodiscard]] Photon::Result FinalizeWork();
+    [[nodiscard]] RHLPipeline GetRHLPipeline() const;
+    [[nodiscard]] Photon::Result Execute();
     void BeginTransition(const VulkanRHLPendingTransition& pendingTransition);
     void EndTransition(const VulkanRHLPendingTransition& pendingTransition);
+    void ExecMonoTransition(const VulkanRHLPendingTransition& pendingTransition);
 protected:
-    [[nodiscard]] Photon::Result InitializeContext();
+    RHLPipeline m_contextPipeline{};
+
+    [[nodiscard]] Photon::Result InitializeContext(RHLPipeline pipeline);
 private:
     static VulkanPipelineImageTransitionScope CreatePipelineImageTransitionScope(const VulkanImageTransitionScope& scope,
         uint32_t queueFamily, bool ignoreStageAccess);

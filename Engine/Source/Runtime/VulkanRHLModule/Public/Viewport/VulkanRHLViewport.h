@@ -6,6 +6,7 @@
 #include "VulkanSwapChain.h"
 
 class VulkanRHLCommandList;
+class VulkanRHLGraphicsWorkContext;
 
 struct RHLViewportCreateInfo {
     HWND m_windowHandle;
@@ -24,11 +25,12 @@ class VulkanRHLViewport {
 public:
     ~VulkanRHLViewport();
     static VulkanRHLViewport* Create(const VulkanRHLViewportCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
-    [[nodiscard]] Photon::Result TryGetBackBuffer(VulkanRHLCommandList* rhlCommandList, VulkanRHLTexture*& backBuffer);
+    [[nodiscard]] VulkanRHLTexture* GetBackBuffer() const;
     void UpdateViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
     void SetBlockUntilVBlank(bool isBlocked);
     void ReleaseActiveBackBuffer();
-    void Present(VulkanRHLCommandList* rhlCommandList);
+    void AdvanceBackBuffer(VulkanRHLGraphicsWorkContext* gfxWorkContext);
+    void Present(VulkanRHLGraphicsWorkContext* gfxWorkContext);
 private:
     VulkanDevice* m_vulkanDevice = nullptr;
     VulkanSurface* m_vulkanSurface = nullptr;
@@ -43,7 +45,7 @@ private:
 
     [[nodiscard]] Photon::Result CreateRenderFinishedSemaphores(uint32_t semaCount);
     void ReleaseRenderFinishedSemaphores();
-    void RecreateSwapChain(VulkanRHLCommandList* rhlCommandList);
+    void RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext);
     [[nodiscard]] bool TryGetActiveSwapChainImage(VulkanRHLTexture*& outSwapChainImage) const;
     [[nodiscard]] bool HasActiveSwapChainImage() const;
     void RequestSwapChainRecreate();

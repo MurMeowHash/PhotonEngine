@@ -46,28 +46,11 @@ VulkanRHLViewport* VulkanRHLViewport::Create(const VulkanRHLViewportCreateInfo &
     return instance;
 }
 
-Photon::Result VulkanRHLViewport::TryGetBackBuffer(VulkanRHLCommandList* rhlCommandList, VulkanRHLTexture *&backBuffer) {
-    VulkanRHLTexture* activeSwapChainImage;
-    if (TryGetActiveSwapChainImage(activeSwapChainImage)) {
-        backBuffer = activeSwapChainImage;
-        return Photon::Result::Success;
-    }
+VulkanRHLTexture* VulkanRHLViewport::GetBackBuffer() const {
+    if (!HasActiveSwapChainImage())
+        return nullptr;
 
-    uint32_t swapChainImageIndex;
-    std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
-    VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
-    if (swapChainState == VulkanSwapChainState::OutOtDate || m_swapChainRecreateRequested) {
-        RecreateSwapChain(rhlCommandList);
-        return TryGetBackBuffer(rhlCommandList, backBuffer); // Hope it cant be out of date in every call, or I am fucked
-    }
-
-    if (!VulkanSwapChain::CanEverRender(swapChainState))
-        return Photon::Result::UnknownFailure;
-
-    rhlCommandList->GetGraphicsContext()->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
-    m_activeSwapChainImageIndex = swapChainImageIndex;
-    backBuffer = m_vulkanSwapChain->GetImageByIndex(swapChainImageIndex);
-    return Photon::Result::Success;
+    return m_vulkanSwapChain->GetImageByIndex(m_activeSwapChainImageIndex);
 }
 
 void VulkanRHLViewport::UpdateViewportSize(uint32_t viewportWidth, uint32_t viewportHeight) {
@@ -85,17 +68,30 @@ void VulkanRHLViewport::ReleaseActiveBackBuffer() {
     m_activeSwapChainImageIndex = -1;
 }
 
-void VulkanRHLViewport::Present(VulkanRHLCommandList* rhlCommandList) {
+void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkContext) {
+    uint32_t swapChainImageIndex;
+    std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
+    VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
+    if (swapChainState == VulkanSwapChainState::OutOtDate || m_swapChainRecreateRequested) {
+        RecreateSwapChain(gfxWorkContext);
+        AdvanceBackBuffer(gfxWorkContext); // Hope it cant be out of date in every call, or I am fucked
+    }
+
+    gfxWorkContext->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+    m_activeSwapChainImageIndex = swapChainImageIndex;
+}
+
+void VulkanRHLViewport::Present(VulkanRHLGraphicsWorkContext* gfxWorkContext) {
     if (!HasActiveSwapChainImage())
         return;
 
     std::shared_ptr<VulkanBinarySemaphore> renderFinishedSemaphore = m_renderFinishedSemaphores[m_activeSwapChainImageIndex];
-    rhlCommandList->GetGraphicsContext()->AddSignalSemaphore(renderFinishedSemaphore);
-    rhlCommandList->Submit();
+    gfxWorkContext->AddSignalSemaphore(renderFinishedSemaphore);
+    gfxWorkContext->Execute();
 
     VulkanSwapChainState swapChainState = m_vulkanSwapChain->Present(m_activeSwapChainImageIndex, renderFinishedSemaphore);
     if (swapChainState != VulkanSwapChainState::Healthy || m_swapChainRecreateRequested)
-        RecreateSwapChain(rhlCommandList);
+        RecreateSwapChain(gfxWorkContext);
 
     ReleaseActiveBackBuffer();
 }
@@ -122,9 +118,9 @@ void VulkanRHLViewport::ReleaseRenderFinishedSemaphores() {
     m_renderFinishedSemaphores.clear();
 }
 
-void VulkanRHLViewport::RecreateSwapChain(VulkanRHLCommandList* rhlCommandList) {
+void VulkanRHLViewport::RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext) {
     CloseSwapChainRecreateRequest();
-    rhlCommandList->Submit();
+    gfxWorkContext->Execute();
     ReleaseActiveBackBuffer();
 
     VulkanSwapChainCreateInfo createInfo;

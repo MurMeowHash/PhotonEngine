@@ -38,10 +38,6 @@ namespace Photon::Vulkan {
         pCubeMap = 4,
     };
 
-    enum class RHLWorkType : uint32_t {
-        Graphics = 0,
-    };
-
     enum class RHLPipelineUsage {
         Unknown = 0,
         RenderTarget = 1,

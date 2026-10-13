@@ -35,12 +35,18 @@ ForwardViewport* ForwardViewport::Create(const ForwardViewportCreateInfo &create
 }
 
 VulkanRHLTexture* ForwardViewport::GetVulkanRHLTexture() {
-    VulkanRHLTexture* backBuffer;
-    Photon::Result backBufferResult = m_vulkanRHLViewport->TryGetBackBuffer(m_cachedDynamicRHL->GetImmediateRHLCommandList(), backBuffer);
-    return backBufferResult == Photon::Result::Success ? backBuffer : nullptr;
+    return m_vulkanRHLViewport->GetBackBuffer();
 }
 
 void ForwardViewport::ChangeSize(uint32_t width, uint32_t height) {
     Viewport::ChangeSize(width, height);
-    m_vulkanRHLViewport->UpdateViewportSize(m_cachedDynamicRHL->GetImmediateRHLCommandList(), width, height);
+    m_vulkanRHLViewport->UpdateViewportSize(width, height);
+}
+
+void ForwardViewport::BeginRendering() {
+    m_cachedDynamicRHL->GetImmediateRHLCommandList()->BeginRenderingViewport(m_vulkanRHLViewport);
+}
+
+void ForwardViewport::EndRendering() {
+    m_cachedDynamicRHL->GetImmediateRHLCommandList()->EndRenderingViewport(m_vulkanRHLViewport);
 }

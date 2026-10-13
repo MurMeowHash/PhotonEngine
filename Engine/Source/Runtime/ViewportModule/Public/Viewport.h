@@ -8,6 +8,8 @@ public:
     [[nodiscard]] uint32_t GetHeight() const;
 
     virtual void ChangeSize(uint32_t width, uint32_t height);
+    virtual void BeginRendering() = 0;
+    virtual void EndRendering() = 0;
 private:
     uint32_t m_width{};
     uint32_t m_height{};

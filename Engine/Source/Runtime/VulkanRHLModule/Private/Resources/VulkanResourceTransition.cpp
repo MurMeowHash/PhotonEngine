@@ -1,12 +1,11 @@
 #include "../Public/Resources/VulkanResourceTransition.h"
 
-#include "VulkanUtils.h"
 #include "Device/VulkanDevice.h"
 #include "Resources/VulkanRHLTexture.h"
 #include "Synchronization/VulkanBinarySemaphore.h"
 
-VulkanRHLResourceTransitionRequestBatch::VulkanRHLResourceTransitionRequestBatch(RHLWorkType srcWorkType, RHLWorkType destWorkType)
-: m_srcWorkType(srcWorkType), m_destWorkType(destWorkType) { }
+VulkanRHLResourceTransitionRequestBatch::VulkanRHLResourceTransitionRequestBatch(RHLPipeline srcPipeline, RHLPipeline destPipeline)
+: m_srcPipeline(srcPipeline), m_destPipeline(destPipeline) { }
 
 void VulkanRHLResourceTransitionRequestBatch::AddTextureTransitionRequest(VulkanRHLTextureTransitionRequest &&textureRequest) {
     m_textureTransitionRequests.emplace_back(std::move(textureRequest));
@@ -16,19 +15,19 @@ const std::vector<VulkanRHLTextureTransitionRequest> & VulkanRHLResourceTransiti
     return m_textureTransitionRequests;
 }
 
-RHLWorkType VulkanRHLResourceTransitionRequestBatch::GetSrcWorkType() const {
-    return m_srcWorkType;
+RHLPipeline VulkanRHLResourceTransitionRequestBatch::GetSrcPipeline() const {
+    return m_srcPipeline;
 }
 
-RHLWorkType VulkanRHLResourceTransitionRequestBatch::GetDestWorkType() const {
-    return m_destWorkType;
+RHLPipeline VulkanRHLResourceTransitionRequestBatch::GetDestPipeline() const {
+    return m_destPipeline;
 }
 
-VulkanRHLPendingTransition::VulkanRHLPendingTransition(VulkanDevice *vulkanDevice, RHLWorkType srcWorkType, RHLWorkType destWorkType)
-: m_vulkanDevice(vulkanDevice), m_srcWorkType(srcWorkType), m_destWorkType(destWorkType) {
-    m_srcVulkanQueue = GetVulkanQueueByRHLWork(srcWorkType);
-    m_destVulkanQueue = GetVulkanQueueByRHLWork(destWorkType);
-    if (IsCrossQueue()) {
+VulkanRHLPendingTransition::VulkanRHLPendingTransition(VulkanDevice *vulkanDevice, RHLPipeline srcPipeline, RHLPipeline destPipeline)
+: m_vulkanDevice(vulkanDevice), m_srcPipeline(srcPipeline), m_destPipeline(destPipeline) {
+    m_srcVulkanQueue = GetVulkanQueueByRHLPipeline(srcPipeline);
+    m_destVulkanQueue = GetVulkanQueueByRHLPipeline(destPipeline);
+    if (IsCrossPipeline()) {
         m_vulkanDevice->TryAllocateSemaphore(m_transitionSemaphore);
     }
 }
@@ -46,12 +45,12 @@ const std::vector<VulkanImagePendingTransition> & VulkanRHLPendingTransition::Ge
     return m_imagePendingTransitions;
 }
 
-RHLWorkType VulkanRHLPendingTransition::GetSrcWorkType() const {
-    return m_srcWorkType;
+RHLPipeline VulkanRHLPendingTransition::GetSrcPipeline() const {
+    return m_srcPipeline;
 }
 
-RHLWorkType VulkanRHLPendingTransition::GetDestWorkType() const {
-    return m_destWorkType;
+RHLPipeline VulkanRHLPendingTransition::GetDestPipeline() const {
+    return m_destPipeline;
 }
 
 uint32_t VulkanRHLPendingTransition::GetSrcQueueFamily() const {
@@ -62,8 +61,8 @@ uint32_t VulkanRHLPendingTransition::GetDestQueueFamily() const {
     return m_destVulkanQueue == nullptr ? vk::QueueFamilyIgnored : m_destVulkanQueue->GetQueueFamilyIndex();
 }
 
-bool VulkanRHLPendingTransition::IsCrossQueue() const {
-    return m_srcVulkanQueue != m_destVulkanQueue;
+bool VulkanRHLPendingTransition::IsCrossPipeline() const {
+    return m_srcPipeline != m_destPipeline;
 }
 
 std::shared_ptr<VulkanBinarySemaphore> VulkanRHLPendingTransition::GetTransitionSemaphore() const {
@@ -103,8 +102,8 @@ VulkanImageTransitionScope VulkanRHLPendingTransition::CreateImageTransitionScop
     return scope;
 }
 
-VulkanQueue* VulkanRHLPendingTransition::GetVulkanQueueByRHLWork(RHLWorkType workType) const {
+VulkanQueue* VulkanRHLPendingTransition::GetVulkanQueueByRHLPipeline(RHLPipeline pipeline) const {
     VulkanQueue* queue;
-    bool acquiredQueue = m_vulkanDevice->TryGetQueue(GetQueueTypeByRHLWork(workType), queue);
+    bool acquiredQueue = m_vulkanDevice->TryGetQueue(pipeline, queue);
     return acquiredQueue ? queue : nullptr;
 }

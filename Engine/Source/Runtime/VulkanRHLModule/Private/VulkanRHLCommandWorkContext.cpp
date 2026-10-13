@@ -4,19 +4,24 @@
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
 
-Photon::Result VulkanRHLCommandWorkContext::InitializeContext() {
+Photon::Result VulkanRHLCommandWorkContext::InitializeContext(RHLPipeline pipeline) {
     if (g_vulkanDynamicRHL == nullptr)
         return Photon::Result::UnknownFailure;
 
     VulkanQueue* queue;
-    if (!g_vulkanDynamicRHL->GetVulkanDevice()->TryGetQueue(GetQueueTypeByRHLWork(GetVulkanRHLWorkType()), queue))
+    if (!g_vulkanDynamicRHL->GetVulkanDevice()->TryGetQueue(pipeline, queue))
         return Photon::Result::UnknownFailure;
 
+    m_contextPipeline = pipeline;
     Initialize(queue, g_vulkanDynamicRHL->GetVulkanDevice());
     return Photon::Result::Success;
 }
 
-Photon::Result VulkanRHLCommandWorkContext::FinalizeWork() {
+RHLPipeline VulkanRHLCommandWorkContext::GetRHLPipeline() const {
+    return m_contextPipeline;
+}
+
+Photon::Result VulkanRHLCommandWorkContext::Execute() {
     VulkanWorkSubmitInfo submitInfo;
     Photon::Result packResult = PackWorkBatches(submitInfo);
     if (packResult != Photon::Result::Success)
@@ -26,19 +31,30 @@ Photon::Result VulkanRHLCommandWorkContext::FinalizeWork() {
 }
 
 void VulkanRHLCommandWorkContext::BeginTransition(const VulkanRHLPendingTransition& pendingTransition) {
+    if (!pendingTransition.IsCrossPipeline())
+        return;
+
     ProcessTransition(pendingTransition, false, true);
-    if (pendingTransition.IsCrossQueue())
-        AddSignalSemaphore(pendingTransition.GetTransitionSemaphore());
+    AddSignalSemaphore(pendingTransition.GetTransitionSemaphore());
 }
 
 void VulkanRHLCommandWorkContext::EndTransition(const VulkanRHLPendingTransition &pendingTransition) {
+    if (!pendingTransition.IsCrossPipeline())
+        return;
+
     ProcessTransition(pendingTransition, true, false);
-    if (pendingTransition.IsCrossQueue())
-        AddWaitSemaphore(pendingTransition.GetTransitionSemaphore(), vk::PipelineStageFlagBits2::eAllCommands);
+    AddWaitSemaphore(pendingTransition.GetTransitionSemaphore(), vk::PipelineStageFlagBits2::eAllCommands);
+}
+
+void VulkanRHLCommandWorkContext::ExecMonoTransition(const VulkanRHLPendingTransition &pendingTransition) {
+    if (pendingTransition.IsCrossPipeline())
+        return;
+
+    ProcessTransition(pendingTransition, false, false);
 }
 
 VulkanPipelineImageTransitionScope VulkanRHLCommandWorkContext::CreatePipelineImageTransitionScope(const VulkanImageTransitionScope &scope,
-    uint32_t queueFamily, bool ignoreStageAccess) {
+                                                                                                   uint32_t queueFamily, bool ignoreStageAccess) {
     VulkanPipelineImageTransitionScope pipelineScope{};
     pipelineScope.m_stage = ignoreStageAccess ? vk::PipelineStageFlagBits2::eNone : scope.m_stage;
     pipelineScope.m_access = ignoreStageAccess ? vk::AccessFlagBits2::eNone : scope.m_access;

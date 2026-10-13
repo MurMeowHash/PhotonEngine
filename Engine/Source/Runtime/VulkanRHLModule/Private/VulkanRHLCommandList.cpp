@@ -18,7 +18,7 @@ VulkanRHLCommandList* VulkanRHLCommandList::Create([[maybe_unused]] const Vulkan
 
     VulkanRHLCommandList* instance = Photon::AllocateObject<VulkanRHLCommandList>(inOutCreateParams);
     instance->m_rhlGraphicsWorkContext = graphicsWorkContext;
-    instance->AddGeneralWorkContext(graphicsWorkContext);
+    instance->AddCommandWorkContext(graphicsWorkContext);
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
 }
@@ -27,34 +27,38 @@ VulkanRHLGraphicsWorkContext* VulkanRHLCommandList::GetGraphicsContext() const {
     return m_rhlGraphicsWorkContext;
 }
 
-void VulkanRHLCommandList::Submit() const {
-    Photon::Result finalizeResult = m_rhlGraphicsWorkContext->FinalizeWork();
-}
-
 void VulkanRHLCommandList::Transition(const VulkanRHLResourceTransitionRequestBatch &transitionRequests) const {
     VulkanRHLPendingTransition pendingTransition = g_vulkanDynamicRHL->CreateTransition(transitionRequests);
-    GetWorkContext(pendingTransition.GetSrcWorkType())->BeginTransition(pendingTransition);
-    GetWorkContext(pendingTransition.GetDestWorkType())->EndTransition(pendingTransition);
+    if (pendingTransition.IsCrossPipeline()) {
+        GetCommandWorkContext(pendingTransition.GetSrcPipeline())->BeginTransition(pendingTransition);
+        GetCommandWorkContext(pendingTransition.GetDestPipeline())->EndTransition(pendingTransition);
+    } else {
+        GetCommandWorkContext(pendingTransition.GetSrcPipeline())->ExecMonoTransition(pendingTransition);
+    }
 }
 
 void VulkanRHLCommandList::Transition(VulkanRHLTextureTransition &&textureTransition) const {
-    VulkanRHLResourceTransitionRequestBatch transitionBatch{textureTransition.m_srcWorkType, textureTransition.m_destWorkType};
-    transitionBatch.AddTextureTransitionRequest({textureTransition.m_rhlTexture});
+    VulkanRHLResourceTransitionRequestBatch transitionBatch{textureTransition.m_srcPipeline, textureTransition.m_destPipeline};
+    transitionBatch.AddTextureTransitionRequest({textureTransition.m_rhlTexture, textureTransition.m_srcPipelineUsage, textureTransition.m_destPipelineUsage});
     Transition(transitionBatch);
 }
 
-void VulkanRHLCommandList::EndRenderingViewport(VulkanRHLViewport *rhlViewport) {
-    rhlViewport->Present(this);
+void VulkanRHLCommandList::BeginRenderingViewport(VulkanRHLViewport *rhlViewport) const {
+    rhlViewport->AdvanceBackBuffer(m_rhlGraphicsWorkContext);
 }
 
-void VulkanRHLCommandList::AddGeneralWorkContext(VulkanRHLCommandWorkContext *workContext) {
-    m_workContexts[static_cast<uint32_t>(workContext->GetVulkanRHLWorkType())] = workContext;
+void VulkanRHLCommandList::EndRenderingViewport(VulkanRHLViewport *rhlViewport) const {
+    rhlViewport->Present(m_rhlGraphicsWorkContext);
 }
 
-VulkanRHLCommandWorkContext* VulkanRHLCommandList::GetWorkContext(RHLWorkType rhlWork) const {
-    uint32_t rawRHlWork = static_cast<uint32_t>(rhlWork);
-    if (rawRHlWork >= WorkTypeCount)
+void VulkanRHLCommandList::AddCommandWorkContext(VulkanRHLCommandWorkContext *workContext) {
+    m_commandWorkContexts[workContext->GetRHLPipeline()] = workContext;
+}
+
+VulkanRHLCommandWorkContext* VulkanRHLCommandList::GetCommandWorkContext(RHLPipeline pipeline) const {
+    auto workContextIterator = m_commandWorkContexts.find(pipeline);
+    if (workContextIterator == m_commandWorkContexts.end())
         return nullptr;
 
-    return m_workContexts[rawRHlWork];
+    return workContextIterator->second;
 }

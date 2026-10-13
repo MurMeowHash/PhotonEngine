@@ -29,7 +29,7 @@ VulkanRHLCommandList* VulkanDynamicRHL::GetImmediateRHLCommandList() const {
 }
 
 VulkanRHLPendingTransition VulkanDynamicRHL::CreateTransition(const VulkanRHLResourceTransitionRequestBatch &transitionRequests) const {
-    VulkanRHLPendingTransition pendingTransition{m_vulkanDevice, transitionRequests.GetSrcWorkType(), transitionRequests.GetDestWorkType()};
+    VulkanRHLPendingTransition pendingTransition{m_vulkanDevice, transitionRequests.GetSrcPipeline(), transitionRequests.GetDestPipeline()};
 
     for (const VulkanRHLTextureTransitionRequest& textureRequest: transitionRequests.GetTextureTransitionRequests()) {
         pendingTransition.CreateTexturePendingTransition(textureRequest);
