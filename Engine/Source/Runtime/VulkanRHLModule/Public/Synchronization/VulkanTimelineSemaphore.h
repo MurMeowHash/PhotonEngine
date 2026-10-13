@@ -19,6 +19,7 @@ public:
     static VulkanTimelineSemaphore* Create(const VulkanTimelineSemaphoreCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] uint64_t GetCurrentScheduledValue() const;
     [[nodiscard]] Photon::Result TryGetCurrentTimelineValue(uint64_t& value) const;
+    [[nodiscard]] Photon::Result WaitForValue(uint64_t waitValue) const;
 private:
     VulkanDevice* m_vulkanDevice = nullptr;
     uint64_t m_timelineValue = 0;

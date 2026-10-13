@@ -1,4 +1,5 @@
 #include "../../Public/CommandBuffers/VulkanCommandBuffer.h"
+#include "Device/VulkanDevice.h"
 
 VulkanCommandBuffer * VulkanCommandBuffer::Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
     vk::CommandBufferAllocateInfo allocateInfo{};

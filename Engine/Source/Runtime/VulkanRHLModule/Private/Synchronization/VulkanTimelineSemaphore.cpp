@@ -1,10 +1,6 @@
 #include "../../Public/Synchronization/VulkanTimelineSemaphore.h"
 #include "Device/VulkanDevice.h"
 
-VulkanSemaphoreType VulkanTimelineSemaphore::GetSemaphoreType() const {
-    return VulkanSemaphoreType::Timeline;
-}
-
 VulkanSemaphoreLockResult VulkanTimelineSemaphore::ScheduleAcquire() {
     return VulkanSemaphoreLockResult(*m_handle, m_timelineValue);
 }
@@ -51,4 +47,13 @@ Photon::Result VulkanTimelineSemaphore::TryGetCurrentTimelineValue(uint64_t& val
 
     value = valueWrapper.value;
     return Photon::Result::Success;
+}
+
+Photon::Result VulkanTimelineSemaphore::WaitForValue(uint64_t waitValue) const {
+    vk::SemaphoreWaitInfo waitInfo{};
+    waitInfo.semaphoreCount = 1;
+    waitInfo.pSemaphores = &*m_handle;
+    waitInfo.pValues = &waitValue;
+    vk::Result waitResult = m_vulkanDevice->GetHandle().waitSemaphores(waitInfo, UINT64_MAX);
+    return waitResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
 }

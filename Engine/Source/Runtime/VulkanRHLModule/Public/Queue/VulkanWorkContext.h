@@ -9,6 +9,7 @@
 class VulkanQueue;
 class IAllocator;
 class VulkanDevice;
+class VulkanWorkAllocatorPool;
 
 enum class VulkanWorkStage : uint8_t {
     Wait = 0,
@@ -26,6 +27,7 @@ struct VulkanWorkSubmitInfo {
     void DisposeBatch(size_t batchIndex);
     [[nodiscard]] bool IsAllBatchesFinished() const;
     void Dispose(VulkanQueue* vulkanQueue, VulkanWorkAllocatorPool* workAllocatorPool);
+    [[nodiscard]] uint64_t GetBatchMaxTimelineValue(VulkanWorkBatchStatus batchStatus) const;
 };
 
 class VulkanWorkContext {

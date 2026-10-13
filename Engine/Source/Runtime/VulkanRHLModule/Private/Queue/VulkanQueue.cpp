@@ -1,6 +1,7 @@
 #include "../../Public/Queue/VulkanQueue.h"
 #include "Device/VulkanDevice.h"
 #include "CommandBuffers/VulkanCommandBufferPool.h"
+#include "Configurations/VulkanFrameConfiguration.h"
 #include "Queue/VulkanWorkBatch.h"
 #include "Queue/VulkanWorkContext.h"
 #include "Synchronization/VulkanTimelineSemaphore.h"
@@ -149,6 +150,18 @@ void VulkanQueue::ProcessInterruptQueue() {
         std::swap(m_pendingInterruptQueue[workSubmitIndex], m_pendingInterruptQueue.back());
         m_pendingInterruptQueue.pop_back();
     }
+}
+
+Photon::Result VulkanQueue::WaitUntilWorkBatchFinished(uint32_t batchIndex) const {
+    if (batchIndex >= m_pendingInterruptQueue.size())
+        return Photon::Result::Success;
+
+    uint64_t batchFinishTimelineValue = m_pendingInterruptQueue[batchIndex].GetBatchMaxTimelineValue(VulkanWorkBatchStatus::Packed);
+    return m_workBatchesTimelineSemaphore->WaitForValue(batchFinishTimelineValue);
+}
+
+uint32_t VulkanQueue::GetWorkBatchesLeft() const {
+    return m_pendingInterruptQueue.size();
 }
 
 Photon::Result VulkanQueue::CreateTimelineSemaphore() {

@@ -2,6 +2,7 @@
 #include "VulkanRHLFactory.h"
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
+using Photon::Vulkan::g_rhlCommandList;
 
 Photon::Result VulkanRHLModule::StartUp() {
     m_vulkanRHLFactory = new VulkanRHLFactory();
@@ -11,7 +12,9 @@ Photon::Result VulkanRHLModule::StartUp() {
         return rhlInOut.m_result;
 
     g_vulkanDynamicRHL = m_vulkanDynamicRHL;
-    return rhlInOut.m_result;
+    InOutCreateParams<Photon::Result> commandListInOut;
+    g_rhlCommandList = VulkanRHLCommandList::Create({}, &commandListInOut);
+    return commandListInOut.m_result;
 }
 
 void VulkanRHLModule::Terminate() {

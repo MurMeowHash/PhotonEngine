@@ -1,6 +1,7 @@
 #include "../../Public/CommandBuffers/VulkanCommandBufferPool.h"
 #include "CoreUtils.h"
 #include "Queue/VulkanQueue.h"
+#include "Device/VulkanDevice.h"
 
 VulkanCommandBufferPool::~VulkanCommandBufferPool() {
     while (!m_commandBufferPool.empty()) {

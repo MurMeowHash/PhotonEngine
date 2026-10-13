@@ -33,6 +33,8 @@ public:
     [[nodiscard]] vk::Queue GetHandle() const;
     //TODO Multithreading: ideally launch dedicated thread for this process and not calling it from public API
     void ProcessInterruptQueue();
+    [[nodiscard]] Photon::Result WaitUntilWorkBatchFinished(uint32_t batchIndex) const;
+    [[nodiscard]] uint32_t GetWorkBatchesLeft() const;
 private:
     vk::raii::Queue m_handle = nullptr;
     uint32_t m_queueFamilyIndex = 0;

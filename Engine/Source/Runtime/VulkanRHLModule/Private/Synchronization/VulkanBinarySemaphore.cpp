@@ -1,10 +1,6 @@
 #include "../../Public/Synchronization/VulkanBinarySemaphore.h"
 #include "Device/VulkanDevice.h"
 
-VulkanSemaphoreType VulkanBinarySemaphore::GetSemaphoreType() const {
-    return VulkanSemaphoreType::Binary;
-}
-
 VulkanSemaphoreLockResult VulkanBinarySemaphore::ScheduleAcquire() {
     return VulkanSemaphoreLockResult(*m_handle, 0);
 }

@@ -5,8 +5,9 @@
 #include "VulkanCommandBufferGlobals.h"
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
-#include "Device/VulkanDevice.h"
 #include "Synchronization/VulkanPipelineBarrier.h"
+
+class VulkanDevice;
 
 struct VulkanCommandBufferCreateInfo {
     VulkanCommandBufferType m_commandBufferType;

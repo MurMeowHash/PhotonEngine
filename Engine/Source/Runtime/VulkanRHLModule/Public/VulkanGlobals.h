@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 class VulkanDynamicRHL;
+class VulkanRHLCommandList;
 
 namespace Photon::Vulkan {
     struct VulkanApiVersion {
@@ -49,4 +50,5 @@ namespace Photon::Vulkan {
     };
 
     inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;
+    inline VulkanRHLCommandList* g_rhlCommandList = nullptr;
 }

@@ -3,6 +3,7 @@
 #include "ModuleGlobals.h"
 
 using Photon::Module::g_activeModuleSequence;
+using Photon::Vulkan::g_rhlCommandList;
 
 ForwardViewport::~ForwardViewport() {
     delete m_vulkanRHLViewport;
@@ -29,7 +30,6 @@ ForwardViewport* ForwardViewport::Create(const ForwardViewportCreateInfo &create
 
     ForwardViewport* instance = Photon::AllocateObject<ForwardViewport>(inOutCreateParams);
     instance->m_vulkanRHLViewport = rhlViewport;
-    instance->m_cachedDynamicRHL = vulkanRHLModule->GetVulkanDynamicRHL();
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
 }
@@ -43,10 +43,10 @@ void ForwardViewport::ChangeSize(uint32_t width, uint32_t height) {
     m_vulkanRHLViewport->UpdateViewportSize(width, height);
 }
 
-void ForwardViewport::BeginRendering() {
-    m_cachedDynamicRHL->GetImmediateRHLCommandList()->BeginRenderingViewport(m_vulkanRHLViewport);
+void ForwardViewport::BeginRendering(VulkanRHLCommandList* rhlCommandList) {
+    rhlCommandList->BeginRenderingViewport(m_vulkanRHLViewport);
 }
 
-void ForwardViewport::EndRendering() {
-    m_cachedDynamicRHL->GetImmediateRHLCommandList()->EndRenderingViewport(m_vulkanRHLViewport);
+void ForwardViewport::EndRendering(VulkanRHLCommandList* rhlCommandList) {
+    rhlCommandList->EndRenderingViewport(m_vulkanRHLViewport);
 }

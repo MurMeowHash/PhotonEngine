@@ -4,6 +4,7 @@
 #include "ModuleGlobals.h"
 
 using Photon::Module::g_activeModuleSequence;
+using Photon::Vulkan::g_vulkanDynamicRHL;
 
 bool CoreLoop::Initialize() {
     g_activeModuleSequence = new ModuleSequence(Photon::Module::g_prioritizedModuleSequence);
@@ -33,6 +34,7 @@ bool CoreLoop::Tick() {
         return false;
 
     windowModule->GetWindowEventDispatcher()->DispatchEvents();
+    g_vulkanDynamicRHL->Tick();
     Photon::Result engineTickResult = m_engine->Tick();
     if (engineTickResult != Photon::Result::Success)
         return false;

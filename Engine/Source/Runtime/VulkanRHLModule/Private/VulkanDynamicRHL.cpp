@@ -4,8 +4,12 @@
 #include "Configurations/VulkanExtensionsConfiguration.h"
 #include "Configurations/VulkanInstanceConfiguration.h"
 #include "Device/VulkanDeviceProvider.h"
+#include "Systems/VulkanRHLInterruptProcessSystem.h"
 
 VulkanDynamicRHL::~VulkanDynamicRHL() {
+    for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
+        rhlSystem->Dispose();
+
     delete m_immediateRHlCommandList;
     delete m_vulkanDevice;
     delete m_vulkanInstance;
@@ -20,12 +24,13 @@ VulkanRHLViewport* VulkanDynamicRHL::CreateVulkanRHLViewport(const RHLViewportCr
     return VulkanRHLViewport::Create(vulkanCreateInfo, inOutCreateParams);
 }
 
-VulkanDevice* VulkanDynamicRHL::GetVulkanDevice() const {
-    return m_vulkanDevice;
+void VulkanDynamicRHL::Tick() const {
+    for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
+        rhlSystem->Tick();
 }
 
-VulkanRHLCommandList* VulkanDynamicRHL::GetImmediateRHLCommandList() const {
-    return m_immediateRHlCommandList;
+VulkanDevice* VulkanDynamicRHL::GetVulkanDevice() const {
+    return m_vulkanDevice;
 }
 
 VulkanRHLPendingTransition VulkanDynamicRHL::CreateTransition(const VulkanRHLResourceTransitionRequestBatch &transitionRequests) const {
@@ -47,9 +52,11 @@ Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLC
     if (createResult != Photon::Result::Success)
         return Photon::Result::UnknownFailure;
 
-    InOutCreateParams<Photon::Result> commandListInOut;
-    m_immediateRHlCommandList = VulkanRHLCommandList::Create({}, &commandListInOut);
-    return commandListInOut.m_result;
+    SetUpRHLSystems();
+    for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
+        rhlSystem->Initialize(this);
+
+    return Photon::Result::Success;
 }
 
 Photon::Result VulkanDynamicRHL::CreateVulkanInstance() {
@@ -84,4 +91,8 @@ Photon::Result VulkanDynamicRHL::CreateVulkanDevice() {
     InOutCreateParams<Photon::Result> inOutCreateParams{};
     m_vulkanDevice = VulkanDevice::Create(deviceCreateInfo, &inOutCreateParams);
     return inOutCreateParams.m_result;
+}
+
+void VulkanDynamicRHL::SetUpRHLSystems() {
+    AddRHLSystem<VulkanRHLInterruptProcessSystem>();
 }

@@ -9,6 +9,7 @@ VulkanBinarySemaphore* VulkanBinarySemaphorePool::CreateObject(InOutCreateParams
 VulkanBinarySemaphorePool* VulkanBinarySemaphorePool::Create(const VulkanBinarySemaphorePoolCreateInfo &createInfo,
     InOutCreateParams<Photon::Result> *inOutCreateParams) {
     VulkanBinarySemaphorePool* instance = Photon::AllocateObject<VulkanBinarySemaphorePool>(inOutCreateParams);
+    instance->Initialize(0, UINT32_MAX);
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;

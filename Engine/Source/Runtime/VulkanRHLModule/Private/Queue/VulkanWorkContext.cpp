@@ -1,4 +1,7 @@
 #include "../../Public/Queue/VulkanWorkContext.h"
+#include "Queue/VulkanQueue.h"
+#include "Queue/VulkanWorkPools.h"
+#include "Device/VulkanDevice.h"
 
 void VulkanWorkSubmitInfo::FinishBatch(size_t batchIndex) {
     if (batchIndex >= m_workBatches.size())
@@ -33,6 +36,16 @@ void VulkanWorkSubmitInfo::Dispose(VulkanQueue *vulkanQueue, VulkanWorkAllocator
 
     m_workBatches.clear();
     workAllocatorPool->ReturnObject(m_workAllocator);
+}
+
+uint64_t VulkanWorkSubmitInfo::GetBatchMaxTimelineValue(VulkanWorkBatchStatus batchStatus) const {
+    uint64_t maxBatchTimelineValue = 0;
+    for (VulkanWorkBatch* workBatch : m_workBatches) {
+        if (workBatch->m_batchStatus == batchStatus)
+            maxBatchTimelineValue = std::max(workBatch->m_timelineSemaphoreFinishedValue, maxBatchTimelineValue);
+    }
+
+    return maxBatchTimelineValue;
 }
 
 VulkanWorkContext::~VulkanWorkContext() {

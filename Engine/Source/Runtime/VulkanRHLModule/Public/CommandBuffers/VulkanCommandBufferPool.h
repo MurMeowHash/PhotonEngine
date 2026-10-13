@@ -1,12 +1,10 @@
 #pragma once
 #include <queue>
 #define VULKAN_HPP_NO_EXCEPTIONS
-#include <cstdint>
 #include <vulkan/vulkan_raii.hpp>
 #include "VulkanCommandBuffer.h"
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
-#include "Device/VulkanDevice.h"
 #include "VulkanCommandBufferGlobals.h"
 
 enum class VulkanCommandBufferCreateFlags : uint32_t {

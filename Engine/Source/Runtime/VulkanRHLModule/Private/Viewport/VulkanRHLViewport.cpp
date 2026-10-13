@@ -1,6 +1,7 @@
 #include "../../Public/Viewport/VulkanRHLViewport.h"
 #include "VulkanRHLCommandList.h"
 #include "Synchronization/VulkanBinarySemaphore.h"
+#include "Device/VulkanDevice.h"
 
 VulkanRHLViewport::~VulkanRHLViewport() {
     delete m_vulkanSwapChain;
