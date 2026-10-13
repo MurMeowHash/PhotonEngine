@@ -69,10 +69,8 @@ void VulkanQueue::ReturnCommandBufferPool(VulkanCommandBufferPool *commandBuffer
 }
 
 Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitInfo) {
-    if (workSubmitInfo.m_workBatches.empty()) {
-        m_pendingInterruptQueue.emplace_back(std::move(workSubmitInfo));
+    if (workSubmitInfo.m_workBatches.empty())
         return Photon::Result::Success;
-    }
 
     std::vector<vk::SubmitInfo2> submitInfos;
     submitInfos.reserve(workSubmitInfo.m_workBatches.size());
@@ -124,31 +122,24 @@ void VulkanQueue::ProcessInterruptQueue() {
     if (m_pendingInterruptQueue.empty())
         return;
 
-    std::vector<size_t> workSubmitInfosToDispose;
-    workSubmitInfosToDispose.reserve(m_pendingInterruptQueue.size());
+    uint64_t completedTimelineValue;
+    if (m_workBatchesTimelineSemaphore->TryGetCurrentTimelineValue(completedTimelineValue) != Photon::Result::Success)
+        return;
 
-    for (size_t i = 0; i < m_pendingInterruptQueue.size(); i++) {
-        VulkanWorkSubmitInfo& workSubmitInfo = m_pendingInterruptQueue[i];
+    while (!m_pendingInterruptQueue.empty()) {
+        VulkanWorkSubmitInfo& workSubmitInfo = m_pendingInterruptQueue.front();
         for (size_t batchIndex = 0; batchIndex < workSubmitInfo.m_workBatches.size(); batchIndex++) {
-            if (workSubmitInfo.m_workBatches[batchIndex]->m_batchStatus == VulkanWorkBatchStatus::Finished)
-                continue;
-
-            uint64_t workBatchSemaphoreTimelineValue;
-            if (m_workBatchesTimelineSemaphore->TryGetCurrentTimelineValue(workBatchSemaphoreTimelineValue) != Photon::Result::Success)
-                continue;
-
-            if (workSubmitInfo.m_workBatches[batchIndex]->m_timelineSemaphoreFinishedValue <= workBatchSemaphoreTimelineValue)
+            VulkanWorkBatch* workBatch = workSubmitInfo.m_workBatches[batchIndex];
+            if (workBatch->m_batchStatus != VulkanWorkBatchStatus::Finished
+                && workBatch->m_timelineSemaphoreFinishedValue <= completedTimelineValue)
                 workSubmitInfo.FinishBatch(batchIndex);
         }
 
-        if (workSubmitInfo.IsAllBatchesFinished())
-            workSubmitInfosToDispose.emplace_back(i);
-    }
+        if (!workSubmitInfo.IsAllBatchesFinished())
+            break;
 
-    for (size_t workSubmitIndex : workSubmitInfosToDispose) {
-        m_pendingInterruptQueue[workSubmitIndex].Dispose(this, m_vulkanDevice->GetWorkAllocatorPool());
-        std::swap(m_pendingInterruptQueue[workSubmitIndex], m_pendingInterruptQueue.back());
-        m_pendingInterruptQueue.pop_back();
+        workSubmitInfo.Dispose(this, m_vulkanDevice->GetWorkAllocatorPool());
+        m_pendingInterruptQueue.pop_front();
     }
 }
 

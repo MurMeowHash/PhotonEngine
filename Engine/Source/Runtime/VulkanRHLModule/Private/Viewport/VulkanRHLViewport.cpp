@@ -1,5 +1,6 @@
 #include "../../Public/Viewport/VulkanRHLViewport.h"
 #include "VulkanRHLCommandList.h"
+#include "Configurations/VulkanFrameConfiguration.h"
 #include "Synchronization/VulkanBinarySemaphore.h"
 #include "Device/VulkanDevice.h"
 
@@ -70,16 +71,28 @@ void VulkanRHLViewport::ReleaseActiveBackBuffer() {
 }
 
 void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkContext) {
-    uint32_t swapChainImageIndex;
-    std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
-    VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
-    if (swapChainState == VulkanSwapChainState::OutOtDate || m_swapChainRecreateRequested) {
+    if (m_swapChainRecreateRequested)
         RecreateSwapChain(gfxWorkContext);
-        AdvanceBackBuffer(gfxWorkContext); // Hope it cant be out of date in every call, or I am fucked
-    }
 
-    gfxWorkContext->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
-    m_activeSwapChainImageIndex = swapChainImageIndex;
+    for (uint32_t acquireAttempt = 0; acquireAttempt < Photon::Vulkan::FrameConfiguration::g_maxSwapChainAcquireRetries; acquireAttempt++) {
+        uint32_t swapChainImageIndex;
+        std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
+        VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
+        if (swapChainState == VulkanSwapChainState::OutOtDate) {
+            RecreateSwapChain(gfxWorkContext);
+            continue;
+        }
+
+        if (!VulkanSwapChain::CanEverRender(swapChainState))
+            return;
+
+        if (swapChainState == VulkanSwapChainState::Suboptimal)
+            RequestSwapChainRecreate();
+
+        gfxWorkContext->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+        m_activeSwapChainImageIndex = swapChainImageIndex;
+        break;
+    }
 }
 
 void VulkanRHLViewport::Present(VulkanRHLGraphicsWorkContext* gfxWorkContext) {

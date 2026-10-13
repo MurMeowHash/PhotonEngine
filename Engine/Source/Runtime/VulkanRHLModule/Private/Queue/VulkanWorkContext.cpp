@@ -62,6 +62,7 @@ VulkanWorkBatch* VulkanWorkContext::GetWorkBatch(VulkanWorkStage stage) {
     if (m_workBatches.empty() || stage < m_currentStage)
         return CreateWorkBatch();
 
+    m_currentStage = stage;
     return m_workBatches[m_workBatches.size() - 1];
 }
 
@@ -138,13 +139,13 @@ Photon::Result VulkanWorkContext::StartCommandBuffer(VulkanWorkBatch *vulkanWork
     if (popResult != Photon::Result::Success)
         return popResult;
 
-    Photon::Result beginResult = commandBuffer->Begin();
+    Photon::Result beginResult = cmdBuffer->Begin();
     if (beginResult != Photon::Result::Success) {
-        m_commandBufferPool->ReturnCommandBuffer(commandBuffer);
+        m_commandBufferPool->ReturnCommandBuffer(cmdBuffer);
         return beginResult;
     }
 
-    vulkanWorkBatch->m_commandBuffers.emplace_back(commandBuffer);
+    vulkanWorkBatch->m_commandBuffers.emplace_back(cmdBuffer);
     commandBuffer = cmdBuffer;
     return Photon::Result::Success;
 }

@@ -19,9 +19,9 @@ enum class VulkanWorkStage : uint8_t {
 
 struct VulkanWorkSubmitInfo {
     std::vector<VulkanWorkBatch*> m_workBatches;
-    VulkanCommandBufferPool* m_commandBufferPool;
-    IAllocator* m_workAllocator;
-    size_t m_finishedBatches;
+    VulkanCommandBufferPool* m_commandBufferPool = nullptr;
+    IAllocator* m_workAllocator = nullptr;
+    size_t m_finishedBatches{};
 
     void FinishBatch(size_t batchIndex);
     void DisposeBatch(size_t batchIndex);
