@@ -9,6 +9,11 @@ VulkanSwapChain::~VulkanSwapChain() {
 }
 
 VulkanSwapChain* VulkanSwapChain::Create(const VulkanSwapChainCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    if (createInfo.m_width == 0 || createInfo.m_height == 0) {
+        Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
+        return nullptr;
+    }
+
     vk::ResultValue<vk::SurfaceCapabilitiesKHR> surfaceProperties =
         createInfo.m_vulkanDevice->GetPhysicalHandle().getSurfaceCapabilitiesKHR(*createInfo.m_vulkanSurface->GetHandle());
 

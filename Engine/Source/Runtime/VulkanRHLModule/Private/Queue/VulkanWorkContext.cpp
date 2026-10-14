@@ -2,6 +2,7 @@
 #include "Queue/VulkanQueue.h"
 #include "Queue/VulkanWorkPools.h"
 #include "Device/VulkanDevice.h"
+#include "LinearAllocator.h"
 
 void VulkanWorkSubmitInfo::FinishBatch(size_t batchIndex) {
     if (batchIndex >= m_workBatches.size())

@@ -45,7 +45,7 @@ private:
 
     [[nodiscard]] Photon::Result CreateRenderFinishedSemaphores(uint32_t semaCount);
     void ReleaseRenderFinishedSemaphores();
-    void RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext);
+    bool RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext);
     [[nodiscard]] bool TryGetActiveSwapChainImage(VulkanRHLTexture*& outSwapChainImage) const;
     [[nodiscard]] bool HasActiveSwapChainImage() const;
     void RequestSwapChainRecreate();

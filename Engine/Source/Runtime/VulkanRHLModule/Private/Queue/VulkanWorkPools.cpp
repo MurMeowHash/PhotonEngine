@@ -1,8 +1,8 @@
 #include "../../Public/Queue/VulkanWorkPools.h"
 #include "LinearAllocator.h"
 
-void VulkanWorkAllocatorPool::DisposeObject(IAllocator *object) {
-    PhotonPool<IAllocator>::DisposeObject(object);
+void VulkanWorkAllocatorPool::DisposeObject(LinearAllocator *object) {
+    PhotonPool<LinearAllocator>::DisposeObject(object);
     object->InvalidateAllocator();
 }
 
@@ -14,6 +14,6 @@ VulkanWorkAllocatorPool* VulkanWorkAllocatorPool::Create([[maybe_unused]] const 
     return instance;
 }
 
-IAllocator* VulkanWorkAllocatorPool::CreateObject(InOutCreateParams<Photon::Result> *inOutCreateParams) {
+LinearAllocator* VulkanWorkAllocatorPool::CreateObject(InOutCreateParams<Photon::Result> *inOutCreateParams) {
     return Photon::AllocateObject<LinearAllocator>(inOutCreateParams, sizeof(VulkanWorkBatch) * 8ull);
 }

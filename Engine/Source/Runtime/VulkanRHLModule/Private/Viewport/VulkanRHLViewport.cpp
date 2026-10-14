@@ -71,15 +71,19 @@ void VulkanRHLViewport::ReleaseActiveBackBuffer() {
 }
 
 void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkContext) {
-    if (m_swapChainRecreateRequested)
-        RecreateSwapChain(gfxWorkContext);
+    if (m_swapChainRecreateRequested) {
+        if (!RecreateSwapChain(gfxWorkContext))
+            return;
+    }
 
     for (uint32_t acquireAttempt = 0; acquireAttempt < Photon::Vulkan::FrameConfiguration::g_maxSwapChainAcquireRetries; acquireAttempt++) {
         uint32_t swapChainImageIndex;
         std::shared_ptr<VulkanBinarySemaphore> acquireSemaphore{nullptr};
         VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
         if (swapChainState == VulkanSwapChainState::OutOtDate) {
-            RecreateSwapChain(gfxWorkContext);
+            if (!RecreateSwapChain(gfxWorkContext))
+                return;
+
             continue;
         }
 
@@ -90,7 +94,7 @@ void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkC
             RequestSwapChainRecreate();
 
         gfxWorkContext->AddWaitSemaphore(acquireSemaphore, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
-        m_activeSwapChainImageIndex = swapChainImageIndex;
+        m_activeSwapChainImageIndex = static_cast<int32_t>(swapChainImageIndex);
         break;
     }
 }
@@ -132,12 +136,16 @@ void VulkanRHLViewport::ReleaseRenderFinishedSemaphores() {
     m_renderFinishedSemaphores.clear();
 }
 
-void VulkanRHLViewport::RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext) {
-    CloseSwapChainRecreateRequest();
-    gfxWorkContext->Execute();
+bool VulkanRHLViewport::RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkContext) {
+    Photon::Result executeResult = gfxWorkContext->Execute();
+    if (executeResult != Photon::Result::Success) {
+        RequestSwapChainRecreate();
+        return false;
+    }
+
     ReleaseActiveBackBuffer();
 
-    VulkanSwapChainCreateInfo createInfo;
+    VulkanSwapChainCreateInfo createInfo{};
     createInfo.m_vulkanDevice = m_vulkanDevice;
     createInfo.m_vulkanSurface = m_vulkanSurface;
     createInfo.m_width = m_viewportWidth;
@@ -147,13 +155,22 @@ void VulkanRHLViewport::RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkC
 
     InOutCreateParams<Photon::Result> inOut;
     VulkanSwapChain* newSwapChain = VulkanSwapChain::Create(createInfo, &inOut);
-    if (inOut.m_result != Photon::Result::Success)
-        return;
+    if (inOut.m_result != Photon::Result::Success) {
+        RequestSwapChainRecreate();
+        return false;
+    }
 
     delete m_vulkanSwapChain;
     m_vulkanSwapChain = newSwapChain;
     ReleaseRenderFinishedSemaphores();
-    CreateRenderFinishedSemaphores(m_vulkanSwapChain->GetImagesCount());
+    Photon::Result renderFinishedSemaResult = CreateRenderFinishedSemaphores(m_vulkanSwapChain->GetImagesCount());
+    if (renderFinishedSemaResult != Photon::Result::Success) {
+        RequestSwapChainRecreate();
+        return false;
+    }
+
+    CloseSwapChainRecreateRequest();
+    return true;
 }
 
 bool VulkanRHLViewport::TryGetActiveSwapChainImage(VulkanRHLTexture*& outSwapChainImage) const {

@@ -7,7 +7,7 @@
 #include <memory>
 
 class VulkanQueue;
-class IAllocator;
+class LinearAllocator;
 class VulkanDevice;
 class VulkanWorkAllocatorPool;
 
@@ -20,7 +20,7 @@ enum class VulkanWorkStage : uint8_t {
 struct VulkanWorkSubmitInfo {
     std::vector<VulkanWorkBatch*> m_workBatches;
     VulkanCommandBufferPool* m_commandBufferPool = nullptr;
-    IAllocator* m_workAllocator = nullptr;
+    LinearAllocator* m_workAllocator = nullptr;
     size_t m_finishedBatches{};
 
     void FinishBatch(size_t batchIndex);
@@ -49,7 +49,7 @@ private:
     std::vector<VulkanWorkBatch*> m_workBatches;
     VulkanWorkStage m_currentStage{};
     VulkanCommandBufferPool* m_commandBufferPool = nullptr;
-    IAllocator* m_workAllocator = nullptr;
+    LinearAllocator* m_workAllocator = nullptr;
 
     VulkanWorkBatch* CreateWorkBatch();
     [[nodiscard]] Photon::Result StartCommandBuffer(VulkanWorkBatch* vulkanWorkBatch, VulkanCommandBuffer*& commandBuffer);

@@ -11,6 +11,7 @@ WindowClass* WindowClass::Create(const WindowClassCreateInfo &createInfo, InOutC
     classInfo.lpszClassName = createInfo.m_desc.m_className;
     classInfo.hInstance = GetModuleHandleA(nullptr);
     classInfo.lpfnWndProc = WindowClass::WindowProc;
+    classInfo.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
     windowClass->m_handle = RegisterClassA(&classInfo);
     windowClass->m_className = createInfo.m_desc.m_className;
@@ -35,6 +36,7 @@ LRESULT WindowClass::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         switch (msg) {
             case WM_CLOSE:
                 engineWindow->OnWindowCloseRequested();
+                return 0;
                 break;
             case WM_SIZE:
                 engineWindow->OnWindowResized(LOWORD(lParam), HIWORD(lParam));

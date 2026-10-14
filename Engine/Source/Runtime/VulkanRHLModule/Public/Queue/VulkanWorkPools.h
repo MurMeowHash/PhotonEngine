@@ -6,16 +6,16 @@
 #include "Pools/PhotonPool.h"
 
 class VulkanQueue;
-class IAllocator;
+class LinearAllocator;
 
 struct VulkanWorkAllocatorPoolCreateInfo {
 
 };
 
-class VulkanWorkAllocatorPool : public PhotonPool<IAllocator> {
+class VulkanWorkAllocatorPool : public PhotonPool<LinearAllocator> {
 protected:
-    IAllocator* CreateObject(InOutCreateParams<Photon::Result> *inOutCreateParams) override;
-    void DisposeObject(IAllocator *object) override;
+    LinearAllocator* CreateObject(InOutCreateParams<Photon::Result> *inOutCreateParams) override;
+    void DisposeObject(LinearAllocator *object) override;
 
 public:
     static VulkanWorkAllocatorPool* Create([[maybe_unused]] const VulkanWorkAllocatorPoolCreateInfo& createInfo,

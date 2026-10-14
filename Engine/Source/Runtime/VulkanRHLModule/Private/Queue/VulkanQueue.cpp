@@ -7,6 +7,11 @@
 #include "Synchronization/VulkanTimelineSemaphore.h"
 
 VulkanQueue::~VulkanQueue() {
+    if (GetWorkBatchesLeft() != 0) {
+        vk::Result waitResult = m_handle.waitIdle();
+        ProcessInterruptQueue();
+    }
+
     for (auto& commandBufferPool : m_commandBufferPools) {
         for (auto& pool : commandBufferPool.second) {
             while (!pool.second.empty()) {
@@ -72,41 +77,43 @@ Photon::Result VulkanQueue::SubmitWorkBatches(VulkanWorkSubmitInfo&& workSubmitI
     if (workSubmitInfo.m_workBatches.empty())
         return Photon::Result::Success;
 
-    std::vector<vk::SubmitInfo2> submitInfos;
-    submitInfos.reserve(workSubmitInfo.m_workBatches.size());
-    for (VulkanWorkBatch* workBatch : workSubmitInfo.m_workBatches) {
+    const size_t batchCount = workSubmitInfo.m_workBatches.size();
+    std::vector<vk::SubmitInfo2> submitInfos(batchCount);
+    std::vector<std::vector<vk::SemaphoreSubmitInfo>> waitSemaphoresInfo(batchCount);
+    std::vector<std::vector<vk::CommandBufferSubmitInfo>> commandBuffersInfo(batchCount);
+    std::vector<std::vector<vk::SemaphoreSubmitInfo>> signalSemaphoresInfo(batchCount);
+
+    for (size_t batch = 0; batch < batchCount; batch++) {
+        VulkanWorkBatch* workBatch = workSubmitInfo.m_workBatches[batch];
         assert(workBatch->m_waitSemaphores.size() == workBatch->m_waitSemaphoresFlags.size());
 
-        std::vector<vk::SemaphoreSubmitInfo> waitSemaphoresInfo(workBatch->m_waitSemaphores.size());
-        for (size_t i = 0; i < waitSemaphoresInfo.size(); i++)
-            waitSemaphoresInfo[i] = workBatch->m_waitSemaphores[i]->ScheduleAcquireSubmit(workBatch->m_waitSemaphoresFlags[i]);
+        const size_t waitSemaCount = workBatch->m_waitSemaphores.size();
+        waitSemaphoresInfo[batch].reserve(waitSemaCount);
+        for (size_t i = 0; i < waitSemaCount; i++)
+            waitSemaphoresInfo[batch].emplace_back(workBatch->m_waitSemaphores[i]->ScheduleAcquireSubmit(workBatch->m_waitSemaphoresFlags[i]));
 
-        std::vector<vk::CommandBufferSubmitInfo> commandBuffersInfo;
-        commandBuffersInfo.reserve(workBatch->m_commandBuffers.size());
+        commandBuffersInfo[batch].reserve(workBatch->m_commandBuffers.size());
         for (VulkanCommandBuffer* commandBuffer: workBatch->m_commandBuffers) {
             vk::CommandBufferSubmitInfo cmdBufferSubmitInfo{};
             cmdBufferSubmitInfo.commandBuffer = commandBuffer->GetHandle();
             cmdBufferSubmitInfo.deviceMask = 0;
-            commandBuffersInfo.emplace_back(cmdBufferSubmitInfo);
+            commandBuffersInfo[batch].emplace_back(cmdBufferSubmitInfo);
         }
 
-        std::vector<vk::SemaphoreSubmitInfo> signalSemaphoresInfo;
-        signalSemaphoresInfo.reserve(workBatch->m_signalSemaphores.size() + 1);
-        for (std::shared_ptr<VulkanSemaphore>& signalSemaphore: workBatch->m_signalSemaphores)
-            signalSemaphoresInfo.emplace_back(signalSemaphore->ScheduleReleaseSubmit());
+        signalSemaphoresInfo[batch].reserve(workBatch->m_signalSemaphores.size() + 1);
+        for (std::shared_ptr<VulkanSemaphore>& signalSemaphore : workBatch->m_signalSemaphores)
+            signalSemaphoresInfo[batch].emplace_back(signalSemaphore->ScheduleReleaseSubmit());
 
-        signalSemaphoresInfo.emplace_back(m_workBatchesTimelineSemaphore->ScheduleReleaseSubmit());
+        signalSemaphoresInfo[batch].emplace_back(m_workBatchesTimelineSemaphore->ScheduleReleaseSubmit());
         workBatch->m_timelineSemaphoreFinishedValue = m_workBatchesTimelineSemaphore->GetCurrentScheduledValue();
 
-        vk::SubmitInfo2 submitInfo{};
-        submitInfo.waitSemaphoreInfoCount = waitSemaphoresInfo.size();
-        submitInfo.pWaitSemaphoreInfos = waitSemaphoresInfo.data();
-        submitInfo.commandBufferInfoCount = commandBuffersInfo.size();
-        submitInfo.pCommandBufferInfos = commandBuffersInfo.data();
-        submitInfo.signalSemaphoreInfoCount = signalSemaphoresInfo.size();
-        submitInfo.pSignalSemaphoreInfos = signalSemaphoresInfo.data();
-
-        submitInfos.emplace_back(submitInfo);
+        vk::SubmitInfo2& submitInfo = submitInfos[batch];
+        submitInfo.waitSemaphoreInfoCount = waitSemaphoresInfo[batch].size();
+        submitInfo.pWaitSemaphoreInfos = waitSemaphoresInfo[batch].data();
+        submitInfo.commandBufferInfoCount = commandBuffersInfo[batch].size();
+        submitInfo.pCommandBufferInfos = commandBuffersInfo[batch].data();
+        submitInfo.signalSemaphoreInfoCount = signalSemaphoresInfo[batch].size();
+        submitInfo.pSignalSemaphoreInfos = signalSemaphoresInfo[batch].data();
     }
 
     vk::Result submitResult = m_handle.submit2(submitInfos);
