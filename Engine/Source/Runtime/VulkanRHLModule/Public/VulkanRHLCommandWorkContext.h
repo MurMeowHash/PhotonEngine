@@ -7,7 +7,7 @@
 class VulkanRHLCommandWorkContext : public VulkanWorkContext {
 public:
     [[nodiscard]] RHLPipeline GetRHLPipeline() const;
-    [[nodiscard]] Photon::Result Execute();
+    [[nodiscard]] virtual Photon::Result Execute();
     void BeginTransition(const VulkanRHLPendingTransition& pendingTransition);
     void EndTransition(const VulkanRHLPendingTransition& pendingTransition);
     void ExecMonoTransition(const VulkanRHLPendingTransition& pendingTransition);

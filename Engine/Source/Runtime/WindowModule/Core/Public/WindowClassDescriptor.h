@@ -11,4 +11,8 @@ public:
     [[nodiscard]] size_t GetIdentifier() const override {
         return std::hash<std::string_view>{}(m_className);
     }
+
+    bool operator==(const WindowClassDescriptor& other) const {
+        return std::string_view(m_className) == std::string_view(other.m_className);
+    }
 };

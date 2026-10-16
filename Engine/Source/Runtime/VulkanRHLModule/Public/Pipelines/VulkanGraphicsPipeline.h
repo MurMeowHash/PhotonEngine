@@ -1,22 +1,21 @@
 #pragma once
-#include "VulkanGraphicsPipelineDescriptor.h"
+#include "CoreGlobals.h"
+#include "FactoryGlobals.h"
 #include "VulkanPipeline.h"
 
 class VulkanDevice;
+class VulkanRHLShader;
 
 struct VulkanGraphicsPipelineCreateInfo {
     VulkanDevice* m_vulkanDevice;
-    VulkanGraphicsPipelineDescriptor m_pipelineDesc;
+    std::vector<VulkanRHLShader*> m_shaders;
+    vk::PrimitiveTopology m_primitiveTopology;
+    std::vector<vk::Format> m_colorAttachments;
 };
 
 class VulkanGraphicsPipeline : public VulkanPipeline {
 public:
-    [[nodiscard]] bool Create(const VulkanGraphicsPipelineCreateInfo& createInfo);
+    static VulkanGraphicsPipeline* Create(const VulkanGraphicsPipelineCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
 private:
-    vk::raii::PipelineLayout m_pipelineLayout = nullptr;
-
-    [[nodiscard]] bool CreatePipelineLayout(const vk::raii::Device& device);
-
-    static std::vector<vk::PipelineShaderStageCreateInfo> AssembleShaderPipelineData(const VulkanGraphicsPipelineDescriptor& pipelineDesc);
-    static void AddShaderToAssembleData(VulkanShaderModule* vulkanShader, std::vector<vk::PipelineShaderStageCreateInfo>& assembledShaders);
+    static std::vector<vk::PipelineShaderStageCreateInfo> AssembleShaderPipelineData(const std::vector<VulkanRHLShader*>& shaders);
 };

@@ -15,7 +15,7 @@ struct RenderView {
 };
 
 struct RenderViewCollection {
-    std::vector<RenderView> m_renderViews;
+    RenderView m_renderView;
 };
 
 struct RenderSceneInput {

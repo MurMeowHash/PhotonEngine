@@ -1,36 +1,27 @@
 #include "../../Public/Pipelines/VulkanPipelineProvider.h"
-#include <ranges>
-#include "Pipelines/VulkanPipelineFactory.h"
 
-VulkanPipelineProvider::VulkanPipelineProvider(VulkanDevice *vulkanDevice)
-: m_vulkanDevice(vulkanDevice) { }
-
-VulkanPipelineProvider::~VulkanPipelineProvider() {
-    for (VulkanPipeline *&pipeline: m_pipelines | std::views::values) {
-        delete pipeline;
-    }
+VulkanGraphicsPipelineProvider* VulkanGraphicsPipelineProvider::Create(const VulkanGraphicsPipelineProviderCreateInfo &createInfo,
+    InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanGraphicsPipelineProvider* instance = Photon::AllocateObject<VulkanGraphicsPipelineProvider>(inOutCreateParams);
+    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
 }
 
-VulkanPipeline* VulkanPipelineProvider::GetGraphicsPipeline(const VulkanGraphicsPipelineDescriptor &graphicsPipelineDesc) {
-    size_t pipelineDescIdentifier = graphicsPipelineDesc.GetIdentifier();
-    auto pipelineIterator = m_pipelines.find(pipelineDescIdentifier);
-    if (pipelineIterator != m_pipelines.end())
-        return pipelineIterator->second;
+VulkanGraphicsPipeline* VulkanGraphicsPipelineProvider::CreateBlueprint(const VulkanRHLGraphicsPipelineDescriptor &desc, void *allocatedMemory) {
+    VulkanGraphicsPipelineCreateInfo createInfo{};
+    createInfo.m_vulkanDevice = m_vulkanDevice;
+    createInfo.m_shaders = {
+        desc.m_vertexShadingStage.m_rhlVertexShader,
+        desc.m_fragmentShadingStage.m_rhlFragmentShader
+    };
 
-    const VulkanGraphicsPipelineCreateInfo createInfo(m_vulkanDevice, graphicsPipelineDesc);
-    VulkanPipeline* graphicsPipeline = Photon::Vulkan::PipelineFactory::CreateGraphicsPipeline(createInfo);
-    m_pipelines.emplace(pipelineDescIdentifier, graphicsPipeline);
-    return graphicsPipeline;
-}
+    createInfo.m_primitiveTopology = Photon::Vulkan::RHLPrimitiveToVulkanTopology(desc.m_primitiveAssemblyStage.m_primitiveType);
+    createInfo.m_colorAttachments.reserve(desc.m_presentationStage.m_colorAttachments.size());
+    for (Photon::Vulkan::RHLFormat rhlFormat : desc.m_presentationStage.m_colorAttachments)
+        createInfo.m_colorAttachments.emplace_back(Photon::Vulkan::RHLFormatToVulkan(rhlFormat));
 
-VulkanPipeline* VulkanPipelineProvider::GetComputePipeline(const VulkanComputePipelineDescriptor& computePipelineDesc) {
-    size_t pipelineDescIdentifier = computePipelineDesc.GetIdentifier();
-    auto pipelineIterator = m_pipelines.find(pipelineDescIdentifier);
-    if (pipelineIterator != m_pipelines.end())
-        return pipelineIterator->second;
-
-    const VulkanComputePipelineCreateInfo createInfo(m_vulkanDevice, computePipelineDesc);
-    VulkanPipeline* graphicsPipeline = Photon::Vulkan::PipelineFactory::CreateComputePipeline(createInfo);
-    m_pipelines.emplace(pipelineDescIdentifier, graphicsPipeline);
-    return graphicsPipeline;
+    InOutCreateParams<Photon::Result> inOut{};
+    inOut.m_preAllocatedMemory = allocatedMemory;
+    return VulkanGraphicsPipeline::Create(createInfo, &inOut);
 }

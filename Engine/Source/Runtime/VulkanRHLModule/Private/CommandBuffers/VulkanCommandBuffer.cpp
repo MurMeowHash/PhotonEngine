@@ -48,6 +48,12 @@ Photon::Result VulkanCommandBuffer::End() const {
     return endResult == vk::Result::eSuccess ? Photon::Result::Success : Photon::Result::UnknownFailure;
 }
 
+void VulkanCommandBuffer::Reset() {
+    vk::Result resetResult = m_handle.reset();
+    if (resetResult == vk::Result::eSuccess)
+        m_onReset.Invoke();
+}
+
 void VulkanCommandBuffer::ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelineBarrier) const {
     vk::DependencyInfo dependencyInfo = pipelineBarrier.PackDependencyInfo();
     m_handle.pipelineBarrier2(dependencyInfo);

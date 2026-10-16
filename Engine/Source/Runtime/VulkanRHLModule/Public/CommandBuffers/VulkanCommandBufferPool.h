@@ -23,6 +23,7 @@ struct VulkanCommandBufferPoolCreateInfo {
     uint32_t m_initialPoolSize;
 };
 
+//TODO: Should implement PhotonPool
 class VulkanCommandBufferPool {
 public:
     ~VulkanCommandBufferPool();

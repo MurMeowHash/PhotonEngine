@@ -6,6 +6,7 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 #include "Synchronization/VulkanPipelineBarrier.h"
+#include "Event.h"
 
 class VulkanDevice;
 
@@ -24,10 +25,14 @@ class VulkanCommandBuffer {
 public:
     static VulkanCommandBuffer* Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     static VulkanCommandBuffer* Create(const VulkanCommandBufferExistingCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+
+    Event<> m_onReset;
+
     [[nodiscard]] VulkanCommandBufferType GetCommandBufferType() const;
     [[nodiscard]] vk::CommandBuffer GetHandle() const;
     [[nodiscard]] Photon::Result Begin() const;
     [[nodiscard]] Photon::Result End() const;
+    void Reset();
     void ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelineBarrier) const;
 private:
     VulkanCommandBufferType m_commandBufferType = VulkanCommandBufferType::None;

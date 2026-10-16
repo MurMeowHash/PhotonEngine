@@ -1,5 +1,5 @@
 #include "../../Public/Pipelines/VulkanPipeline.h"
 
-const vk::raii::Pipeline & VulkanPipeline::GetHandle() const {
-    return m_handle;
+vk::Pipeline VulkanPipeline::GetHandle() const {
+    return *m_handle;
 }

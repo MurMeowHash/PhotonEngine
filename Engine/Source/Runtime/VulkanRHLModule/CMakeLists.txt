@@ -56,16 +56,25 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkPools.h
 
         ## Shaders
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanShaderModule.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShader.h
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipeline.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineProvider.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanComputePipeline.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanComputePipelineDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipeline.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanGraphicsPipelineDescriptor.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipelineFactory.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanRHLPipelineDescriptor.h
+
+        ## PipelineState
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/IVulkanPipelineStateProperty.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/GFX/VulkanGraphicsPipelineState.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/VulkanPipelineStateSingleProperty.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/VulkanPipelineStateBlueprint.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/GFX/VulkanGraphicsPipelineStateBlueprint.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/VulkanPipelineStateProperty.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/VulkanPipelineStateRecordContext.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/VulkanPipelineState.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/GFX/VulkanViewportPipelineStateProperty.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/PipelineState/GFX/VulkanScissorPipelineStateProperty.h
 
         ## Synchronization
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Synchronization/VulkanBinarySemaphore.h
@@ -138,14 +147,19 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkPools.cpp
 
         ## Shaders
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanShaderModule.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShader.cpp
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipeline.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipelineProvider.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanComputePipeline.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanGraphicsPipeline.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipelineFactory.cpp
+
+        ## PipelineState
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/PipelineState/GFX/VulkanGraphicsPipelineState.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/PipelineState/GFX/VulkanGraphicsPipelineStateBlueprint.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/PipelineState/VulkanPipelineStateProperty.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/PipelineState/GFX/VulkanViewportPipelineStateProperty.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/PipelineState/GFX/VulkanScissorPipelineStateProperty.cpp
 
         ## Synchronization
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Synchronization/VulkanBinarySemaphore.cpp
@@ -194,6 +208,8 @@ target_link_libraries(VulkanRHLModule
         vulkan
         CoreModule
         MemoryModule
+        DelegateModule
+        glm
         PRIVATE
         DebugModule
         FactoryModule

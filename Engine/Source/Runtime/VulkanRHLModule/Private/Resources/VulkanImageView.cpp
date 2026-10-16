@@ -26,3 +26,7 @@ VulkanImageView* VulkanImageView::Create(const VulkanImageViewCreateInfo &create
 vk::ImageSubresourceRange VulkanImageView::GetSubresourceRange() const {
     return m_subresource;
 }
+
+vk::ImageView VulkanImageView::GetHandle() const {
+    return *m_handle;
+}

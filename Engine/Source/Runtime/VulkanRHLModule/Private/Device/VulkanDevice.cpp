@@ -18,7 +18,7 @@ using Photon::Core::Flags::operator|;
 
 VulkanDevice::~VulkanDevice() {
     delete m_memoryProvider;
-    delete m_pipelineProvider;
+    delete m_gfxPipelineProvider;
 
     for (std::pair<const RHLPipeline, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
@@ -67,7 +67,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
         std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
-    instance->InitializePipelineProvider();
+    instance->InitializePipelineProviders();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
@@ -105,12 +105,12 @@ IVulkanDeviceMemoryProvider * VulkanDevice::GetMemoryProvider() const {
     return m_memoryProvider;
 }
 
-VulkanPipelineProvider * VulkanDevice::GetPipelineProvider() const {
-    return m_pipelineProvider;
-}
-
 VulkanWorkAllocatorPool * VulkanDevice::GetWorkAllocatorPool() const {
     return m_workAllocatorPool;
+}
+
+VulkanGraphicsPipeline* VulkanDevice::GetGFXPipeline(const VulkanRHLGraphicsPipelineDescriptor &desc) const {
+    return m_gfxPipelineProvider->PoolBlueprint(desc);
 }
 
 void VulkanDevice::WaitIdle() const {
@@ -283,8 +283,8 @@ void VulkanDevice::InitializeMemoryProvider(VulkanMemoryProviderType memoryProvi
         m_handle, m_physicalDevice, Photon::Vulkan::AllocationConfiguration::g_defaultAllocationPreset);
 }
 
-void VulkanDevice::InitializePipelineProvider() {
-    m_pipelineProvider = new VulkanPipelineProvider(this);
+void VulkanDevice::InitializePipelineProviders() {
+    m_gfxPipelineProvider = VulkanGraphicsPipelineProvider::Create({this});
 }
 
 void VulkanDevice::InitializeWorkAllocatorPool() {

@@ -59,7 +59,6 @@ public:
     [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
     [[nodiscard]] bool TryGetQueue(RHLPipeline pipeline, VulkanQueue*& vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
-    [[nodiscard]] VulkanPipelineProvider* GetPipelineProvider() const;
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
@@ -87,6 +86,8 @@ public:
         semaphore.reset();
     }
 
+    [[nodiscard]] VulkanGraphicsPipeline* GetGFXPipeline(const VulkanRHLGraphicsPipelineDescriptor& desc) const;
+
     void WaitIdle() const;
 private:
     vk::raii::PhysicalDevice m_physicalDevice = nullptr;
@@ -96,7 +97,7 @@ private:
     std::unordered_map<VulkanDeviceFeatureType, VulkanDeviceFeature> m_features;
 
     IVulkanDeviceMemoryProvider* m_memoryProvider = nullptr;
-    VulkanPipelineProvider* m_pipelineProvider = nullptr;
+    VulkanGraphicsPipelineProvider* m_gfxPipelineProvider = nullptr;
     VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
     VulkanBinarySemaphorePool* m_binarySemaphorePool = nullptr;
 
@@ -112,7 +113,7 @@ private:
                 vk::PhysicalDeviceVulkan14Features>& deviceFeaturesInfo, uint32_t deviceApiVersion,
                 VulkanDeviceFeaturesAssembleData& assembleData);
     void InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType);
-    void InitializePipelineProvider();
+    void InitializePipelineProviders();
     void InitializeWorkAllocatorPool();
     void InitializeBinarySemaphorePool();
 };

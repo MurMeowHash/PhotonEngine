@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <unordered_map>
 #include "BlueprintDescriptor.h"
 #include "IAllocator.h"
@@ -7,10 +8,12 @@
 
 template<typename TBlueprint, typename TDescriptor>
 requires std::is_base_of_v<BlueprintDescriptor, TDescriptor>
+    and std::equality_comparable<TDescriptor>
+    and std::copy_constructible<TDescriptor>
 class BlueprintProvider { // TODO: rename to CacheProvider
 public:
     virtual ~BlueprintProvider(){
-        for (auto& [identifier, blueprint] : m_blueprints)
+        for (auto& [descriptor, blueprint] : m_blueprints)
             blueprint->~TBlueprint();
 
         if (m_isNativeAllocator) {
@@ -20,15 +23,14 @@ public:
     }
 
     TBlueprint* PoolBlueprint(const TDescriptor& desc) {
-        size_t descIdentifier = desc.GetIdentifier();
-        auto blueprintIterator = m_blueprints.find(descIdentifier);
+        auto blueprintIterator = m_blueprints.find(desc);
         TBlueprint* candidate = nullptr;
         if (blueprintIterator != m_blueprints.end()) {
             candidate = blueprintIterator->second;
         } else {
             void* blueprintMemory = m_allocator->AllocateMemory(sizeof(TBlueprint));
             TBlueprint* blueprint = CreateBlueprint(desc, blueprintMemory);
-            m_blueprints[descIdentifier] = blueprint;
+            m_blueprints.emplace(desc, blueprint);
             candidate = blueprint;
         }
 
@@ -46,7 +48,13 @@ protected:
 
     virtual TBlueprint* CreateBlueprint(const TDescriptor& desc, void* allocatedMemory) = 0;
 private:
-    std::unordered_map<size_t, TBlueprint*> m_blueprints;
+    struct DescriptorHasher {
+        size_t operator()(const TDescriptor& desc) const {
+            return desc.GetIdentifier();
+        }
+    };
+
+    std::unordered_map<TDescriptor, TBlueprint*, DescriptorHasher> m_blueprints;
     IAllocator* m_allocator;
     bool m_isNativeAllocator = false;
 };

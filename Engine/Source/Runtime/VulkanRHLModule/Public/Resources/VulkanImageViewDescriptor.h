@@ -44,4 +44,11 @@ public:
 
         return seed;
     }
+
+    bool operator==(const VulkanImageViewDescriptor& other) const {
+        return m_viewType == other.m_viewType
+            && m_format == other.m_format
+            && m_components == other.m_components
+            && m_subresourceRange == other.m_subresourceRange;
+    }
 };

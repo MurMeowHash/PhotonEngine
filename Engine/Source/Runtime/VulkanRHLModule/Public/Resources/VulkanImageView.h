@@ -19,6 +19,7 @@ class VulkanImageView {
 public:
     static VulkanImageView* Create(const VulkanImageViewCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] vk::ImageSubresourceRange GetSubresourceRange() const;
+    [[nodiscard]] vk::ImageView GetHandle() const;
 private:
     vk::raii::ImageView m_handle = nullptr;
     vk::ImageSubresourceRange m_subresource{};

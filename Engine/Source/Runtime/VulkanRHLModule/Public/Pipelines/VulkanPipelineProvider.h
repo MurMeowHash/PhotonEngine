@@ -1,17 +1,21 @@
 #pragma once
-#include "VulkanGraphicsPipelineDescriptor.h"
+#include "Blueprints/BlueprintProvider.h"
+#include "VulkanRHLPipelineDescriptor.h"
 #include "VulkanGraphicsPipeline.h"
-#include <unordered_map>
-#include "VulkanComputePipeline.h"
-//TODO: Transition to RHL layer and lower translation should create vulkan graphics/compute pipelines
-class VulkanPipelineProvider {
-public:
-    explicit VulkanPipelineProvider(VulkanDevice* vulkanDevice);
-    ~VulkanPipelineProvider();
 
-    VulkanPipeline* GetGraphicsPipeline(const VulkanGraphicsPipelineDescriptor& graphicsPipelineDesc);
-    VulkanPipeline* GetComputePipeline(const VulkanComputePipelineDescriptor& computePipelineDesc);
-private:
+class VulkanDevice;
+
+struct VulkanGraphicsPipelineProviderCreateInfo {
     VulkanDevice* m_vulkanDevice;
-    std::unordered_map<size_t, VulkanPipeline*> m_pipelines;
+};
+
+class VulkanGraphicsPipelineProvider final : public BlueprintProvider<VulkanGraphicsPipeline, VulkanRHLGraphicsPipelineDescriptor> {
+public:
+    static VulkanGraphicsPipelineProvider* Create(const VulkanGraphicsPipelineProviderCreateInfo& createInfo,
+        InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
+protected:
+    VulkanGraphicsPipeline* CreateBlueprint(const VulkanRHLGraphicsPipelineDescriptor &desc, void *allocatedMemory) override;
+
+private:
+    VulkanDevice* m_vulkanDevice = nullptr;
 };
