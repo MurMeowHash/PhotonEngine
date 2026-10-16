@@ -13,6 +13,16 @@ class VulkanBinarySemaphore;
 using Photon::Vulkan::RHLPipelineUsage;
 using Photon::Vulkan::RHLPipeline;
 
+struct VulkanPipelineResourceTransitionScope {
+    vk::PipelineStageFlags2 m_stage;
+    vk::AccessFlags2 m_access;
+    uint32_t m_queueFamily;
+};
+
+struct VulkanPipelineImageTransitionScope : public VulkanPipelineResourceTransitionScope {
+    vk::ImageLayout m_layout;
+};
+
 struct VulkanRHLTextureTransitionRequest {
     VulkanRHLTexture* m_rhlTexture;
     RHLPipelineUsage m_srcUsage;
@@ -71,9 +81,14 @@ private:
     VulkanQueue* m_destVulkanQueue = nullptr;
     std::shared_ptr<VulkanBinarySemaphore> m_transitionSemaphore = nullptr;
 
-    static void FillBasicResourceTransitionScope(VulkanResourceTransitionScope& transitionScope, RHLPipelineUsage usage);
+    static void FillBasicResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
+    static void FillBasicSrcResourceTransitionScope(VulkanRHLResource* rhlResource, RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
+    static void FillBasicDestResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
     static void GetTransitionImageLayout(RHLPipelineUsage usage, vk::ImageLayout& layout);
-    [[nodiscard]] static VulkanImageTransitionScope CreateImageTransitionScope(RHLPipelineUsage usage);
+    static void GetSrcTransitionImageLayout(VulkanRHLTexture* rhlTexture, RHLPipelineUsage usage, vk::ImageLayout& layout);
+    static void GetDestTransitionImageLayout(RHLPipelineUsage usage, vk::ImageLayout& layout);
+    [[nodiscard]] static VulkanImageTransitionScope CreateSrcImageTransitionScope(VulkanRHLTexture* rhlTexture, RHLPipelineUsage usage);
+    [[nodiscard]] static VulkanImageTransitionScope CreateDestImageTransitionScope(RHLPipelineUsage usage);
 
     [[nodiscard]] VulkanQueue* GetVulkanQueueByRHLPipeline(RHLPipeline pipeline) const;
 };

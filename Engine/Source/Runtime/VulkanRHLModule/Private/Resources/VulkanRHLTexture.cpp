@@ -1,6 +1,11 @@
 #include "../../Public/Resources/VulkanRHLTexture.h"
 #include "Device/VulkanDevice.h"
 
+void VulkanRHLTexture::CommitPendingTransitionScope() {
+    CommitResourceTransitionScope(m_pendingTransitionScope);
+    m_lastTransitionLayout = m_pendingTransitionScope.m_layout;
+}
+
 VulkanRHLTexture::~VulkanRHLTexture() {
     delete m_imageViewCache;
 
@@ -11,15 +16,16 @@ VulkanRHLTexture::~VulkanRHLTexture() {
 
 VulkanRHLTexture* VulkanRHLTexture::Create(const VulkanImageCreateInfo& createInfo) {
     VulkanRHLTexture* instance = Photon::AllocateObject<VulkanRHLTexture, Photon::Result>(nullptr);
-     instance->m_isRaii = false;
-     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
-     instance->m_handle = createInfo.m_imageHandle;
-     instance->m_imageFormat = createInfo.m_imageFormat;
-     instance->m_imageType = createInfo.m_imageType;
-     instance->m_arrayLayers = createInfo.m_arrayLayers;
-     instance->m_mipLevels = createInfo.m_mipLevels;
-     instance->CreateImageViewCache();
-     instance->CreateDefaultImageViewDescriptor();
+    instance->m_isRaii = false;
+    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    instance->m_handle = createInfo.m_imageHandle;
+    instance->m_imageFormat = createInfo.m_imageFormat;
+    instance->m_nativeImageFormat = Photon::Vulkan::RHLFormatToVulkan(createInfo.m_imageFormat);
+    instance->m_imageType = createInfo.m_imageType;
+    instance->m_arrayLayers = createInfo.m_arrayLayers;
+    instance->m_mipLevels = createInfo.m_mipLevels;
+    instance->CreateImageViewCache();
+    instance->CreateDefaultImageViewDescriptor();
     return  instance;
 }
 
@@ -31,13 +37,25 @@ VulkanImageView* VulkanRHLTexture::GetDefaultImageView() const {
     return m_imageViewCache->PoolBlueprint(m_defaultImageViewDescriptor);
 }
 
+Photon::Vulkan::RHLFormat VulkanRHLTexture::GetFormat() const {
+    return m_imageFormat;
+}
+
+void VulkanRHLTexture::TrackLastTransitionScope(const VulkanPipelineImageTransitionScope &transitionScope) {
+    m_pendingTransitionScope = transitionScope;
+}
+
+vk::ImageLayout VulkanRHLTexture::GetLastLayout() const {
+    return m_lastTransitionLayout;
+}
+
 void VulkanRHLTexture::CreateImageViewCache() {
     m_imageViewCache = new VulkanImageViewCache(m_vulkanDevice, this);
 }
 
 void VulkanRHLTexture::CreateDefaultImageViewDescriptor() {
     m_defaultImageViewDescriptor.m_viewType = GetDefaultImageViewType();
-    m_defaultImageViewDescriptor.m_format = m_imageFormat;
+    m_defaultImageViewDescriptor.m_format = m_nativeImageFormat;
     m_defaultImageViewDescriptor.m_components = vk::ComponentMapping(
         vk::ComponentSwizzle::eIdentity,
         vk::ComponentSwizzle::eIdentity,
@@ -74,7 +92,7 @@ vk::ImageViewType VulkanRHLTexture::GetDefaultImageViewType() const {
 }
 
 vk::ImageAspectFlags VulkanRHLTexture::GetDefaultImageAspectFlags() const {
-    switch (m_imageFormat){
+    switch (m_nativeImageFormat){
         case vk::Format::eD16UnormS8Uint:
         case vk::Format::eD24UnormS8Uint:
         case vk::Format::eD32SfloatS8Uint:

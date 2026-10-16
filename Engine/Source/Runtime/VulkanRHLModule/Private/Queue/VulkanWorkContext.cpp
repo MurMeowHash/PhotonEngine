@@ -103,11 +103,15 @@ Photon::Result VulkanWorkContext::PackWorkBatches(VulkanWorkSubmitInfo& workSubm
     workSubmitInfo.m_workBatches = std::move(m_workBatches);
     workSubmitInfo.m_commandBufferPool = m_commandBufferPool;
     workSubmitInfo.m_workAllocator = m_workAllocator;
+    Reset();
+    return Photon::Result::Success;
+}
 
+void VulkanWorkContext::Reset() {
     m_workBatches.clear();
     m_commandBufferPool = nullptr;
     m_workAllocator = nullptr;
-    return Photon::Result::Success;
+    m_currentStage = VulkanWorkStage::Wait;
 }
 
 VulkanWorkBatch* VulkanWorkContext::CreateWorkBatch() {

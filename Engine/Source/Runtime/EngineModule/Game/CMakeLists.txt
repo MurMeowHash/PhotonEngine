@@ -25,6 +25,7 @@ target_link_libraries(EngineModule.Game
         WindowModule.Core
         WindowModule.Engine
         ViewportModule
+        VulkanRHLModule
 )
 
 if(MSVC)

@@ -6,6 +6,10 @@
 template<typename TProperty>
 class VulkanPipelineStateSingleProperty : public IVulkanPipelineStateProperty {
 public:
+    void Reset() final override {
+        m_isDirty = false;
+    }
+
     void Invalidate() final override {
         m_isDirty = true;
     }

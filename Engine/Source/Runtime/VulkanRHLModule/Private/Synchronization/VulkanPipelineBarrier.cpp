@@ -15,11 +15,26 @@ void VulkanPipelineBarrier::TransitionImage(VulkanRHLTexture *vulkanImage, const
     imageMemoryBarrier.image = vulkanImage->GetHandle();
     imageMemoryBarrier.subresourceRange = subresourceRange;
     m_imageMemoryBarriers.emplace_back(imageMemoryBarrier);
+    AddImageTransitionTracking(vulkanImage, destScope);
 }
 
-vk::DependencyInfo VulkanPipelineBarrier::PackDependencyInfo() const {
-    vk::DependencyInfo dependencyInfo{};
-    dependencyInfo.imageMemoryBarrierCount = m_imageMemoryBarriers.size();
-    dependencyInfo.pImageMemoryBarriers = m_imageMemoryBarriers.data();
-    return dependencyInfo;
+VulkanTransitionInfo VulkanPipelineBarrier::PackTransitionInfo() {
+    VulkanTransitionInfo transitionInfo{};
+    transitionInfo.m_imageMemoryBarriers = std::move(m_imageMemoryBarriers);
+    transitionInfo.m_pendingResources = std::move(m_pendingResources);
+    transitionInfo.m_dependencyInfo.imageMemoryBarrierCount = transitionInfo.m_imageMemoryBarriers.size();
+    transitionInfo.m_dependencyInfo.pImageMemoryBarriers = transitionInfo.m_imageMemoryBarriers.data();
+
+    Reset();
+    return transitionInfo;
+}
+
+void VulkanPipelineBarrier::Reset() {
+    m_imageMemoryBarriers.clear();
+    m_pendingResources.clear();
+}
+
+void VulkanPipelineBarrier::AddImageTransitionTracking(VulkanRHLTexture *rhlTexture, const VulkanPipelineImageTransitionScope &destScope) {
+    m_pendingResources.emplace_back(rhlTexture);
+    rhlTexture->TrackLastTransitionScope(destScope);
 }

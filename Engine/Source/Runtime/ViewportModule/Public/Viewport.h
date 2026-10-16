@@ -2,7 +2,7 @@
 #include "RenderData/RenderTarget.h"
 #include <cstdint>
 
-class VulkanRHLCommandList;
+class VulkanRHLCommandBufferImmediate;
 
 class Viewport : public RenderTarget {
 public:
@@ -10,8 +10,8 @@ public:
     [[nodiscard]] uint32_t GetHeight() const;
 
     virtual void ChangeSize(uint32_t width, uint32_t height);
-    virtual void BeginRendering(VulkanRHLCommandList* rhlCommandList) = 0;
-    virtual void EndRendering(VulkanRHLCommandList* rhlCommandList) = 0;
+    virtual void BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) = 0;
+    virtual void EndRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) = 0;
 private:
     uint32_t m_width{};
     uint32_t m_height{};

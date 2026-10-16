@@ -6,6 +6,7 @@
 #include "Pipelines/VulkanRHLPipelineDescriptor.h"
 #include "PipelineState/GFX/VulkanGraphicsPipelineState.h"
 #include <glm/glm.hpp>
+#include "VulkanGlobals.h"
 
 struct VulkanRHLViewportRect {
     float m_minX;
@@ -14,13 +15,6 @@ struct VulkanRHLViewportRect {
     float m_maxX;
     float m_maxY;
     float m_maxZ;
-};
-
-struct VulkanRHLRect {
-    uint32_t m_minX;
-    uint32_t m_minY;
-    uint32_t m_maxX;
-    uint32_t m_maxY;
 };
 
 struct VulkanRHLRenderPassColorAttachmentInput {
@@ -37,8 +31,10 @@ struct VulkanRHLGraphicsWorkContextCreateInfo {
 
 };
 
-class VulkanRHLGraphicsWorkContext : public VulkanRHLComputeWorkContext {
+class VulkanRHLGraphicsWorkContext final : public VulkanRHLComputeWorkContext {
 public:
+    void Reset() override;
+
     [[nodiscard]] Photon::Result Execute() override;
 
 public:

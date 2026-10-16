@@ -8,6 +8,7 @@ target_sources(RenderModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RendererFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RenderData/RenderTarget.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/RenderData/RenderSceneInput.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/RenderConfiguration.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/ForwardRenderer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/RendererFactory.cpp
@@ -22,6 +23,8 @@ target_include_directories(RenderModule
 )
 
 target_link_libraries(RenderModule
+        PUBLIC
+        glm
         PRIVATE
         CoreModule
         VulkanRHLModule

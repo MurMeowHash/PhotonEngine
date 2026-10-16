@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 class VulkanDynamicRHL;
-class VulkanRHLCommandList;
+class VulkanRHLCommandBuffer;
 
 namespace Photon::Vulkan {
     struct VulkanApiVersion {
@@ -40,8 +40,10 @@ namespace Photon::Vulkan {
     };
 
     enum class RHLPipelineUsage {
-        Unknown = 0,
-        RenderTarget = 1,
+        DontCare = 0,
+        Unknown = 1,
+        RenderTarget = 2,
+        Present = 3,
     };
 
     enum class RHLResourceType {
@@ -66,5 +68,11 @@ namespace Photon::Vulkan {
     };
 
     inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;
-    inline VulkanRHLCommandList* g_rhlCommandList = nullptr;
 }
+
+struct VulkanRHLRect {
+    uint32_t m_minX;
+    uint32_t m_minY;
+    uint32_t m_maxX;
+    uint32_t m_maxY;
+};

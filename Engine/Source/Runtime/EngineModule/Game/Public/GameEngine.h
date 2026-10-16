@@ -4,6 +4,7 @@
 class Window;
 class ViewportInteractor;
 class Viewport;
+class VulkanRHLCommandBufferImmediate;
 
 class GameEngine : public IEngine {
 public:
@@ -15,7 +16,9 @@ private:
     Window* m_gameWindow = nullptr;
     ViewportInteractor* m_gameViewportInteractor = nullptr;
     Viewport* m_gameViewport = nullptr;
+    VulkanRHLCommandBufferImmediate* m_rhlCommandBuffer = nullptr;
 
     [[nodiscard]] Photon::Result CreateGameWindow();
     [[nodiscard]] Photon::Result CreateGameViewport();
+    [[nodiscard]] Photon::Result CreateFrameCommandBuffer();
 };

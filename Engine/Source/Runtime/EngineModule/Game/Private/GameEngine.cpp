@@ -3,11 +3,16 @@
 #include "Window.h"
 #include "ForwardViewport.h"
 #include "ViewportInteractor.h"
+#include "VulkanRHLCommandBufferImmediate.h"
 
 Photon::Result GameEngine::Initialize() {
     Photon::Result windowCreateResult = CreateGameWindow();
     if (windowCreateResult != Photon::Result::Success)
         return windowCreateResult;
+
+    Photon::Result cmdBufferCreateResult = CreateFrameCommandBuffer();
+    if (cmdBufferCreateResult != Photon::Result::Success)
+        return cmdBufferCreateResult;
 
     Photon::Result viewportCreateResult = CreateGameViewport();
     if (viewportCreateResult != Photon::Result::Success)
@@ -18,18 +23,20 @@ Photon::Result GameEngine::Initialize() {
 
 Photon::Result GameEngine::Tick() {
     RenderViewports();
+    m_rhlCommandBuffer->Reset();
     return Photon::Result::Success;
 }
 
 Photon::Result GameEngine::Exit() {
     delete m_gameViewportInteractor;
     delete m_gameViewport;
+    delete m_rhlCommandBuffer;
     delete m_gameWindow;
     return Photon::Result::Success;
 }
 
 void GameEngine::RenderViewports() {
-    m_gameViewportInteractor->RenderViewport();
+    m_gameViewportInteractor->RenderViewport(m_rhlCommandBuffer);
 }
 
 Photon::Result GameEngine::CreateGameWindow() {
@@ -54,4 +61,10 @@ Photon::Result GameEngine::CreateGameViewport() {
     m_gameViewportInteractor->ConnectViewport(m_gameViewport);
     m_gameWindow->AttachViewport(m_gameViewportInteractor);
     return Photon::Result::Success;
+}
+
+Photon::Result GameEngine::CreateFrameCommandBuffer() {
+    InOutCreateParams<Photon::Result> inOut{};
+    m_rhlCommandBuffer = VulkanRHLCommandBufferImmediate::Create({}, &inOut);
+    return inOut.m_result;
 }

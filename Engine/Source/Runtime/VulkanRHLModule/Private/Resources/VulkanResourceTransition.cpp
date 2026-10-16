@@ -35,8 +35,8 @@ VulkanRHLPendingTransition::VulkanRHLPendingTransition(VulkanDevice *vulkanDevic
 void VulkanRHLPendingTransition::CreateTexturePendingTransition(const VulkanRHLTextureTransitionRequest &textureRequest) {
     VulkanImagePendingTransition pendingTransition{};
     pendingTransition.m_rhlTexture = textureRequest.m_rhlTexture;
-    pendingTransition.m_srcScope = CreateImageTransitionScope(textureRequest.m_srcUsage);
-    pendingTransition.m_destScope = CreateImageTransitionScope(textureRequest.m_destUsage);
+    pendingTransition.m_srcScope = CreateSrcImageTransitionScope(textureRequest.m_rhlTexture, textureRequest.m_srcUsage);
+    pendingTransition.m_destScope = CreateDestImageTransitionScope(textureRequest.m_destUsage);
     pendingTransition.m_subresourceRange = textureRequest.m_rhlTexture->GetDefaultImageView()->GetSubresourceRange();
     m_imagePendingTransitions.emplace_back(pendingTransition);
 }
@@ -69,8 +69,9 @@ std::shared_ptr<VulkanBinarySemaphore> VulkanRHLPendingTransition::GetTransition
     return m_transitionSemaphore;
 }
 
-void VulkanRHLPendingTransition::FillBasicResourceTransitionScope(VulkanResourceTransitionScope &transitionScope, RHLPipelineUsage usage) {
+void VulkanRHLPendingTransition::FillBasicResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope &transitionScope) {
     switch (usage) {
+        case RHLPipelineUsage::DontCare:
         case RHLPipelineUsage::Unknown:
             transitionScope.m_stage = vk::PipelineStageFlagBits2::eAllCommands;
             transitionScope.m_access = vk::AccessFlagBits2::eMemoryRead | vk::AccessFlagBits2::eMemoryWrite;
@@ -79,26 +80,74 @@ void VulkanRHLPendingTransition::FillBasicResourceTransitionScope(VulkanResource
             transitionScope.m_stage = vk::PipelineStageFlagBits2::eColorAttachmentOutput;
             transitionScope.m_access = vk::AccessFlagBits2::eColorAttachmentWrite;
             break;
+        case RHLPipelineUsage::Present:
+            transitionScope.m_stage = vk::PipelineStageFlagBits2::eNone;
+            transitionScope.m_access = vk::AccessFlagBits2::eNone;
+            break;
         default:
             assert(false);
     }
+}
+
+void VulkanRHLPendingTransition::FillBasicSrcResourceTransitionScope(VulkanRHLResource *rhlResource,
+    RHLPipelineUsage usage, VulkanResourceTransitionScope &transitionScope) {
+    switch (usage) {
+        case RHLPipelineUsage::Unknown:
+            transitionScope.m_stage = rhlResource->GetLastPipelineStage();
+            transitionScope.m_access = rhlResource->GetLastAccess();
+            break;
+        default:
+            FillBasicResourceTransitionScope(usage, transitionScope);
+    }
+}
+
+void VulkanRHLPendingTransition::FillBasicDestResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope &transitionScope) {
+    return FillBasicResourceTransitionScope(usage, transitionScope);
 }
 
 void VulkanRHLPendingTransition::GetTransitionImageLayout(RHLPipelineUsage usage, vk::ImageLayout& layout) {
     switch (usage) {
+        case RHLPipelineUsage::DontCare:
         case RHLPipelineUsage::Unknown:
             layout = vk::ImageLayout::eUndefined;
+            break;
         case RHLPipelineUsage::RenderTarget:
             layout = vk::ImageLayout::eColorAttachmentOptimal;
+            break;
+        case RHLPipelineUsage::Present:
+            layout = vk::ImageLayout::ePresentSrcKHR;
+            break;
         default:
             assert(false);
     }
 }
 
-VulkanImageTransitionScope VulkanRHLPendingTransition::CreateImageTransitionScope(RHLPipelineUsage usage) {
+void VulkanRHLPendingTransition::GetSrcTransitionImageLayout(VulkanRHLTexture* rhlTexture, RHLPipelineUsage usage,
+    vk::ImageLayout &layout) {
+    switch (usage) {
+        case RHLPipelineUsage::Unknown:
+            layout = rhlTexture->GetLastLayout();
+            break;
+        default:
+            GetTransitionImageLayout(usage, layout);
+    }
+}
+
+void VulkanRHLPendingTransition::GetDestTransitionImageLayout(RHLPipelineUsage usage, vk::ImageLayout &layout) {
+    return GetTransitionImageLayout(usage, layout);
+}
+
+VulkanImageTransitionScope VulkanRHLPendingTransition::CreateSrcImageTransitionScope(VulkanRHLTexture *rhlTexture, RHLPipelineUsage usage) {
     VulkanImageTransitionScope scope{};
-    FillBasicResourceTransitionScope(scope, usage);
-    GetTransitionImageLayout(usage, scope.m_layout);
+    FillBasicSrcResourceTransitionScope(rhlTexture, usage, scope);
+    GetSrcTransitionImageLayout(rhlTexture, usage, scope.m_layout);
+    return scope;
+}
+
+VulkanImageTransitionScope VulkanRHLPendingTransition::CreateDestImageTransitionScope(RHLPipelineUsage usage) {
+    VulkanImageTransitionScope scope{};
+    FillBasicDestResourceTransitionScope(usage, scope);
+    GetDestTransitionImageLayout(usage, scope.m_layout);
     return scope;
 }
 

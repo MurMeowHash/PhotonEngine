@@ -2,9 +2,14 @@
 #include "VulkanDynamicRHL.h"
 #include "VulkanGlobals.h"
 
+void VulkanRHLGraphicsWorkContext::Reset() {
+    VulkanRHLComputeWorkContext::Reset();
+    m_pendingGFXState.Reset();
+}
+
 Photon::Result VulkanRHLGraphicsWorkContext::Execute() {
     Photon::Result execResult = VulkanRHLComputeWorkContext::Execute();
-    m_pendingGFXState.Invalidate(); //TODO: end frame needs reset()
+    m_pendingGFXState.Invalidate();
     return execResult;
 }
 
@@ -62,5 +67,6 @@ void VulkanRHLGraphicsWorkContext::EndRenderPass() {
 }
 
 vk::Rect2D VulkanRHLGraphicsWorkContext::RHLRectToVulkan(const VulkanRHLRect &rhlRect) {
-    return vk::Rect2D(vk::Offset2D(rhlRect.m_minX, rhlRect.m_minY), vk::Extent2D(rhlRect.m_maxX, rhlRect.m_maxY));
+    return vk::Rect2D(vk::Offset2D(static_cast<int32_t>(rhlRect.m_minX), static_cast<int32_t>(rhlRect.m_minY)),
+        vk::Extent2D(rhlRect.m_maxX, rhlRect.m_maxY));
 }

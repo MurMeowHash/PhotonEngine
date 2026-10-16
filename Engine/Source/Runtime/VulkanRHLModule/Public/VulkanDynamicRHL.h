@@ -4,7 +4,7 @@
 #include "Device/VulkanDevice.h"
 #include "Instance/VulkanInstance.h"
 #include "Viewport/VulkanRHLViewport.h"
-#include "VulkanRHLCommandList.h"
+#include "VulkanRHLCommandBuffer.h"
 #include "VulkanGlobals.h"
 #include "Resources/VulkanResourceTransition.h"
 #include "Systems/IVulkanRHLSystem.h"
@@ -28,7 +28,7 @@ public:
 private:
     VulkanInstance* m_vulkanInstance = nullptr;
     VulkanDevice* m_vulkanDevice = nullptr;
-    VulkanRHLCommandList* m_immediateRHlCommandList = nullptr;
+    VulkanRHLCommandBuffer* m_immediateRHlCommandBuffer = nullptr;
     std::vector<std::unique_ptr<IVulkanRHLSystem>> m_rhlSystems;
 
     [[nodiscard]] Photon::Result Create([[maybe_unused]] const VulkanDynamicRHLCreateInfo& createInfo);

@@ -12,6 +12,12 @@ void VulkanGraphicsPipelineState::SetScissor(const vk::Rect2D &scissor) {
     m_scissor.SetProperty(scissor);
 }
 
+void VulkanGraphicsPipelineState::Reset() {
+    m_pipeline.Reset();
+    m_viewport.Reset();
+    m_scissor.Reset();
+}
+
 void VulkanGraphicsPipelineState::CommitInternal(VulkanCommandBuffer *commandBuffer) {
     VulkanPipelineStateRecordContext recordContext{};
     recordContext.m_commandBuffer = commandBuffer;

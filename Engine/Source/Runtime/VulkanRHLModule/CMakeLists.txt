@@ -90,9 +90,10 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLModule.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/IVulkanRHLFactory.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLGraphicsWorkContext.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandList.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandBuffer.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandWorkContext.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLComputeWorkContext.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/VulkanRHLCommandBufferImmediate.h
 
         ## Systems
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Systems/IVulkanRHLSystem.h
@@ -174,9 +175,10 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLFactory.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLModule.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLGraphicsWorkContext.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandList.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandBuffer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandWorkContext.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLComputeWorkContext.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/VulkanRHLCommandBufferImmediate.cpp
 
         ## Systems
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Systems/VulkanRHLInterruptProcessSystem.cpp

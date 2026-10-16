@@ -1,9 +1,9 @@
 #include "../Public/ForwardViewport.h"
 #include "VulkanRHLModule.h"
 #include "ModuleGlobals.h"
+#include "VulkanRHLCommandBufferImmediate.h"
 
 using Photon::Module::g_activeModuleSequence;
-using Photon::Vulkan::g_rhlCommandList;
 
 ForwardViewport::~ForwardViewport() {
     delete m_vulkanRHLViewport;
@@ -43,10 +43,12 @@ void ForwardViewport::ChangeSize(uint32_t width, uint32_t height) {
     m_vulkanRHLViewport->UpdateViewportSize(width, height);
 }
 
-void ForwardViewport::BeginRendering(VulkanRHLCommandList* rhlCommandList) {
-    rhlCommandList->BeginRenderingViewport(m_vulkanRHLViewport);
+void ForwardViewport::BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) {
+    rhlCommandBuffer->BeginRenderingViewport(m_vulkanRHLViewport);
 }
 
-void ForwardViewport::EndRendering(VulkanRHLCommandList* rhlCommandList) {
-    rhlCommandList->EndRenderingViewport(m_vulkanRHLViewport);
+void ForwardViewport::EndRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) {
+    rhlCommandBuffer->Transition({m_vulkanRHLViewport->GetBackBuffer(), RHLPipeline::Graphics,
+        RHLPipelineUsage::Unknown, RHLPipeline::Graphics, RHLPipelineUsage::Present});
+    rhlCommandBuffer->EndRenderingViewport(m_vulkanRHLViewport);
 }

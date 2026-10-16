@@ -34,6 +34,8 @@ public:
         m_pipeline.SetProperty(pipeline);
     }
 
+    virtual void Reset() = 0;
+
 protected:
     TPipelineBlueprint m_pipelineBlueprint;
 

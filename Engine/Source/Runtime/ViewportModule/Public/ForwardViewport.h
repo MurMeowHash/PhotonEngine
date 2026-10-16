@@ -18,8 +18,8 @@ class ForwardViewport : public Viewport {
 public:
     VulkanRHLTexture* GetVulkanRHLTexture() override;
     void ChangeSize(uint32_t width, uint32_t height) override;
-    void BeginRendering(VulkanRHLCommandList* rhlCommandList) override;
-    void EndRendering(VulkanRHLCommandList* rhlCommandList) override;
+    void BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) override;
+    void EndRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) override;
 public:
     ~ForwardViewport() override;
     static ForwardViewport* Create(const ForwardViewportCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);

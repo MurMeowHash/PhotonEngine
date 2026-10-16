@@ -39,6 +39,7 @@ public:
     void AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> semaphore);
     [[nodiscard]] VulkanCommandBuffer* GetCommandBuffer();
     [[nodiscard]] Photon::Result PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo);
+    virtual void Reset();
 
 protected:
     VulkanQueue* m_workQueue = nullptr;

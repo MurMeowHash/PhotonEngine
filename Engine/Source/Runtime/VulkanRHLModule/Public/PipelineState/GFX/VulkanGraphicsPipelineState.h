@@ -6,14 +6,16 @@
 
 class VulkanGraphicsPipelineState final : public VulkanPipelineState<VulkanGraphicsPipelineStateBlueprint> {
 public:
+    void Reset() override;
+protected:
+    void CommitInternal(VulkanCommandBuffer *commandBuffer) override;
+    void InvalidatePropertiesDirtyFlag() override;
+
+public:
     explicit VulkanGraphicsPipelineState();
 
     void SetViewport(const vk::Viewport& viewport);
     void SetScissor(const vk::Rect2D& scissor);
-
-protected:
-    void CommitInternal(VulkanCommandBuffer *commandBuffer) override;
-    void InvalidatePropertiesDirtyFlag() override;
 
 private:
     VulkanViewportPipelineStateProperty m_viewport;

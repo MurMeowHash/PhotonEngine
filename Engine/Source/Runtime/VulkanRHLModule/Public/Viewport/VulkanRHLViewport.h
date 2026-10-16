@@ -5,7 +5,7 @@
 #include "VulkanSurface.h"
 #include "VulkanSwapChain.h"
 
-class VulkanRHLCommandList;
+class VulkanRHLCommandBuffer;
 class VulkanRHLGraphicsWorkContext;
 
 struct RHLViewportCreateInfo {

@@ -4,11 +4,12 @@
 
 class VulkanRHLTexture;
 
-struct VulkanPipelineImageTransitionScope {
-    vk::PipelineStageFlags2 m_stage;
-    vk::AccessFlags2 m_access;
-    vk::ImageLayout m_layout;
-    uint32_t m_queueFamily;
+struct VulkanTransitionInfo {
+    VulkanTransitionInfo(const VulkanTransitionInfo& rhs) = delete;
+
+    std::vector<vk::ImageMemoryBarrier2> m_imageMemoryBarriers;
+    vk::DependencyInfo m_dependencyInfo;
+    std::vector<VulkanRHLResource*> m_pendingResources;
 };
 
 class VulkanPipelineBarrier {
@@ -16,7 +17,11 @@ public:
     void TransitionImage(VulkanRHLTexture* vulkanImage, const VulkanPipelineImageTransitionScope& srcScope,
         const VulkanPipelineImageTransitionScope& destScope, vk::ImageSubresourceRange subresourceRange);
 
-    [[nodiscard]] vk::DependencyInfo PackDependencyInfo() const;
+    [[nodiscard]] VulkanTransitionInfo PackTransitionInfo();
+    void Reset();
 private:
     std::vector<vk::ImageMemoryBarrier2> m_imageMemoryBarriers;
+    std::vector<VulkanRHLResource*> m_pendingResources;
+
+    void AddImageTransitionTracking(VulkanRHLTexture* rhlTexture, const VulkanPipelineImageTransitionScope& destScope);
 };

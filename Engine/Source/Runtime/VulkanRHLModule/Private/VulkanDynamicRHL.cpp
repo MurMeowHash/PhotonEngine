@@ -10,7 +10,7 @@ VulkanDynamicRHL::~VulkanDynamicRHL() {
     for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
         rhlSystem->Dispose();
 
-    delete m_immediateRHlCommandList;
+    delete m_immediateRHlCommandBuffer;
     delete m_vulkanDevice;
     delete m_vulkanInstance;
 }

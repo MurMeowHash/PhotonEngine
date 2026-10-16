@@ -1,5 +1,6 @@
 #include "../../Public/CommandBuffers/VulkanCommandBuffer.h"
 #include "Device/VulkanDevice.h"
+#include "Resources/VulkanRHLResource.h"
 
 VulkanCommandBuffer * VulkanCommandBuffer::Create(const VulkanCommandBufferCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
     vk::CommandBufferAllocateInfo allocateInfo{};
@@ -55,6 +56,8 @@ void VulkanCommandBuffer::Reset() {
 }
 
 void VulkanCommandBuffer::ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelineBarrier) const {
-    vk::DependencyInfo dependencyInfo = pipelineBarrier.PackDependencyInfo();
-    m_handle.pipelineBarrier2(dependencyInfo);
+    VulkanTransitionInfo transitionInfo = pipelineBarrier.PackTransitionInfo();
+    m_handle.pipelineBarrier2(transitionInfo.m_dependencyInfo);
+    for (VulkanRHLResource* rhlResource : transitionInfo.m_pendingResources)
+        rhlResource->CommitPendingTransitionScope();
 }
