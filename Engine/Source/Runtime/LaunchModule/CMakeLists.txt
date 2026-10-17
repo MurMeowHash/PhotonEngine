@@ -27,6 +27,27 @@ set_target_properties(LaunchModule PROPERTIES
         CXX_STANDARD_REQUIRED ON
 )
 
+if(MINGW)
+    get_filename_component(PHOTON_MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    set(PHOTON_MINGW_RUNTIME_DLLS
+            "${PHOTON_MINGW_BIN_DIR}/libstdc++-6.dll"
+            "${PHOTON_MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+            "${PHOTON_MINGW_BIN_DIR}/libwinpthread-1.dll"
+    )
+
+    foreach(_runtime_dll IN LISTS PHOTON_MINGW_RUNTIME_DLLS)
+        if(NOT EXISTS "${_runtime_dll}")
+            message(FATAL_ERROR "MinGW runtime library not found: ${_runtime_dll}")
+        endif()
+    endforeach()
+
+    add_custom_command(TARGET LaunchModule POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${PHOTON_MINGW_RUNTIME_DLLS}
+                $<TARGET_FILE_DIR:LaunchModule>
+    )
+endif()
+
 if(WIN32)
     add_custom_command(TARGET LaunchModule POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different

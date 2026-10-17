@@ -16,4 +16,6 @@ public:
 private:
     WindowClassProvider* m_windowClassProvider = nullptr;
     WindowEventDispatcher* m_windowEventDispatcher = nullptr;
+
+    static void SetDPIAwareness();
 };
