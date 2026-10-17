@@ -70,10 +70,10 @@ void VulkanRHLViewport::ReleaseActiveBackBuffer() {
     m_activeSwapChainImageIndex = -1;
 }
 
-void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkContext) {
+bool VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkContext) {
     if (m_swapChainRecreateRequested) {
         if (!RecreateSwapChain(gfxWorkContext))
-            return;
+            return false;
     }
 
     for (uint32_t acquireAttempt = 0; acquireAttempt < Photon::Vulkan::FrameConfiguration::g_maxSwapChainAcquireRetries; acquireAttempt++) {
@@ -82,13 +82,13 @@ void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkC
         VulkanSwapChainState swapChainState = m_vulkanSwapChain->TryAcquireNextImageIndex(swapChainImageIndex, acquireSemaphore);
         if (swapChainState == VulkanSwapChainState::OutOtDate) {
             if (!RecreateSwapChain(gfxWorkContext))
-                return;
+                return false;
 
             continue;
         }
 
         if (!VulkanSwapChain::CanEverRender(swapChainState))
-            return;
+            return false;
 
         if (swapChainState == VulkanSwapChainState::Suboptimal)
             RequestSwapChainRecreate();
@@ -97,6 +97,8 @@ void VulkanRHLViewport::AdvanceBackBuffer(VulkanRHLGraphicsWorkContext *gfxWorkC
         m_activeSwapChainImageIndex = static_cast<int32_t>(swapChainImageIndex);
         break;
     }
+
+    return true;
 }
 
 void VulkanRHLViewport::Present(VulkanRHLGraphicsWorkContext* gfxWorkContext) {

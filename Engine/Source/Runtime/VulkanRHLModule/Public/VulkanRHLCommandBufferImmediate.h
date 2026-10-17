@@ -11,6 +11,6 @@ public:
     static VulkanRHLCommandBufferImmediate* Create([[maybe_unused]] const VulkanRHLCommandBufferImmediateCreateInfo& createInfo,
         InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
 
-    void BeginRenderingViewport(VulkanRHLViewport* rhlViewport);
+    [[nodiscard]] bool BeginRenderingViewport(VulkanRHLViewport* rhlViewport);
     void EndRenderingViewport(VulkanRHLViewport* rhlViewport);
 };

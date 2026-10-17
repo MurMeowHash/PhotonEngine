@@ -3,11 +3,14 @@
 
 VulkanGraphicsPipeline* VulkanGraphicsPipeline::Create(const VulkanGraphicsPipelineCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
     std::vector<vk::PipelineShaderStageCreateInfo> shaderModulesInfo = AssembleShaderPipelineData(createInfo.m_shaders);
+    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo({}, createInfo.m_primitiveTopology);
     vk::PipelineViewportStateCreateInfo viewportInfo{};
     vk::PipelineRasterizationStateCreateInfo rasterizationInfo{};
     rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
     rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
+    rasterizationInfo.lineWidth = 1.0f;
+    rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
     vk::PipelineMultisampleStateCreateInfo multisampleInfo{};
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
@@ -37,6 +40,7 @@ VulkanGraphicsPipeline* VulkanGraphicsPipeline::Create(const VulkanGraphicsPipel
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
     graphicsPipelineCreateInfo.stageCount = shaderModulesInfo.size();
     graphicsPipelineCreateInfo.pStages = shaderModulesInfo.data();
+    graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
     graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyInfo;
     graphicsPipelineCreateInfo.pViewportState = &viewportInfo;
     graphicsPipelineCreateInfo.pRasterizationState = &rasterizationInfo;

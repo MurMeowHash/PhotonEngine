@@ -6,8 +6,8 @@ VulkanRHLCommandBufferImmediate* VulkanRHLCommandBufferImmediate::Create([[maybe
     return VulkanRHLCommandBuffer::Create<VulkanRHLCommandBufferImmediate>({}, inOutCreateParams);
 }
 
-void VulkanRHLCommandBufferImmediate::BeginRenderingViewport(VulkanRHLViewport *rhlViewport) {
-    rhlViewport->AdvanceBackBuffer(m_rhlGraphicsWorkContext);
+bool VulkanRHLCommandBufferImmediate::BeginRenderingViewport(VulkanRHLViewport *rhlViewport) {
+    return rhlViewport->AdvanceBackBuffer(m_rhlGraphicsWorkContext);
 }
 
 void VulkanRHLCommandBufferImmediate::EndRenderingViewport(VulkanRHLViewport *rhlViewport) {

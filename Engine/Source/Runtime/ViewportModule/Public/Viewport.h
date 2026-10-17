@@ -10,7 +10,7 @@ public:
     [[nodiscard]] uint32_t GetHeight() const;
 
     virtual void ChangeSize(uint32_t width, uint32_t height);
-    virtual void BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) = 0;
+    [[nodiscard]] virtual bool BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) = 0;
     virtual void EndRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) = 0;
 private:
     uint32_t m_width{};

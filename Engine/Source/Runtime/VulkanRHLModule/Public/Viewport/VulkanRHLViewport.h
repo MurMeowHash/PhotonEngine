@@ -29,7 +29,7 @@ public:
     void UpdateViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
     void SetBlockUntilVBlank(bool isBlocked);
     void ReleaseActiveBackBuffer();
-    void AdvanceBackBuffer(VulkanRHLGraphicsWorkContext* gfxWorkContext);
+    [[nodiscard]] bool AdvanceBackBuffer(VulkanRHLGraphicsWorkContext* gfxWorkContext);
     void Present(VulkanRHLGraphicsWorkContext* gfxWorkContext);
 private:
     VulkanDevice* m_vulkanDevice = nullptr;

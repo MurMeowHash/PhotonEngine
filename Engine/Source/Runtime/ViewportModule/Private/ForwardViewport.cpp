@@ -30,6 +30,7 @@ ForwardViewport* ForwardViewport::Create(const ForwardViewportCreateInfo &create
 
     ForwardViewport* instance = Photon::AllocateObject<ForwardViewport>(inOutCreateParams);
     instance->m_vulkanRHLViewport = rhlViewport;
+    instance->ChangeSize(createInfo.m_viewportWidth, createInfo.m_viewportHeight);
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
 }
@@ -43,8 +44,8 @@ void ForwardViewport::ChangeSize(uint32_t width, uint32_t height) {
     m_vulkanRHLViewport->UpdateViewportSize(width, height);
 }
 
-void ForwardViewport::BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) {
-    rhlCommandBuffer->BeginRenderingViewport(m_vulkanRHLViewport);
+bool ForwardViewport::BeginRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) {
+    return rhlCommandBuffer->BeginRenderingViewport(m_vulkanRHLViewport);
 }
 
 void ForwardViewport::EndRendering(VulkanRHLCommandBufferImmediate* rhlCommandBuffer) {

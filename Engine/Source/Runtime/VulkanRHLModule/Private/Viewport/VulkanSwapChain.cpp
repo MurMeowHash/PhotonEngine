@@ -5,6 +5,9 @@
 
 VulkanSwapChain::~VulkanSwapChain() {
     m_vulkanDevice->WaitIdle();
+    for (VulkanRHLTexture* image : m_images)
+        delete image;
+
     (*m_vulkanDevice->GetHandle()).destroySwapchainKHR(m_handle);
 }
 
@@ -153,7 +156,7 @@ bool VulkanSwapChain::TryGetSurfaceFormat(VulkanDevice *vulkanDevice, VulkanSurf
         return false;
 
     for (const vk::SurfaceFormatKHR& format: surfaceFormats.value) {
-        if (format.format == vk::Format::eB8G8R8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) { // TODO: needs comprehensive selection
+        if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) { // TODO: needs comprehensive selection
             surfaceFormat = *format;
             return true;
         }
