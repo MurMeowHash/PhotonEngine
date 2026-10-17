@@ -49,6 +49,7 @@
 cmake-build-*/
 build/
 out/
+/Binaries/
 
 # IDE files
 .idea/

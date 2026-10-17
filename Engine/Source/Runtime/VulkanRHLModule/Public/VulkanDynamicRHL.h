@@ -24,6 +24,7 @@ public:
         InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr) const;
     void Tick() const;
     [[nodiscard]] VulkanDevice* GetVulkanDevice() const;
+    [[nodiscard]] VulkanInstance* GetVulkanInstance() const;
     [[nodiscard]] VulkanRHLPendingTransition CreateTransition(const VulkanRHLResourceTransitionRequestBatch& transitionRequests) const;
 private:
     VulkanInstance* m_vulkanInstance = nullptr;

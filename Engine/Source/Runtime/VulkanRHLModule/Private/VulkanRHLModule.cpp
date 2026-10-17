@@ -1,8 +1,10 @@
 #include "../Public/VulkanRHLModule.h"
 #include "VulkanRHLFactory.h"
+#include "PlatformInteractor.h"
+
+#define SHADERS_DIR_NAME "Shaders"
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
-using Photon::Vulkan::g_rhlCommandBuffer;
 
 Photon::Result VulkanRHLModule::StartUp() {
     m_vulkanRHLFactory = new VulkanRHLFactory();
@@ -12,16 +14,27 @@ Photon::Result VulkanRHLModule::StartUp() {
         return rhlInOut.m_result;
 
     g_vulkanDynamicRHL = m_vulkanDynamicRHL;
-    InOutCreateParams<Photon::Result> commandBufferInOut;
-    g_rhlCommandBuffer = VulkanRHLCommandBuffer::Create({}, &commandBufferInOut);
-    return commandBufferInOut.m_result;
+
+    Photon::Result shaderCompilerResult = CreateShaderCompiler();
+    return shaderCompilerResult;
 }
 
 void VulkanRHLModule::Terminate() {
     delete m_vulkanRHLFactory;
+    delete m_vulkanRHLShaderCompiler;
     delete m_vulkanDynamicRHL;
 }
 
 VulkanDynamicRHL * VulkanRHLModule::GetVulkanDynamicRHL() const {
     return m_vulkanDynamicRHL;
+}
+
+Photon::Result VulkanRHLModule::CreateShaderCompiler() {
+    VulkanRHLShaderCompilerCreateInfo createInfo{};
+    createInfo.m_shadersRootDirectory = Photon::Core::PlatformInteractor::GetEngineDirectory() / SHADERS_DIR_NAME;
+    createInfo.m_vulkanInstance = m_vulkanDynamicRHL->GetVulkanInstance();
+    createInfo.m_vulkanDevice = m_vulkanDynamicRHL->GetVulkanDevice();
+    InOutCreateParams<Photon::Result> shaderCompilerInOut{};
+    m_vulkanRHLShaderCompiler = VulkanRHLShaderCompiler::Create(createInfo, &shaderCompilerInOut);
+    return shaderCompilerInOut.m_result;
 }

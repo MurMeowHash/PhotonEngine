@@ -33,6 +33,10 @@ VulkanDevice* VulkanDynamicRHL::GetVulkanDevice() const {
     return m_vulkanDevice;
 }
 
+VulkanInstance * VulkanDynamicRHL::GetVulkanInstance() const {
+    return m_vulkanInstance;
+}
+
 VulkanRHLPendingTransition VulkanDynamicRHL::CreateTransition(const VulkanRHLResourceTransitionRequestBatch &transitionRequests) const {
     VulkanRHLPendingTransition pendingTransition{m_vulkanDevice, transitionRequests.GetSrcPipeline(), transitionRequests.GetDestPipeline()};
 
