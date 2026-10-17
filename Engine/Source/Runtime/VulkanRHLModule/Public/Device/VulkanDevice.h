@@ -48,7 +48,7 @@ struct QueueInitializeInfo {
     std::unordered_map<RHLPipeline, uint32_t> m_queueFamilyRequestInfo;
 };
 
-class VulkanDevice : VulkanEntity {
+class VulkanDevice : public VulkanEntity {
 public:
     ~VulkanDevice() override;
     [[nodiscard]] bool TryGetAvailableExtensions(std::vector<vk::ExtensionProperties> &availableExtensions) const override;

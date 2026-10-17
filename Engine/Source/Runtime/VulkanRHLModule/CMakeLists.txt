@@ -57,6 +57,7 @@ target_sources(VulkanRHLModule
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShader.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShaderCompiler.h
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipeline.h
@@ -149,6 +150,7 @@ target_sources(VulkanRHLModule
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShader.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShaderCompiler.cpp
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipeline.cpp
@@ -216,6 +218,7 @@ target_link_libraries(VulkanRHLModule
         DebugModule
         FactoryModule
         ModuleBaseModule.Core
+        dxc
 )
 
 if(MSVC)
