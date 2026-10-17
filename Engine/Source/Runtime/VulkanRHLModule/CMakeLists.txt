@@ -58,6 +58,7 @@ target_sources(VulkanRHLModule
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShader.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShaderCompiler.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/Shader.h
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Pipelines/VulkanPipeline.h
@@ -151,6 +152,7 @@ target_sources(VulkanRHLModule
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShader.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShaderCompiler.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/Shader.cpp
 
         ## Pipelines
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Pipelines/VulkanPipeline.cpp

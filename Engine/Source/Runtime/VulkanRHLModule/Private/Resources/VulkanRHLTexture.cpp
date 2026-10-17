@@ -19,8 +19,8 @@ VulkanRHLTexture* VulkanRHLTexture::Create(const VulkanImageCreateInfo& createIn
     instance->m_isRaii = false;
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
     instance->m_handle = createInfo.m_imageHandle;
-    instance->m_imageFormat = createInfo.m_imageFormat;
-    instance->m_nativeImageFormat = Photon::Vulkan::RHLFormatToVulkan(createInfo.m_imageFormat);
+    instance->m_nativeImageFormat = createInfo.m_imageFormat;
+    instance->m_rhlImageFormat = Photon::Vulkan::VulkanFormatToRHL(createInfo.m_imageFormat);
     instance->m_imageType = createInfo.m_imageType;
     instance->m_arrayLayers = createInfo.m_arrayLayers;
     instance->m_mipLevels = createInfo.m_mipLevels;
@@ -38,7 +38,7 @@ VulkanImageView* VulkanRHLTexture::GetDefaultImageView() const {
 }
 
 Photon::Vulkan::RHLFormat VulkanRHLTexture::GetFormat() const {
-    return m_imageFormat;
+    return m_rhlImageFormat;
 }
 
 void VulkanRHLTexture::TrackLastTransitionScope(const VulkanPipelineImageTransitionScope &transitionScope) {

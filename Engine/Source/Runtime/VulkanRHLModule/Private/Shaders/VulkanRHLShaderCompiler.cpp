@@ -81,7 +81,7 @@ VulkanRHLShaderCompiler* VulkanRHLShaderCompiler::Create(const VulkanRHLShaderCo
 
 Photon::Result VulkanRHLShaderCompiler::CompileShader(const VulkanRHLShaderCompileInput &shaderInput,
     VulkanRHLShaderCompileOutput &shaderCompileOutput) const {
-    std::filesystem::path fullShaderPath = m_shadersRootDirectory / shaderInput.m_shaderPath;
+    std::filesystem::path fullShaderPath = m_shadersRootDirectory / shaderInput.m_sourceFile;
     std::wstring sourcePath = fullShaderPath.wstring();
 
     IDxcBlobEncoding* sourceBlob = nullptr;

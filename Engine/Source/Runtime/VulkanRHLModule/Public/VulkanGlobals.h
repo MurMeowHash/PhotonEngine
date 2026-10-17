@@ -3,8 +3,11 @@
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
 
+#define SHADERS_DIR_NAME "Shaders"
+
 class VulkanDynamicRHL;
 class VulkanRHLCommandBuffer;
+class VulkanRHLModule;
 
 namespace Photon::Vulkan {
     struct VulkanApiVersion {
@@ -68,6 +71,7 @@ namespace Photon::Vulkan {
     };
 
     inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;
+    inline VulkanRHLModule* g_vulkanRHLModule = nullptr;
 }
 
 struct VulkanRHLRect {

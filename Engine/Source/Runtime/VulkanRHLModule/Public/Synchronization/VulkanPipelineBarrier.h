@@ -5,8 +5,6 @@
 class VulkanRHLTexture;
 
 struct VulkanTransitionInfo {
-    VulkanTransitionInfo(const VulkanTransitionInfo& rhs) = delete;
-
     std::vector<vk::ImageMemoryBarrier2> m_imageMemoryBarriers;
     vk::DependencyInfo m_dependencyInfo;
     std::vector<VulkanRHLResource*> m_pendingResources;

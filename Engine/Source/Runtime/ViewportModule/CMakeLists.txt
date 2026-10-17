@@ -5,10 +5,12 @@ target_sources(ViewportModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/ViewportInteractor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/ForwardViewport.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/DummyTriangleShader.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/ViewportInteractor.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/ForwardViewport.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/DummyTriangleShader.cpp
 )
 
 target_include_directories(ViewportModule

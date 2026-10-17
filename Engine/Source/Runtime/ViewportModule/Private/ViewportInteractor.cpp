@@ -2,6 +2,9 @@
 #include "RendererFactory.h"
 #include "Viewport.h"
 #include "VulkanRHLCommandBufferImmediate.h"
+#include "VulkanRHLModule.h"
+#include "Shaders/DummyTriangleShader.h"
+#include "Shaders/Shader.h"
 
 void ViewportInteractor::ConnectViewport(Viewport *viewport) {
     m_viewport = viewport;
@@ -15,6 +18,8 @@ void ViewportInteractor::RenderViewport(VulkanRHLCommandBufferImmediate* rhlComm
     RenderViewCollection renderViewCollection{};
     renderViewCollection.m_renderView = RenderView(RenderRect(0, m_viewport->GetWidth(), 0, m_viewport->GetHeight()));
     renderSceneInput.m_renderViewCollection = renderViewCollection;
+    renderSceneInput.m_renderScene.m_renderObject = RenderObject(GET_GLOBAL_SHADER(DummyTriangleVS),
+        GET_GLOBAL_SHADER(DummyTriangleFS), Photon::Vulkan::RHLPrimitiveType::Triangle);
     renderer->Render(renderSceneInput, rhlCommandBuffer);
     m_viewport->EndRendering(rhlCommandBuffer);
 }

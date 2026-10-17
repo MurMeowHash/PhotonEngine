@@ -42,4 +42,13 @@ namespace Photon::Vulkan {
                 assert(false);
         }
     }
+
+    inline RHLFormat VulkanFormatToRHL(vk::Format format) {
+        switch (format) {
+            case vk::Format::eB8G8R8A8Srgb:
+                return RHLFormat::B8G8R8A8;
+            default:
+                assert(false);
+        }
+    }
 }

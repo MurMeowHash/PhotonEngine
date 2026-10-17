@@ -14,7 +14,7 @@ class VulkanDevice;
 struct VulkanImageCreateInfo {
     VulkanDevice* m_vulkanDevice;
     vk::Image m_imageHandle;
-    Photon::Vulkan::RHLFormat m_imageFormat;
+    vk::Format m_imageFormat;
     Photon::Vulkan::ImageType m_imageType;
     uint32_t m_arrayLayers;
     uint32_t m_mipLevels;
@@ -34,7 +34,7 @@ public:
     [[nodiscard]] vk::ImageLayout GetLastLayout() const;
 private:
     vk::Image m_handle;
-    Photon::Vulkan::RHLFormat m_imageFormat{};
+    Photon::Vulkan::RHLFormat m_rhlImageFormat{};
     vk::Format m_nativeImageFormat{};
     Photon::Vulkan::ImageType m_imageType{};
     uint32_t m_arrayLayers{};

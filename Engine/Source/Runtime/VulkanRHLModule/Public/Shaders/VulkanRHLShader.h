@@ -7,8 +7,10 @@
 #include "VulkanGlobals.h"
 #include "VulkanUtils.h"
 
+class VulkanDevice;
+
 struct VulkanRHLShaderCreateInfo {
-    vk::raii::Device& m_vulkanDevice;
+    VulkanDevice* m_vulkanDevice;
     std::vector<char> m_spirVCode;
     Photon::Vulkan::RHLShaderStage m_shaderStage;
     const char* m_shaderEntryName;
@@ -20,23 +22,12 @@ struct VulkanRHLShaderMetaData {
 
 class VulkanRHLShader {
 public:
+    virtual ~VulkanRHLShader() = default;
     template<std::derived_from<VulkanRHLShader> TVulkanShader>
     static TVulkanShader* Create(const VulkanRHLShaderCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr) {
-        vk::ShaderModuleCreateInfo shaderModuleCreateInfo;
-        shaderModuleCreateInfo.codeSize = createInfo.m_spirVCode.size() * sizeof(char);
-        shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(createInfo.m_spirVCode.data());
-        vk::ResultValue<vk::raii::ShaderModule> shaderModuleWrapper = createInfo.m_vulkanDevice.createShaderModule(shaderModuleCreateInfo);
-        if (shaderModuleWrapper.result != vk::Result::eSuccess) {
-            Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
-            return nullptr;
-        }
-
         TVulkanShader* instance = Photon::AllocateObject<TVulkanShader>(inOutCreateParams);
-        instance->m_handle = std::move(shaderModuleWrapper.value);
-        instance->m_shaderStage = createInfo.m_shaderStage;
-        instance->m_entryName = createInfo.m_shaderEntryName;
-        instance->m_vulkanShaderStage = Photon::Vulkan::RHLToVulkanShaderStage(createInfo.m_shaderStage);
-        Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+        Photon::Result createResult = instance->CreateInternal(createInfo);
+        Photon::PushResult(createResult, inOutCreateParams);
         return instance;
     }
 
@@ -48,10 +39,12 @@ private:
     Photon::Vulkan::RHLShaderStage m_shaderStage{};
     VulkanRHLShaderMetaData m_metaData{};
     vk::ShaderStageFlagBits m_vulkanShaderStage{};
+
+    [[nodiscard]] Photon::Result CreateInternal(const VulkanRHLShaderCreateInfo& createInfo);
 };
 
 struct VulkanRHLTypedShaderCreateInfo {
-    vk::raii::Device& m_vulkanDevice;
+    VulkanDevice* m_vulkanDevice;
     std::vector<char> m_spirVCode;
     const char* m_shaderEntryName;
 };

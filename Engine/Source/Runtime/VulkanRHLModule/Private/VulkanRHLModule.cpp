@@ -1,8 +1,7 @@
 #include "../Public/VulkanRHLModule.h"
 #include "VulkanRHLFactory.h"
 #include "PlatformInteractor.h"
-
-#define SHADERS_DIR_NAME "Shaders"
+#include "Shaders/Shader.h"
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
 
@@ -16,17 +15,29 @@ Photon::Result VulkanRHLModule::StartUp() {
     g_vulkanDynamicRHL = m_vulkanDynamicRHL;
 
     Photon::Result shaderCompilerResult = CreateShaderCompiler();
-    return shaderCompilerResult;
+    if (shaderCompilerResult != Photon::Result::Success)
+        return shaderCompilerResult;
+
+    Photon::Result globalsShadersPrepareResult = CreateGlobalShaderBlob();
+    Photon::Vulkan::g_vulkanRHLModule = this;
+    return globalsShadersPrepareResult;
 }
 
 void VulkanRHLModule::Terminate() {
     delete m_vulkanRHLFactory;
+    delete m_globalShadersBlob;
     delete m_vulkanRHLShaderCompiler;
     delete m_vulkanDynamicRHL;
+
+    Photon::Vulkan::g_vulkanRHLModule = nullptr;
 }
 
 VulkanDynamicRHL * VulkanRHLModule::GetVulkanDynamicRHL() const {
     return m_vulkanDynamicRHL;
+}
+
+GlobalShadersBlob * VulkanRHLModule::GetGlobalShadersBlob() const {
+    return m_globalShadersBlob;
 }
 
 Photon::Result VulkanRHLModule::CreateShaderCompiler() {
@@ -37,4 +48,10 @@ Photon::Result VulkanRHLModule::CreateShaderCompiler() {
     InOutCreateParams<Photon::Result> shaderCompilerInOut{};
     m_vulkanRHLShaderCompiler = VulkanRHLShaderCompiler::Create(createInfo, &shaderCompilerInOut);
     return shaderCompilerInOut.m_result;
+}
+
+Photon::Result VulkanRHLModule::CreateGlobalShaderBlob() {
+    m_globalShadersBlob = new GlobalShadersBlob();
+    Photon::Result shadersPrepareResult = m_globalShadersBlob->PrepareShaders(m_vulkanRHLShaderCompiler, m_vulkanDynamicRHL->GetVulkanDevice());
+    return shadersPrepareResult;
 }

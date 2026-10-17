@@ -23,7 +23,7 @@ struct VulkanRHLShaderCompilerCreateInfo {
 };
 
 struct VulkanRHLShaderCompileInput {
-    std::filesystem::path m_shaderPath;
+    std::filesystem::path m_sourceFile;
     std::string m_entryName;
     RHLShaderStage m_shaderStage;
 };

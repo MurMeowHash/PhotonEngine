@@ -28,6 +28,11 @@ public:
         return true;
     }
 
+    template<typename TModule>
+    TModule* ResolveModule() {
+        return static_cast<TModule*>(m_sequence[m_moduleAccessMap.at(std::type_index(typeid(TModule)))]);
+    }
+
 private:
     std::vector<ModuleBase*> m_sequence;
     int32_t m_sequencePointer;
