@@ -1,25 +1,30 @@
 #pragma once
 
 #include "VulkanDeviceMemory.h"
-#include <vector>
-#include "MemoryRange.h"
+#include "MemoryPage.h"
 
-using VulkanMemoryRange = MemoryRange<vk::DeviceSize>;
-using VulkanRangeIteratorOffset = std::iter_difference_t<std::vector<VulkanMemoryRange>::iterator>;
+class VulkanDevice;
 
-class VulkanMemoryPage {
+class VulkanDeviceMemoryPage final : public MemoryPage<vk::DeviceSize, VulkanDeviceMemory> {
+protected:
+    void InitializeMemoryObject(VulkanDeviceMemory &memoryObject, const MemoryInitializeInfo<vk::DeviceSize>& memInitializeInfo) override;
 public:
-    explicit VulkanMemoryPage(VulkanDeviceMemory&& memory);
+    explicit VulkanMemoryPage(VulkanDeviceMemory&& memory); // should be create info with device
+};
 
-    [[nodiscard]] bool TryAllocateFromRange(vk::DeviceSize requiredMemorySize, vk::DeviceSize alignment, VulkanDeviceMemory& allocatedMemory);
-    void ReturnMemory(VulkanDeviceMemory& memory);
-    [[nodiscard]] VulkanDeviceMemory& GetPageMemory();
-    void InvalidateMemory();
+struct VulkanMemoryPagesAllocatorCreateInfo {
+    VulkanDevice* m_vulkanDevice;
+    uint32_t m_memoryTypeIndex;
+};
 
+class VulkanDeviceMemoryPagesAllocator : public MemoryPagesAllocator<vk::DeviceSize, VulkanDeviceMemory, VulkanDeviceMemoryPage> {
+protected:
+    VulkanDeviceMemoryPage AllocatePage(vk::DeviceSize pageSize) override;
+    bool MemoryBelongsToPage(const VulkanDeviceMemoryPage &memoryPage, const VulkanDeviceMemory &memory) override;
+
+public:
+    explicit VulkanDeviceMemoryPagesAllocator(const VulkanMemoryPagesAllocatorCreateInfo& createInfo);
 private:
-    VulkanDeviceMemory m_memory;
-    std::vector<VulkanMemoryRange> m_freeRanges;
-
-    void MergeRangesForward(std::vector<VulkanMemoryRange>::iterator currentRange, VulkanRangeIteratorOffset neighborOffset);
-    void MergeRangesBackward(std::vector<VulkanMemoryRange>::iterator currentRange, VulkanRangeIteratorOffset neighborOffset);
+    VulkanDevice* m_vulkanDevice;
+    uint32_t m_memoryTypeIndex;
 };

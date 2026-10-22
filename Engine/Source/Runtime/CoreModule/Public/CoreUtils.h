@@ -45,3 +45,6 @@ namespace Photon::Core::Flags {
         return (static_cast<T>(value) & static_cast<T>(flag)) != 0;
     }
 }
+
+#define FlagSet(value, flag)                                  \
+    Photon::Core::Flags::IsFlagSet(value, flag)

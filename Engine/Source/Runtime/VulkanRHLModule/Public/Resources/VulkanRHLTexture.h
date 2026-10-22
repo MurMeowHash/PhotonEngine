@@ -6,7 +6,7 @@
 #include "FactoryGlobals.h"
 #include "Resources/VulkanImageViewCache.h"
 #include "VulkanGlobals.h"
-#include "VulkanRHLResource.h"
+#include "VulkanResource.h"
 #include "Resources/VulkanResourceTransition.h"
 
 class VulkanDevice;
@@ -20,7 +20,7 @@ struct VulkanImageCreateInfo {
     uint32_t m_mipLevels;
 };
 
-class VulkanRHLTexture : public VulkanRHLResource {
+class VulkanRHLTexture : public VulkanResource {
 public:
     void CommitPendingTransitionScope() override;
 

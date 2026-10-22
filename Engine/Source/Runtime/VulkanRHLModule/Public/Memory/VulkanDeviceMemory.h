@@ -2,41 +2,41 @@
 
 #include <vulkan/vulkan.hpp>
 #include "RuntimeAttributes.h"
+#include "Memory.h"
+#include "CoreGlobals.h"
 
-struct VulkanDeviceMemoryInitializer {
+struct VulkanDeviceMemoryInitializeInfo {
+    vk::Device m_device;
     vk::DeviceMemory m_handle;
-    vk::DeviceSize m_offset;
-    vk::DeviceSize m_alignmentOffset;
-    uint32_t m_size;
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;
+    MemoryInitializeInfo<vk::DeviceSize> m_memInfo;
 };
 
-class VulkanDeviceMemory {
+class VulkanDeviceMemory final : public Memory<vk::DeviceSize> {
+public:
+    void InvalidateMemory() override;
 public:
     explicit VulkanDeviceMemory();
-    VulkanDeviceMemory(const VulkanDeviceMemoryInitializer& memoryInitializer);
+    VulkanDeviceMemory(const VulkanDeviceMemoryInitializeInfo& initializeInfo);
+    void Initialize(const VulkanDeviceMemoryInitializeInfo& initializeInfo);
 
-    void InitializeMemory(const VulkanDeviceMemoryInitializer& memoryInitializer);
-
-    [[nodiscard]] uint32_t GetSize() const;
-    [[nodiscard]] uint32_t GetAllocationSize() const;
     [[nodiscard]] uint32_t GetMemoryTypeIndex() const;
     [[nodiscard]] vk::DeviceMemory GetHandle() const;
-    [[nodiscard]] uint32_t GetOffset() const;
-    [[nodiscard]] vk::DeviceSize GetAlignmentOffset() const;
-    [[nodiscard]] vk::DeviceSize GetMemoryOccupationOffset() const;
     [[nodiscard]] bool IsValid() const;
     [[nodiscard]] bool IsDedicated() const;
     [[nodiscard]] RuntimeAttributes& GetMemoryAttributes();
-    void InvalidateMemory();
+    [[nodiscard]] void* GetMappedRange() const;
+    [[nodiscard]] bool TryGetMappedRange(void*& mappedRange) const;
+
+    [[nodiscard]] Photon::Result MapMemory();
+    void UnMapMemory();
 
 private:
+    vk::Device m_device;
     vk::DeviceMemory m_handle;
-    vk::DeviceSize m_offset;
-    vk::DeviceSize m_alignmentOffset;
-    uint32_t m_size;
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;
     RuntimeAttributes m_memoryAttributes;
+    void* m_mappedRange = nullptr;
 };

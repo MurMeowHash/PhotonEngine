@@ -89,7 +89,7 @@ void VulkanRHLPendingTransition::FillBasicResourceTransitionScope(RHLPipelineUsa
     }
 }
 
-void VulkanRHLPendingTransition::FillBasicSrcResourceTransitionScope(VulkanRHLResource *rhlResource,
+void VulkanRHLPendingTransition::FillBasicSrcResourceTransitionScope(VulkanResource *rhlResource,
     RHLPipelineUsage usage, VulkanResourceTransitionScope &transitionScope) {
     switch (usage) {
         case RHLPipelineUsage::Unknown:

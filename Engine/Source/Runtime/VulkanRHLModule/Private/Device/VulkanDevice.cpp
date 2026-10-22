@@ -17,8 +17,9 @@ using Photon::Core::Flags::operator|;
     }
 
 VulkanDevice::~VulkanDevice() {
-    delete m_memoryProvider;
     delete m_gfxPipelineProvider;
+    delete m_memoryProvider;
+    delete m_deferredDeletionQueue;
 
     for (std::pair<const RHLPipeline, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
@@ -40,7 +41,8 @@ bool VulkanDevice::TryGetAvailableExtensions(std::vector<vk::ExtensionProperties
 VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
     VulkanDevice* instance = Photon::AllocateObject<VulkanDevice>(inOutCreateParams);
     instance->m_physicalDevice = createInfo.m_physicalDevice;
-    instance->SetApiVersion(instance->m_physicalDevice.getProperties2().properties.apiVersion);
+    instance->m_cachedProperties = createInfo.m_physicalDevice.getProperties2();
+    instance->SetApiVersion(instance->m_cachedProperties.properties.apiVersion);
 
     QueueInitializeInfo queueInitializationInfo = instance->InitializeDeviceQueues(createInfo.m_requestedPipelines);
     instance->ProcessExtensionsRequest(createInfo.m_requestedExtensions);
@@ -66,6 +68,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->InitializeBinarySemaphorePool();
     Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
         std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
+    instance->InitializeDeferredDeletionQueue();
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
     instance->InitializePipelineProviders();
 
@@ -79,17 +82,16 @@ vk::raii::Device & VulkanDevice::GetHandle() {
     return m_handle;
 }
 
+vk::Device VulkanDevice::GetRawHandle() const {
+    return *m_handle;
+}
+
 const vk::raii::PhysicalDevice & VulkanDevice::GetPhysicalHandle() const {
     return m_physicalDevice;
 }
 
-std::set<VulkanQueue *> VulkanDevice::GetOperatingQueues() const {
-    std::set<VulkanQueue*> queues;
-    for (const std::pair<const RHLPipeline, VulkanQueue*>& queueData : m_deviceQueues) {
-        queues.emplace(queueData.second);
-    }
-
-    return queues;
+const std::set<VulkanQueue *>& VulkanDevice::GetOperatingQueues() const {
+    return m_operatingQueues;
 }
 
 bool VulkanDevice::TryGetQueue(RHLPipeline pipeline, VulkanQueue*& vulkanQueue) const {
@@ -107,6 +109,14 @@ IVulkanDeviceMemoryProvider * VulkanDevice::GetMemoryProvider() const {
 
 VulkanWorkAllocatorPool * VulkanDevice::GetWorkAllocatorPool() const {
     return m_workAllocatorPool;
+}
+
+vk::PhysicalDeviceProperties VulkanDevice::GetProperties() const {
+    return m_cachedProperties.properties;
+}
+
+VulkanDeferredDeletionQueue* VulkanDevice::GetDeferredDeletionQueue() const {
+    return m_deferredDeletionQueue;
 }
 
 VulkanGraphicsPipeline* VulkanDevice::GetGFXPipeline(const VulkanRHLGraphicsPipelineDescriptor &desc) const {
@@ -223,6 +233,10 @@ Photon::Result VulkanDevice::ObtainQueues(std::unordered_map<uint32_t, uint32_t>
         }
     }
 
+    for (const std::pair<const RHLPipeline, VulkanQueue*>& queueData : m_deviceQueues) {
+        m_operatingQueues.emplace(queueData.second);
+    }
+
     return Photon::Result::Success;
 }
 
@@ -296,4 +310,9 @@ void VulkanDevice::InitializeBinarySemaphorePool() {
     createInfo.m_vulkanDevice = this;
     InOutCreateParams<Photon::Result> inOut;
     m_binarySemaphorePool = VulkanBinarySemaphorePool::Create(createInfo, &inOut);
+}
+
+void VulkanDevice::InitializeDeferredDeletionQueue() {
+    VulkanDeferredDeletionQueueCreateInfo createInfo{this};
+    m_deferredDeletionQueue = VulkanDeferredDeletionQueue::Create(createInfo);
 }

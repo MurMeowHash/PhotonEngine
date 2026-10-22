@@ -34,6 +34,15 @@ public:
         m_end = end;
     }
 
+    [[nodiscard]] bool operator==(const Range<T>& rhs) const {
+        return m_begin == rhs.m_begin
+        && m_end == rhs.m_end;
+    }
+
+    [[nodiscard]] bool operator!=(const Range<T>& rhs) const {
+        return !(*this == rhs);
+    }
+
 private:
     T m_begin;
     T m_end;

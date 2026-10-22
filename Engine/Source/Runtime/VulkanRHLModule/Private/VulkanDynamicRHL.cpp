@@ -4,6 +4,7 @@
 #include "Configurations/VulkanExtensionsConfiguration.h"
 #include "Configurations/VulkanInstanceConfiguration.h"
 #include "Device/VulkanDeviceProvider.h"
+#include "Systems/VulkanRHLDDQProcessSystem.h"
 #include "Systems/VulkanRHLInterruptProcessSystem.h"
 
 VulkanDynamicRHL::~VulkanDynamicRHL() {
@@ -99,4 +100,5 @@ Photon::Result VulkanDynamicRHL::CreateVulkanDevice() {
 
 void VulkanDynamicRHL::SetUpRHLSystems() {
     AddRHLSystem<VulkanRHLInterruptProcessSystem>();
+    AddRHLSystem<VulkanRHLDDQProcessSystem>();
 }

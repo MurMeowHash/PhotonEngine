@@ -4,7 +4,7 @@
 #include "VulkanGlobals.h"
 #include <memory>
 
-class VulkanRHLResource;
+class VulkanResource;
 class VulkanRHLTexture;
 class VulkanDevice;
 class VulkanQueue;
@@ -21,6 +21,10 @@ struct VulkanPipelineResourceTransitionScope {
 
 struct VulkanPipelineImageTransitionScope : public VulkanPipelineResourceTransitionScope {
     vk::ImageLayout m_layout;
+};
+
+struct VulkanPipelineBufferTransitionScope : public VulkanPipelineResourceTransitionScope {
+
 };
 
 struct VulkanRHLTextureTransitionRequest {
@@ -82,7 +86,7 @@ private:
     std::shared_ptr<VulkanBinarySemaphore> m_transitionSemaphore = nullptr;
 
     static void FillBasicResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
-    static void FillBasicSrcResourceTransitionScope(VulkanRHLResource* rhlResource, RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
+    static void FillBasicSrcResourceTransitionScope(VulkanResource* rhlResource, RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
     static void FillBasicDestResourceTransitionScope(RHLPipelineUsage usage, VulkanResourceTransitionScope& transitionScope);
     static void GetTransitionImageLayout(RHLPipelineUsage usage, vk::ImageLayout& layout);
     static void GetSrcTransitionImageLayout(VulkanRHLTexture* rhlTexture, RHLPipelineUsage usage, vk::ImageLayout& layout);

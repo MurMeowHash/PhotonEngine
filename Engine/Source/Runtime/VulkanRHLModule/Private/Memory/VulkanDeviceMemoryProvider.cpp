@@ -3,8 +3,6 @@
 #include "Memory/DefaultVulkanDeviceAllocator.h"
 #include "LinearAllocator.h"
 
-const std::string VulkanDeviceMemoryProvider::MEMORY_ALLOCATION_TILING_ATTRIBUTE = "MEMORY_ALLOCATION_TILING_ATTRIBUTE";
-
 VulkanDeviceMemoryProvider::VulkanDeviceMemoryProvider(vk::raii::Device &device, vk::raii::PhysicalDevice &physicalDevice,
     const VulkanAllocationPresetDefinition& vulkanAllocationPresetDefinition)
 : m_device(device), m_physicalDevice(physicalDevice) {
@@ -23,14 +21,14 @@ VulkanDeviceMemory VulkanDeviceMemoryProvider::AllocateMemory(vk::DeviceSize mem
                                                               uint32_t memoryTypeIndex, VulkanResourceTilingType resourceTiling) {
     VulkanDeviceAllocatorBundle& allocatorBundle = GetAllocatorBundle(resourceTiling, memoryTypeIndex);
     VulkanDeviceMemory allocatedDeviceMemory = allocatorBundle.GetDeviceAllocator()->AllocateMemory(memorySize, alignment);
-    allocatedDeviceMemory.GetMemoryAttributes().OverrideAttribute(MEMORY_ALLOCATION_TILING_ATTRIBUTE, VulkanResourceTilingType::Linear);
+    allocatedDeviceMemory.GetMemoryAttributes().OverrideAttribute(MEMORY_ALLOCATION_TILING_ATTRIBUTE, resourceTiling);
     return allocatedDeviceMemory;
 }
 
-VulkanDeviceMemory VulkanDeviceMemoryProvider::AllocateBufferMemory(const vk::raii::Buffer &buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
+VulkanDeviceMemory VulkanDeviceMemoryProvider::AllocateBufferMemory(vk::Buffer buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
     DedicatedMemoryRequirementsFlags dedicatedMemoryRequirementsFlags) {
     vk::BufferMemoryRequirementsInfo2 bufferMemoryRequirementsInfo;
-    bufferMemoryRequirementsInfo.buffer = *buffer;
+    bufferMemoryRequirementsInfo.buffer = buffer;
     vk::StructureChain<vk::MemoryRequirements2, vk::MemoryDedicatedRequirements> memoryRequirementsChain =
         m_device.getBufferMemoryRequirements2<vk::MemoryRequirements2, vk::MemoryDedicatedRequirements>(bufferMemoryRequirementsInfo);
 

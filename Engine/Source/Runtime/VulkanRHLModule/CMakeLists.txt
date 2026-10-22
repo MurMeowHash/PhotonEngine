@@ -43,6 +43,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanExtensionsConfiguration.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanInstanceConfiguration.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanFrameConfiguration.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Configurations/VulkanResourceConfiguration.h
 
         ## Command Buffers
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/CommandBuffers/VulkanCommandBuffer.h
@@ -54,6 +55,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkBatch.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkContext.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkPools.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanDeferredDeletionQueue.h
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShader.h
@@ -101,14 +103,21 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Systems/IVulkanRHLSystem.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Systems/VulkanRHLInterruptProcessSystem.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Systems/VulkanRHLSystemBase.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Systems/VulkanRHLDDQProcessSystem.h
 
         ## Resources
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLTexture.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageView.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewDescriptor.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanImageViewCache.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLResource.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanResourceTransition.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanResource.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanResourceTransition.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLBuffer.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBuffer.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferAllocator.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLResourceDefinitions.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferPage.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanStagingBufferAllocator.h
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSwapChain.h
@@ -148,6 +157,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkBatch.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkContext.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkPools.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanDeferredDeletionQueue.cpp
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShader.cpp
@@ -187,13 +197,19 @@ target_sources(VulkanRHLModule
         ## Systems
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Systems/VulkanRHLInterruptProcessSystem.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Systems/VulkanRHLSystemBase.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Systems/VulkanRHLDDQProcessSystem.cpp
 
         ## Resources
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLTexture.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageView.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanImageViewCache.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLResource.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanResourceTransition.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanResource.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanResourceTransition.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLBuffer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBuffer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferAllocator.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferPage.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanStagingBufferAllocator.cpp
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSwapChain.cpp

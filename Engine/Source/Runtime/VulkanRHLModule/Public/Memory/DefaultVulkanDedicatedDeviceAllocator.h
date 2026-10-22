@@ -8,7 +8,7 @@ public:
     DefaultVulkanDedicatedDeviceAllocator(vk::raii::Device& device, uint32_t memoryTypeIndex);
 
     VulkanDeviceMemory AllocateImageMemory(const vk::raii::Image& image) override;
-    VulkanDeviceMemory AllocateBufferMemory(const vk::raii::Buffer& buffer) override;
+    VulkanDeviceMemory AllocateBufferMemory(vk::Buffer buffer) override;
     void FreeMemory(VulkanDeviceMemory &memory) override;
     void FreeAllMemory() override;
 

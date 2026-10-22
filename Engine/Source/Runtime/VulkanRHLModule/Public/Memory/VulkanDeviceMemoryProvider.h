@@ -15,14 +15,14 @@ struct VulkanAllocatorsCollection {
 
 class VulkanDeviceMemoryProvider : public IVulkanDeviceMemoryProvider {
 public:
-    static const std::string MEMORY_ALLOCATION_TILING_ATTRIBUTE;
+    static constexpr const char* MEMORY_ALLOCATION_TILING_ATTRIBUTE = "MEMORY_ALLOCATION_TILING_ATTRIBUTE";
 
     VulkanDeviceMemoryProvider(vk::raii::Device& device, vk::raii::PhysicalDevice& physicalDevice,
                                const VulkanAllocationPresetDefinition& vulkanAllocationPresetDefinition);
     ~VulkanDeviceMemoryProvider() override;
     VulkanDeviceMemory AllocateMemory(vk::DeviceSize memorySize, vk::DeviceSize alignment, uint32_t memoryTypeIndex,
         VulkanResourceTilingType resourceTiling) override;
-    VulkanDeviceMemory AllocateBufferMemory(const vk::raii::Buffer &buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
+    VulkanDeviceMemory AllocateBufferMemory(vk::Buffer buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
         DedicatedMemoryRequirementsFlags dedicatedMemoryRequirementsFlags) override;
     VulkanDeviceMemory AllocateImageMemory(const vk::raii::Image &image, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
         DedicatedMemoryRequirementsFlags dedicatedMemoryRequirementsFlags, VulkanResourceTilingType resourceTiling) override;

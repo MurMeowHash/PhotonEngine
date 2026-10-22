@@ -1,7 +1,7 @@
 #include "../../Public/Memory/VulkanMemoryCommon.h"
 
 namespace Photon::VulkanMemoryCommon {
-    VulkanDeviceMemory AllocateDeviceMemory(const vk::raii::Device& device, vk::DeviceSize memSize, uint32_t memoryTypeIndex,
+    VulkanDeviceMemory AllocateDeviceMemory(vk::Device device, vk::DeviceSize memSize, uint32_t memoryTypeIndex,
         VkMemoryDedicatedAllocateInfo* dedicatedAllocationInfo) {
         VkMemoryAllocateInfo memoryAllocateInfo;
         memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -9,19 +9,20 @@ namespace Photon::VulkanMemoryCommon {
         memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
         memoryAllocateInfo.pNext = dedicatedAllocationInfo;
         VkDeviceMemory allocatedMemory;
-        VkResult allocationResult = vkAllocateMemory(*device, &memoryAllocateInfo, nullptr, &allocatedMemory);
+        VkResult allocationResult = vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &allocatedMemory);
         if (allocationResult != VK_SUCCESS)
             return VulkanDeviceMemory();
 
-        VulkanDeviceMemoryInitializer memoryInitializer;
-        memoryInitializer.m_handle = allocatedMemory;
-        memoryInitializer.m_offset = 0;
-        memoryInitializer.m_alignmentOffset = 0;
-        memoryInitializer.m_size = memSize;
-        memoryInitializer.m_memoryTypeIndex = memoryTypeIndex;
-        memoryInitializer.m_dedicated = dedicatedAllocationInfo != nullptr
+        VulkanDeviceMemoryInitializeInfo initializeInfo{};
+        initializeInfo.m_device = device;
+        initializeInfo.m_handle = allocatedMemory;
+        initializeInfo.m_memoryTypeIndex = memoryTypeIndex;
+        initializeInfo.m_dedicated = dedicatedAllocationInfo != nullptr
             && (dedicatedAllocationInfo->image != nullptr || dedicatedAllocationInfo->buffer != nullptr);
-        return VulkanDeviceMemory(memoryInitializer);
+        initializeInfo.m_memInfo.m_size = memSize;
+        initializeInfo.m_memInfo.m_offset = 0;
+        initializeInfo.m_memInfo.m_alignmentOffset = 0;
+        return VulkanDeviceMemory(initializeInfo);
     }
 
     void FreeDeviceMemory(const vk::raii::Device& device, VulkanDeviceMemory &memory) {
@@ -38,12 +39,13 @@ namespace Photon::VulkanMemoryCommon {
         return AllocateDeviceMemory(device, imageMemoryRequirements.size, memoryTypeIndex, &dedicatedMemoryAllocateInfo);
     }
 
-    VulkanDeviceMemory AllocateDedicatedBufferMemory(const vk::raii::Device &device, const vk::raii::Buffer& buffer,
+    VulkanDeviceMemory AllocateDedicatedBufferMemory(vk::Device device, vk::Buffer buffer,
         uint32_t memoryTypeIndex) {
         VkMemoryDedicatedAllocateInfo dedicatedMemoryAllocateInfo;
         dedicatedMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO;
-        dedicatedMemoryAllocateInfo.buffer = *buffer;
-        vk::MemoryRequirements bufferMemoryRequirements = buffer.getMemoryRequirements();
+        dedicatedMemoryAllocateInfo.buffer = buffer;
+        vk::MemoryRequirements bufferMemoryRequirements;
+        device.getBufferMemoryRequirements(buffer, &bufferMemoryRequirements);
         return AllocateDeviceMemory(device, bufferMemoryRequirements.size, memoryTypeIndex, &dedicatedMemoryAllocateInfo);
     }
 
@@ -55,9 +57,9 @@ namespace Photon::VulkanMemoryCommon {
         return device.bindImageMemory2(bindImageMemoryInfo);
     }
 
-    vk::Result BindBufferMemory(const vk::raii::Device &device, const VulkanDeviceMemory &memory, const vk::raii::Buffer &buffer) {
+    vk::Result BindBufferMemory(vk::Device device, const VulkanDeviceMemory &memory, vk::Buffer buffer) {
         vk::BindBufferMemoryInfo bindBufferMemoryInfo;
-        bindBufferMemoryInfo.buffer = *buffer;
+        bindBufferMemoryInfo.buffer = buffer;
         bindBufferMemoryInfo.memory = memory.GetHandle();
         bindBufferMemoryInfo.memoryOffset = memory.GetOffset();
         return device.bindBufferMemory2(bindBufferMemoryInfo);

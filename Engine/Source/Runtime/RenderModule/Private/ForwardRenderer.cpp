@@ -35,5 +35,6 @@ void ForwardRenderer::Render(const RenderSceneInput& renderSceneInput, VulkanRHL
 }
 
 VulkanRHLRect ForwardRenderer::RenderRectToRHL(const RenderRect &renderRect) {
-    return VulkanRHLRect(renderRect.m_xMin, renderRect.m_yMin, renderRect.m_xMax, renderRect.m_yMax);
+    return VulkanRHLRect(static_cast<uint32_t>(renderRect.m_xMin), static_cast<uint32_t>(renderRect.m_yMin),
+        static_cast<uint32_t>(renderRect.m_xMax), static_cast<uint32_t>(renderRect.m_yMax));
 }

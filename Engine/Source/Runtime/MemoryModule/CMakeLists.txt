@@ -16,6 +16,8 @@ target_sources(MemoryModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Adopters/SimpleToLinearAllocatorAdopter.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/MemoryOperationsCommon.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/MemoryRange.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/MemoryPage.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Memory.h
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/LinearAllocator.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Adopters/LinearToLinearAllocatorAdopter.cpp

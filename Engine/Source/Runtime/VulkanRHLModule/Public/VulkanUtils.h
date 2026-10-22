@@ -2,7 +2,9 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "CoreUtils.h"
 #include "VulkanGlobals.h"
+#include "Resources/VulkanRHLResourceDefinitions.h"
 
 namespace Photon::Vulkan {
     inline uint32_t EngineToVulkanVersion(Core::Version version) {
@@ -47,6 +49,27 @@ namespace Photon::Vulkan {
         switch (format) {
             case vk::Format::eB8G8R8A8Srgb:
                 return RHLFormat::B8G8R8A8;
+            default:
+                assert(false);
+        }
+    }
+
+    inline vk::BufferUsageFlags RHLBufferUsageToVulkan(VulkanRHLBufferUsage bufferUsage) {
+        vk::BufferUsageFlags bufferUsageFlags{};
+
+        if (FlagSet(VulkanRHLBufferUsage::VertexBuffer, bufferUsage))
+            bufferUsageFlags |= vk::BufferUsageFlagBits::eVertexBuffer;
+
+        if (FlagSet(VulkanRHLBufferUsage::IndexBuffer, bufferUsage))
+            bufferUsageFlags |= vk::BufferUsageFlagBits::eIndexBuffer;
+
+        return bufferUsageFlags;
+    }
+
+    inline vk::MemoryPropertyFlags ResolveVulkanMemoryFlagsFromUpdateFrequency(VulkanRHLBufferUpdateFrequency updateFrequency) {
+        switch (updateFrequency) {
+            case VulkanRHLBufferUpdateFrequency::Static:
+                return vk::MemoryPropertyFlagBits::eDeviceLocal;
             default:
                 assert(false);
         }

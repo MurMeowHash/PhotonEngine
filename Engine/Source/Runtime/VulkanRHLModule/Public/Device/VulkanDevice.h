@@ -13,6 +13,7 @@
 #include "Synchronization/VulkanSemaphorePool.h"
 #include "Synchronization/VulkanTimelineSemaphore.h"
 #include "VulkanGlobals.h"
+#include "Queue/VulkanDeferredDeletionQueue.h"
 
 using Photon::Vulkan::RHLPipeline;
 
@@ -55,11 +56,14 @@ public:
 public:
     [[nodiscard]] static VulkanDevice* Create(const VulkanDeviceCreateInfo& createInfo, InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
     [[nodiscard]] vk::raii::Device& GetHandle();
+    [[nodiscard]] vk::Device GetRawHandle() const;
     [[nodiscard]] const vk::raii::PhysicalDevice& GetPhysicalHandle() const;
-    [[nodiscard]] std::set<VulkanQueue*> GetOperatingQueues() const;
+    [[nodiscard]] const std::set<VulkanQueue*>& GetOperatingQueues() const;
     [[nodiscard]] bool TryGetQueue(RHLPipeline pipeline, VulkanQueue*& vulkanQueue) const;
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
+    [[nodiscard]] vk::PhysicalDeviceProperties GetProperties() const;
+    [[nodiscard]] VulkanDeferredDeletionQueue* GetDeferredDeletionQueue() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
     [[nodiscard]] Photon::Result TryAllocateSemaphore(std::shared_ptr<TSemaphore>& outSema) {
@@ -100,6 +104,9 @@ private:
     VulkanGraphicsPipelineProvider* m_gfxPipelineProvider = nullptr;
     VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
     VulkanBinarySemaphorePool* m_binarySemaphorePool = nullptr;
+    vk::PhysicalDeviceProperties2 m_cachedProperties{};
+    std::set<VulkanQueue*> m_operatingQueues{};
+    VulkanDeferredDeletionQueue* m_deferredDeletionQueue = nullptr;
 
     [[nodiscard]] static bool IsQueueFamilySuitable(RHLPipeline pipeline, vk::QueueFlags queueFamilyFlags);
     QueueInitializeInfo InitializeDeviceQueues(RHLPipeline requestedPipelines);
@@ -116,4 +123,5 @@ private:
     void InitializePipelineProviders();
     void InitializeWorkAllocatorPool();
     void InitializeBinarySemaphorePool();
+    void InitializeDeferredDeletionQueue();
 };

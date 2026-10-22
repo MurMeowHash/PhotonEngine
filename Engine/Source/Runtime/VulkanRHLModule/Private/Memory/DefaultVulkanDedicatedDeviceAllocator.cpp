@@ -9,8 +9,8 @@ VulkanDeviceMemory DefaultVulkanDedicatedDeviceAllocator::AllocateImageMemory(co
     return TryAddPageForMemory(std::move(allocatedMemory));
 }
 
-VulkanDeviceMemory DefaultVulkanDedicatedDeviceAllocator::AllocateBufferMemory(const vk::raii::Buffer &buffer) {
-    VulkanDeviceMemory allocatedMemory = Photon::VulkanMemoryCommon::AllocateDedicatedBufferMemory(m_device, buffer, m_memoryTypeIndex);
+VulkanDeviceMemory DefaultVulkanDedicatedDeviceAllocator::AllocateBufferMemory(vk::Buffer buffer) {
+    VulkanDeviceMemory allocatedMemory = Photon::VulkanMemoryCommon::AllocateDedicatedBufferMemory(*m_device, buffer, m_memoryTypeIndex);
     return TryAddPageForMemory(std::move(allocatedMemory));
 }
 

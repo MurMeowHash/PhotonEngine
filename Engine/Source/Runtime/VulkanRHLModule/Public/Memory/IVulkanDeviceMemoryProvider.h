@@ -15,7 +15,7 @@ class IVulkanDeviceMemoryProvider {
 public:
     virtual VulkanDeviceMemory AllocateMemory(vk::DeviceSize memorySize, vk::DeviceSize alignment, uint32_t memoryTypeIndex,
         VulkanResourceTilingType resourceTiling) = 0;
-    virtual VulkanDeviceMemory AllocateBufferMemory(const vk::raii::Buffer& buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
+    virtual VulkanDeviceMemory AllocateBufferMemory(vk::Buffer buffer, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
         DedicatedMemoryRequirementsFlags dedicatedMemoryRequirementsFlags) = 0;
     virtual VulkanDeviceMemory AllocateImageMemory(const vk::raii::Image &image, vk::MemoryPropertyFlags requestedMemoryPropertyFlags,
         DedicatedMemoryRequirementsFlags dedicatedMemoryRequirementsFlags, VulkanResourceTilingType resourceTiling) = 0;

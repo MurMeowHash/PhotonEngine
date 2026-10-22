@@ -4,25 +4,15 @@ VulkanDeviceMemory::VulkanDeviceMemory() {
     InvalidateMemory();
 }
 
-VulkanDeviceMemory::VulkanDeviceMemory(const VulkanDeviceMemoryInitializer& memoryInitializer) {
-    InitializeMemory(memoryInitializer);
+VulkanDeviceMemory::VulkanDeviceMemory(const VulkanDeviceMemoryInitializeInfo &initializeInfo) {
+    Initialize(initializeInfo);
 }
 
-void VulkanDeviceMemory::InitializeMemory(const VulkanDeviceMemoryInitializer& memoryInitializer) {
-    m_handle = memoryInitializer.m_handle;
-    m_offset = memoryInitializer.m_offset;
-    m_alignmentOffset = memoryInitializer.m_alignmentOffset;
-    m_size = memoryInitializer.m_size;
-    m_memoryTypeIndex = memoryInitializer.m_memoryTypeIndex;
-    m_dedicated = memoryInitializer.m_dedicated;
-}
-
-uint32_t VulkanDeviceMemory::GetSize() const {
-    return m_size;
-}
-
-uint32_t VulkanDeviceMemory::GetAllocationSize() const {
-    return m_size + m_alignmentOffset;
+void VulkanDeviceMemory::Initialize(const VulkanDeviceMemoryInitializeInfo &initializeInfo) {
+    m_handle = initializeInfo.m_handle;
+    m_memoryTypeIndex = initializeInfo.m_memoryTypeIndex;
+    m_dedicated = initializeInfo.m_dedicated;
+    InitializeMemory(initializeInfo.m_memInfo);
 }
 
 uint32_t VulkanDeviceMemory::GetMemoryTypeIndex() const {
@@ -31,18 +21,6 @@ uint32_t VulkanDeviceMemory::GetMemoryTypeIndex() const {
 
 vk::DeviceMemory VulkanDeviceMemory::GetHandle() const {
     return m_handle;
-}
-
-uint32_t VulkanDeviceMemory::GetOffset() const {
-    return m_offset;
-}
-
-vk::DeviceSize VulkanDeviceMemory::GetAlignmentOffset() const {
-    return m_alignmentOffset;
-}
-
-vk::DeviceSize VulkanDeviceMemory::GetMemoryOccupationOffset() const {
-    return m_offset - m_alignmentOffset;
 }
 
 bool VulkanDeviceMemory::IsValid() const {
@@ -57,8 +35,37 @@ RuntimeAttributes& VulkanDeviceMemory::GetMemoryAttributes() {
     return m_memoryAttributes;
 }
 
+void* VulkanDeviceMemory::GetMappedRange() const {
+    return m_mappedRange;
+}
+
+bool VulkanDeviceMemory::TryGetMappedRange(void*& mappedRange) const {
+    if (m_mappedRange == nullptr)
+        return false;
+
+    mappedRange = m_mappedRange;
+    return true;
+}
+
+Photon::Result VulkanDeviceMemory::MapMemory() {
+    void* mappedRange = nullptr;
+    VkResult mapResult = vkMapMemory(m_device, m_handle, m_offset, m_size, {}, &mappedRange);
+    if (mapResult != VK_SUCCESS)
+        return Photon::Result::UnknownFailure;
+
+    m_mappedRange = mappedRange;
+    return Photon::Result::Success;
+}
+
+void VulkanDeviceMemory::UnMapMemory() {
+    if (m_mappedRange == nullptr)
+        return;
+
+    vkUnmapMemory(m_device, m_handle);
+    m_mappedRange = nullptr;
+}
+
 void VulkanDeviceMemory::InvalidateMemory() {
-    VulkanDeviceMemoryInitializer initializer{nullptr, 0, 0, 0, 0, false};
-    InitializeMemory(initializer);
+    Initialize({});
     m_memoryAttributes.Invalidate();
 }

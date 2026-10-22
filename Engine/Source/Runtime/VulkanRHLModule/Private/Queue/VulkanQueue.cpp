@@ -162,6 +162,17 @@ uint32_t VulkanQueue::GetWorkBatchesLeft() const {
     return m_pendingInterruptQueue.size();
 }
 
+uint64_t VulkanQueue::GetLastWorkTimelineValue() const {
+    return m_workBatchesTimelineSemaphore->GetCurrentScheduledValue();
+}
+
+uint64_t VulkanQueue::GetCurrentTimelineValue() const {
+    uint64_t currentTimelineValue{};
+    return m_workBatchesTimelineSemaphore->TryGetCurrentTimelineValue(currentTimelineValue) == Photon::Result::Success
+        ? currentTimelineValue
+        : 0ull;
+}
+
 Photon::Result VulkanQueue::CreateTimelineSemaphore() {
     VulkanTimelineSemaphoreCreateInfo semaphoreCreateInfo{};
     semaphoreCreateInfo.m_vulkanDevice = m_vulkanDevice;
