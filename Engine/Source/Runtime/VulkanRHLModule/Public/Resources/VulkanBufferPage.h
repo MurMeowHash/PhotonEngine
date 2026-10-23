@@ -4,8 +4,6 @@
 #include <MemoryPage.h>
 #include "VulkanBuffer.h"
 
-struct VulkanBufferCreateInfo;
-
 struct VulkanBufferPageCreateInfo {
     VulkanBufferCreateInfo m_bufferCreateInfo;
 };
@@ -17,7 +15,6 @@ public:
     [[nodiscard]] bool OwnsMemory(const VulkanBufferSlice& memory) const override;
 
     ~VulkanBufferPage() override;
-    explicit VulkanBufferPage();
     explicit VulkanBufferPage(const VulkanBufferPageCreateInfo& createInfo);
 };
 
@@ -28,20 +25,37 @@ struct VulkanBufferPagesAllocatorCreateInfo {
     vk::BufferUsageFlags m_usageFlags;
     vk::MemoryPropertyFlags m_memoryPropertyFlags;
     DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
-    //Ignored when pages are not pooled
-    vk::DeviceSize pageSize;
-    bool m_pooledPages;
+    vk::DeviceSize m_pageSize;
+    bool m_releaseEmptyPages;
 };
 
 class VulkanBufferPagesAllocator final : public MemoryPagesAllocator<vk::DeviceSize, VulkanBufferSlice, VulkanBufferPage> {
 protected:
-    VulkanBufferPage AllocatePage(vk::DeviceSize pageSize) override;
+    [[nodiscard]] std::unique_ptr<VulkanBufferPage> AllocatePage(vk::DeviceSize pageSize) override;
 public:
     explicit VulkanBufferPagesAllocator(const VulkanBufferPagesAllocatorCreateInfo& createInfo);
 
 private:
     VulkanDevice* m_vulkanDevice;
     vk::BufferUsageFlags m_usageFlags;
+    vk::MemoryPropertyFlags m_memoryPropertyFlags;
+    DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
+};
+
+struct VulkanBufferPagesAllocatorSeparateCreateInfo {
+    VulkanDevice* m_vulkanDevice;
+    vk::MemoryPropertyFlags m_memoryPropertyFlags;
+    DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
+};
+
+class VulkanBufferPagesAllocatorSeparate final : public MemoryPagesAllocatorSeparate<vk::DeviceSize, VulkanBufferSlice, VulkanBufferPage, vk::BufferUsageFlags> {
+protected:
+    [[nodiscard]] std::unique_ptr<VulkanBufferPage> AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags& usageFlags) override;
+public:
+    explicit VulkanBufferPagesAllocatorSeparate(const VulkanBufferPagesAllocatorSeparateCreateInfo& createInfo);
+
+private:
+    VulkanDevice* m_vulkanDevice;
     vk::MemoryPropertyFlags m_memoryPropertyFlags;
     DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
 };

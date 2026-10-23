@@ -16,9 +16,6 @@ VulkanBufferPage::~VulkanBufferPage() {
     delete m_memory.GetBuffer();
 }
 
-VulkanBufferPage::VulkanBufferPage()
-: MemoryPage() { }
-
 VulkanBufferPage::VulkanBufferPage(const VulkanBufferPageCreateInfo &createInfo) {
     InOutCreateParams<Photon::Result> inOut{};
     VulkanBuffer* buffer = VulkanBuffer::Create(createInfo.m_bufferCreateInfo, &inOut);
@@ -32,18 +29,31 @@ VulkanBufferPage::VulkanBufferPage(const VulkanBufferPageCreateInfo &createInfo)
     InvalidateMemory();
 }
 
-VulkanBufferPage VulkanBufferPagesAllocator::AllocatePage(vk::DeviceSize pageSize) {
+std::unique_ptr<VulkanBufferPage> VulkanBufferPagesAllocator::AllocatePage(vk::DeviceSize pageSize) {
     VulkanBufferCreateInfo bufferCreateInfo{};
     bufferCreateInfo.m_vulkanDevice = m_vulkanDevice;
     bufferCreateInfo.m_size = pageSize;
     bufferCreateInfo.m_usageFlags = m_usageFlags;
     bufferCreateInfo.m_memoryPropertyFlags = m_memoryPropertyFlags;
     bufferCreateInfo.m_dedicatedRequirements = m_dedicatedRequirements;
-
-    return VulkanBufferPage(VulkanBufferPageCreateInfo{bufferCreateInfo});
+    return std::make_unique<VulkanBufferPage>(VulkanBufferPageCreateInfo{bufferCreateInfo});
 }
 
 VulkanBufferPagesAllocator::VulkanBufferPagesAllocator(const VulkanBufferPagesAllocatorCreateInfo &createInfo)
-: MemoryPagesAllocator(createInfo.pageSize, createInfo.m_pooledPages, true),
+: MemoryPagesAllocator(createInfo.m_pageSize, createInfo.m_releaseEmptyPages),
 m_vulkanDevice(createInfo.m_vulkanDevice), m_usageFlags(createInfo.m_usageFlags),
+m_memoryPropertyFlags(createInfo.m_memoryPropertyFlags), m_dedicatedRequirements(createInfo.m_dedicatedRequirements) { }
+
+std::unique_ptr<VulkanBufferPage> VulkanBufferPagesAllocatorSeparate::AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags &usageFlags) {
+    VulkanBufferCreateInfo bufferCreateInfo{};
+    bufferCreateInfo.m_vulkanDevice = m_vulkanDevice;
+    bufferCreateInfo.m_size = pageSize;
+    bufferCreateInfo.m_usageFlags = usageFlags;
+    bufferCreateInfo.m_memoryPropertyFlags = m_memoryPropertyFlags;
+    bufferCreateInfo.m_dedicatedRequirements = m_dedicatedRequirements;
+    return std::make_unique<VulkanBufferPage>(VulkanBufferPageCreateInfo{bufferCreateInfo});
+}
+
+VulkanBufferPagesAllocatorSeparate::VulkanBufferPagesAllocatorSeparate(const VulkanBufferPagesAllocatorSeparateCreateInfo &createInfo)
+: MemoryPagesAllocatorSeparate(), m_vulkanDevice(createInfo.m_vulkanDevice),
 m_memoryPropertyFlags(createInfo.m_memoryPropertyFlags), m_dedicatedRequirements(createInfo.m_dedicatedRequirements) { }

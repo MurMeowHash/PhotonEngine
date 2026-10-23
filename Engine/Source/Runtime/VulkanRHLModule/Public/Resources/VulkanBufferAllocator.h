@@ -41,7 +41,7 @@ public:
 
 private:
     std::unordered_map<VulkanRHLBufferUsage, VulkanBufferPagesAllocator> m_pooledBuffers;
-    std::unordered_map<VulkanRHLBufferUsage, VulkanBufferPagesAllocator> m_singleBuffers;
+    VulkanBufferPagesAllocatorSeparate m_singleBuffers;
 };
 
 struct VulkanBufferAllocatorCreateInfo {
