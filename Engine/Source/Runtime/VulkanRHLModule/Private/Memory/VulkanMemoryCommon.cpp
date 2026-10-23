@@ -25,8 +25,11 @@ namespace Photon::VulkanMemoryCommon {
         return VulkanDeviceMemory(initializeInfo);
     }
 
-    void FreeDeviceMemory(const vk::raii::Device& device, VulkanDeviceMemory &memory) {
-        vkFreeMemory(*device, memory.GetHandle(), nullptr);
+    void FreeDeviceMemory(vk::Device device, VulkanDeviceMemory &memory) {
+        if (!memory.IsValid())
+            return;
+
+        vkFreeMemory(device, memory.GetHandle(), nullptr);
         memory.InvalidateMemory();
     }
 

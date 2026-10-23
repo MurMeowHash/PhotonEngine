@@ -4,6 +4,7 @@
 #include "FactoryGlobals.h"
 #include "CoreGlobals.h"
 #include <queue>
+#include <unordered_map>
 
 class VulkanDevice;
 

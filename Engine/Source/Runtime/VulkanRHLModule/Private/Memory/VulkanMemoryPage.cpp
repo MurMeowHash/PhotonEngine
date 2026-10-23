@@ -15,6 +15,10 @@ bool VulkanDeviceMemoryPage::OwnsMemory(const VulkanDeviceMemory &memory) const 
     return m_memory.GetHandle() == memory.GetHandle();
 }
 
+VulkanDeviceMemoryPage::~VulkanDeviceMemoryPage() {
+    Photon::VulkanMemoryCommon::FreeDeviceMemory(m_vulkanDevice->GetRawHandle(), m_memory);
+}
+
 VulkanDeviceMemoryPage::VulkanDeviceMemoryPage(const VulkanDeviceMemoryPageCreateInfo &createInfo)
 : m_vulkanDevice(createInfo.m_vulkanDevice) {
     m_memory = Photon::VulkanMemoryCommon::AllocateDeviceMemory(m_vulkanDevice->GetRawHandle(), createInfo.m_pageSize,

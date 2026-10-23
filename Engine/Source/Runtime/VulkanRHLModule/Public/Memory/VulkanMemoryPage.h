@@ -18,6 +18,7 @@ protected:
 public:
     [[nodiscard]] bool OwnsMemory(const VulkanDeviceMemory& memory) const override;
 public:
+    ~VulkanDeviceMemoryPage() override;
     explicit VulkanDeviceMemoryPage(const VulkanDeviceMemoryPageCreateInfo& createInfo);
 private:
     VulkanDevice* m_vulkanDevice;
