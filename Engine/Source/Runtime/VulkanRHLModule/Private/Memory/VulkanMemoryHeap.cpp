@@ -29,6 +29,13 @@ VulkanAllocationTier VulkanMemoryHeap::GetTierByIndex(size_t tierIndex) const {
     return m_allocationTiers[tierIndex];
 }
 
+vk::DeviceSize VulkanMemoryHeap::GetMaxAllowedAllocation() const {
+    if (m_allocationTiers.empty())
+        return 0;
+
+    return m_allocationTiers.back().m_maxAllowedAllocation;
+}
+
 void VulkanMemoryHeap::FormAllocationTiers(const VulkanAllocationPresetDefinition &vulkanAllocationPresetDefinition) {
     m_allocationTiers.clear();
 

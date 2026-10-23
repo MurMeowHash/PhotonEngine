@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include "RuntimeAttributes.h"
 #include "Memory.h"
 #include "CoreGlobals.h"
 
@@ -25,7 +24,6 @@ public:
     [[nodiscard]] vk::DeviceMemory GetHandle() const;
     [[nodiscard]] bool IsValid() const;
     [[nodiscard]] bool IsDedicated() const;
-    [[nodiscard]] RuntimeAttributes& GetMemoryAttributes();
     [[nodiscard]] void* GetMappedRange() const;
     [[nodiscard]] bool TryGetMappedRange(void*& mappedRange) const;
 
@@ -37,6 +35,5 @@ private:
     vk::DeviceMemory m_handle;
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;
-    RuntimeAttributes m_memoryAttributes;
     void* m_mappedRange = nullptr;
 };

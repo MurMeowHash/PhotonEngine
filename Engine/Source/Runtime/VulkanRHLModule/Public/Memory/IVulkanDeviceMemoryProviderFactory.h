@@ -4,9 +4,11 @@
 #include "VulkanMemoryProviderType.h"
 #include "Configurations/VulkanAllocationPreset.h"
 
+class VulkanDevice;
+
 class IVulkanDeviceMemoryProviderFactory {
 public:
     virtual IVulkanDeviceMemoryProvider* CreateVulkanDeviceMemoryProvider(VulkanMemoryProviderType memoryProviderType,
-        vk::raii::Device &device, vk::raii::PhysicalDevice &physicalDevice, const VulkanAllocationPresetDefinition& allocationPreset) = 0;
+        VulkanDevice* vulkanDevice, const VulkanAllocationPresetDefinition& allocationPreset, bool releaseEmptyPages) = 0;
     virtual ~IVulkanDeviceMemoryProviderFactory() = default;
 };

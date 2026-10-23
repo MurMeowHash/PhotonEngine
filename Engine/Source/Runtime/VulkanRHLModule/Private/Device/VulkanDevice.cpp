@@ -42,6 +42,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     VulkanDevice* instance = Photon::AllocateObject<VulkanDevice>(inOutCreateParams);
     instance->m_physicalDevice = createInfo.m_physicalDevice;
     instance->m_cachedProperties = createInfo.m_physicalDevice.getProperties2();
+    instance->m_memoryProperties = createInfo.m_physicalDevice.getMemoryProperties();
     instance->SetApiVersion(instance->m_cachedProperties.properties.apiVersion);
 
     QueueInitializeInfo queueInitializationInfo = instance->InitializeDeviceQueues(createInfo.m_requestedPipelines);
@@ -113,6 +114,10 @@ VulkanWorkAllocatorPool * VulkanDevice::GetWorkAllocatorPool() const {
 
 vk::PhysicalDeviceProperties VulkanDevice::GetProperties() const {
     return m_cachedProperties.properties;
+}
+
+vk::PhysicalDeviceMemoryProperties VulkanDevice::GetMemoryProperties() const {
+    return m_memoryProperties;
 }
 
 VulkanDeferredDeletionQueue* VulkanDevice::GetDeferredDeletionQueue() const {
@@ -294,7 +299,8 @@ VulkanFeatureNative VulkanDevice::ResolveFeature(VulkanDeviceFeatureType feature
 
 void VulkanDevice::InitializeMemoryProvider(VulkanMemoryProviderType memoryProviderType) {
     m_memoryProvider = Photon::Vulkan::DeviceMemoryProviderFactory::CreateVulkanDeviceMemoryProvider(memoryProviderType,
-        m_handle, m_physicalDevice, Photon::Vulkan::AllocationConfiguration::g_defaultAllocationPreset);
+        this, Photon::Vulkan::AllocationConfiguration::g_defaultAllocationPreset,
+        Photon::Vulkan::AllocationConfiguration::g_releaseEmptyMemoryPages);
 }
 
 void VulkanDevice::InitializePipelineProviders() {

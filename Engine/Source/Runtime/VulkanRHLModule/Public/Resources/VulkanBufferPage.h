@@ -14,6 +14,8 @@ class VulkanBufferPage final : public MemoryPage<vk::DeviceSize, VulkanBufferSli
 protected:
     void InitializeMemoryObject(VulkanBufferSlice& memoryObject, const MemoryInitializeInfo<vk::DeviceSize>& memInitializeInfo) override;
 public:
+    [[nodiscard]] bool OwnsMemory(const VulkanBufferSlice& memory) const override;
+
     ~VulkanBufferPage() override;
     explicit VulkanBufferPage();
     explicit VulkanBufferPage(const VulkanBufferPageCreateInfo& createInfo);
@@ -34,7 +36,6 @@ struct VulkanBufferPagesAllocatorCreateInfo {
 class VulkanBufferPagesAllocator final : public MemoryPagesAllocator<vk::DeviceSize, VulkanBufferSlice, VulkanBufferPage> {
 protected:
     VulkanBufferPage AllocatePage(vk::DeviceSize pageSize) override;
-    bool MemoryBelongsToPage(const VulkanBufferPage &memoryPage, const VulkanBufferSlice &memory) override;
 public:
     explicit VulkanBufferPagesAllocator(const VulkanBufferPagesAllocatorCreateInfo& createInfo);
 

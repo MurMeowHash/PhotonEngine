@@ -22,6 +22,7 @@ public:
     [[nodiscard]] uint32_t GetTiersSize() const;
     [[nodiscard]] bool TryFindAllocationTier(vk::DeviceSize allocationSize, size_t& tierIndex) const;
     [[nodiscard]] VulkanAllocationTier GetTierByIndex(size_t tierIndex) const;
+    [[nodiscard]] vk::DeviceSize GetMaxAllowedAllocation() const;
 private:
     vk::MemoryHeap m_handle;
     std::vector<VulkanAllocationTier> m_allocationTiers;

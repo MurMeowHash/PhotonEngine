@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <concepts>
+#include <memory>
 #include "Memory.h"
 #include "MemoryRange.h"
 #include <vector>
@@ -11,6 +13,8 @@ public:
     virtual ~MemoryPage() = default;
 
     explicit MemoryPage() = default;
+
+    [[nodiscard]] virtual bool OwnsMemory(const TMemory& memory) const = 0;
 
     [[nodiscard]] virtual bool TryAllocateFromRange(TSize requiredMemorySize, TSize alignment, TMemory& allocatedMemory) {
         auto freeRange = std::ranges::find_if(m_freeRanges,
@@ -110,42 +114,32 @@ private:
 };
 
 template<typename TSize, std::derived_from<Memory<TSize>> TMemory, std::derived_from<MemoryPage<TSize, TMemory>> TMemPage>
-class MemoryPagesAllocator {
+class MemoryPagesAllocatorBase {
 public:
-    virtual ~MemoryPagesAllocator() = default;
+    virtual ~MemoryPagesAllocatorBase() = default;
 
-    MemoryPagesAllocator(TSize pageSize, bool pooledPages, bool deallocUnusedPages) :
-    m_pageSize(pageSize), m_pooledPages(pooledPages), m_deallocUnusedPages(deallocUnusedPages) { }
+    explicit MemoryPagesAllocatorBase(bool releaseEmptyPages)
+    : m_releaseEmptyPages(releaseEmptyPages) { }
 
-    TMemory Allocate(TSize memSize, TSize alignment) {
-        if (!m_pooledPages)
-            return AllocateMemoryFromNewPage(memSize, memSize, alignment);
-
-        for (TMemPage& page : m_pages) {
-            TMemory outMemory{};
-            if (page.TryAllocateFromRange(memSize, alignment, outMemory))
-                return outMemory;
-        }
-
-        return AllocateMemoryFromNewPage(m_pageSize, memSize, alignment);
-    }
+    MemoryPagesAllocatorBase(const MemoryPagesAllocatorBase&) = delete;
+    MemoryPagesAllocatorBase& operator=(const MemoryPagesAllocatorBase&) = delete;
+    MemoryPagesAllocatorBase(MemoryPagesAllocatorBase&&) noexcept = default;
+    MemoryPagesAllocatorBase& operator=(MemoryPagesAllocatorBase&&) noexcept = default;
 
     void Free(TMemory& memory) {
         auto pageToReturnMemory = std::ranges::find_if(m_pages,
-        [&memory, this](const TMemPage& memoryPage) {
-            return this->MemoryBelongsToPage(memoryPage, memory);
+            [&memory](const std::unique_ptr<TMemPage>& memoryPage) {
+                return memoryPage->OwnsMemory(memory);
         });
 
         if (pageToReturnMemory == m_pages.end())
             return;
 
-        pageToReturnMemory->ReturnMemory(memory);
-        if (pageToReturnMemory->IsEmpty() && m_deallocUnusedPages) {
+        (*pageToReturnMemory)->ReturnMemory(memory);
+        if ((*pageToReturnMemory)->IsEmpty() && m_releaseEmptyPages) {
             std::swap(*pageToReturnMemory, m_pages.back());
             m_pages.pop_back();
         }
-
-        memory.InvalidateMemory();
     }
 
     void FreeAll() {
@@ -153,21 +147,59 @@ public:
     }
 
 protected:
-    virtual TMemPage AllocatePage(TSize pageSize) = 0;
-    virtual bool MemoryBelongsToPage(const TMemPage& memoryPage, const TMemory& memory) = 0;
+    std::vector<std::unique_ptr<TMemPage>> m_pages;
 
-private:
-    std::vector<TMemPage> m_pages;
-    TSize m_pageSize;
-    bool m_pooledPages;
-    bool m_deallocUnusedPages;
-
-    TMemory AllocateMemoryFromNewPage(TSize pageSize, TSize memSize, TSize alignment) {
-        TMemPage allocPage = AllocatePage(pageSize);
+    TMemory AllocateFromNewPage(std::unique_ptr<TMemPage> memoryPage, TSize memSize, TSize alignment) {
         TMemory outMemory{};
-        if (allocPage.TryAllocateFromRange(memSize, alignment, outMemory))
-            m_pages.push_back(allocPage);
+        if (memoryPage == nullptr || !memoryPage->TryAllocateFromRange(memSize, alignment, outMemory))
+            return outMemory;
 
+        m_pages.push_back(std::move(memoryPage));
         return outMemory;
     }
+
+private:
+    bool m_releaseEmptyPages;
+};
+
+template<typename TSize, std::derived_from<Memory<TSize>> TMemory, std::derived_from<MemoryPage<TSize, TMemory>> TMemPage>
+class MemoryPagesAllocator : public MemoryPagesAllocatorBase<TSize, TMemory, TMemPage> {
+public:
+    MemoryPagesAllocator(TSize pageSize, bool releaseEmptyPages)
+    : MemoryPagesAllocatorBase<TSize, TMemory, TMemPage>(releaseEmptyPages), m_pageSize(pageSize) { }
+
+    TMemory Allocate(TSize memSize, TSize alignment) {
+        for (std::unique_ptr<TMemPage>& memoryPage : this->m_pages) {
+            TMemory outMemory{};
+            if (memoryPage->TryAllocateFromRange(memSize, alignment, outMemory))
+                return outMemory;
+        }
+
+        return this->AllocateFromNewPage(AllocatePage(m_pageSize), memSize, alignment);
+    }
+
+    [[nodiscard]] TSize GetPageSize() const {
+        return m_pageSize;
+    }
+
+protected:
+    [[nodiscard]] virtual std::unique_ptr<TMemPage> AllocatePage(TSize pageSize) = 0;
+
+private:
+    TSize m_pageSize;
+};
+
+template<typename TSize, std::derived_from<Memory<TSize>> TMemory, std::derived_from<MemoryPage<TSize, TMemory>> TMemPage,
+    typename... TPageArgs>
+class MemoryPagesAllocatorSeparate : public MemoryPagesAllocatorBase<TSize, TMemory, TMemPage> {
+public:
+    MemoryPagesAllocatorSeparate()
+    : MemoryPagesAllocatorBase<TSize, TMemory, TMemPage>(true) { }
+
+    TMemory Allocate(TSize memSize, TSize alignment, const TPageArgs&... pageArgs) {
+        return this->AllocateFromNewPage(AllocatePage(memSize, pageArgs...), memSize, alignment);
+    }
+
+protected:
+    [[nodiscard]] virtual std::unique_ptr<TMemPage> AllocatePage(TSize pageSize, const TPageArgs&... pageArgs) = 0;
 };

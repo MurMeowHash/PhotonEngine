@@ -4,5 +4,5 @@
 
 namespace Photon::Vulkan::DeviceMemoryProviderFactory {
     IVulkanDeviceMemoryProvider* CreateVulkanDeviceMemoryProvider(VulkanMemoryProviderType memoryProviderType,
-        vk::raii::Device &device, vk::raii::PhysicalDevice &physicalDevice, const VulkanAllocationPresetDefinition& allocationPreset);
+        VulkanDevice* vulkanDevice, const VulkanAllocationPresetDefinition& allocationPreset, bool releaseEmptyPages);
 }

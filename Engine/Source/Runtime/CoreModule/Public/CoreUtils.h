@@ -46,5 +46,5 @@ namespace Photon::Core::Flags {
     }
 }
 
-#define FlagSet(value, flag)                                  \
+#define IS_FLAG_SET(value, flag)                                  \
     Photon::Core::Flags::IsFlagSet(value, flag)

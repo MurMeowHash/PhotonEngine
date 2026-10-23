@@ -31,10 +31,6 @@ bool VulkanDeviceMemory::IsDedicated() const {
     return m_dedicated;
 }
 
-RuntimeAttributes& VulkanDeviceMemory::GetMemoryAttributes() {
-    return m_memoryAttributes;
-}
-
 void* VulkanDeviceMemory::GetMappedRange() const {
     return m_mappedRange;
 }
@@ -67,5 +63,4 @@ void VulkanDeviceMemory::UnMapMemory() {
 
 void VulkanDeviceMemory::InvalidateMemory() {
     Initialize({});
-    m_memoryAttributes.Invalidate();
 }

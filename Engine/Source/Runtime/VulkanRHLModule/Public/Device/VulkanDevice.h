@@ -63,6 +63,7 @@ public:
     [[nodiscard]] IVulkanDeviceMemoryProvider* GetMemoryProvider() const;
     [[nodiscard]] VulkanWorkAllocatorPool* GetWorkAllocatorPool() const;
     [[nodiscard]] vk::PhysicalDeviceProperties GetProperties() const;
+    [[nodiscard]] vk::PhysicalDeviceMemoryProperties GetMemoryProperties() const;
     [[nodiscard]] VulkanDeferredDeletionQueue* GetDeferredDeletionQueue() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
@@ -105,6 +106,7 @@ private:
     VulkanWorkAllocatorPool* m_workAllocatorPool = nullptr;
     VulkanBinarySemaphorePool* m_binarySemaphorePool = nullptr;
     vk::PhysicalDeviceProperties2 m_cachedProperties{};
+    vk::PhysicalDeviceMemoryProperties m_memoryProperties{};
     std::set<VulkanQueue*> m_operatingQueues{};
     VulkanDeferredDeletionQueue* m_deferredDeletionQueue = nullptr;
 

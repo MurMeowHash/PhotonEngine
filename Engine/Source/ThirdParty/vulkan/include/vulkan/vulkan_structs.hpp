@@ -70197,7 +70197,7 @@ namespace VULKAN_HPP_NAMESPACE
   };
 
   // wrapper struct for struct VkMemoryRequirements, see https://registry.khronos.org/vulkan/specs/latest/man/html/VkMemoryRequirements.html
-  struct MemoryRequirements
+  struct  MemoryRequirements
   {
     using NativeType = VkMemoryRequirements;
 

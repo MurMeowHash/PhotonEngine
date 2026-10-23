@@ -8,6 +8,10 @@ void VulkanBufferPage::InitializeMemoryObject(VulkanBufferSlice& memoryObject, c
     memoryObject.Initialize(initializeInfo);
 }
 
+bool VulkanBufferPage::OwnsMemory(const VulkanBufferSlice &memory) const {
+    return m_memory.GetBuffer() == memory.GetBuffer();
+}
+
 VulkanBufferPage::~VulkanBufferPage() {
     delete m_memory.GetBuffer();
 }
@@ -37,10 +41,6 @@ VulkanBufferPage VulkanBufferPagesAllocator::AllocatePage(vk::DeviceSize pageSiz
     bufferCreateInfo.m_dedicatedRequirements = m_dedicatedRequirements;
 
     return VulkanBufferPage(VulkanBufferPageCreateInfo{bufferCreateInfo});
-}
-
-bool VulkanBufferPagesAllocator::MemoryBelongsToPage(const VulkanBufferPage &memoryPage, const VulkanBufferSlice &memory) {
-    return memoryPage.GetPageMemory().GetBuffer() == memory.GetBuffer();
 }
 
 VulkanBufferPagesAllocator::VulkanBufferPagesAllocator(const VulkanBufferPagesAllocatorCreateInfo &createInfo)

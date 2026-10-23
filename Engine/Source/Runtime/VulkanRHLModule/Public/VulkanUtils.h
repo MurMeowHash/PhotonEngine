@@ -57,10 +57,10 @@ namespace Photon::Vulkan {
     inline vk::BufferUsageFlags RHLBufferUsageToVulkan(VulkanRHLBufferUsage bufferUsage) {
         vk::BufferUsageFlags bufferUsageFlags{};
 
-        if (FlagSet(VulkanRHLBufferUsage::VertexBuffer, bufferUsage))
+        if (IS_FLAG_SET(VulkanRHLBufferUsage::VertexBuffer, bufferUsage))
             bufferUsageFlags |= vk::BufferUsageFlagBits::eVertexBuffer;
 
-        if (FlagSet(VulkanRHLBufferUsage::IndexBuffer, bufferUsage))
+        if (IS_FLAG_SET(VulkanRHLBufferUsage::IndexBuffer, bufferUsage))
             bufferUsageFlags |= vk::BufferUsageFlagBits::eIndexBuffer;
 
         return bufferUsageFlags;

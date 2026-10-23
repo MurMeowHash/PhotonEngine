@@ -6,7 +6,7 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 #include "VulkanResource.h"
-#include "Memory/VulkanDeviceMemory.h"
+#include "Memory/IVulkanDeviceMemoryProvider.h"
 #include "VulkanResourceTransition.h"
 
 class VulkanDevice;
@@ -35,7 +35,7 @@ public:
 private:
     vk::raii::Buffer m_handle = nullptr;
     VulkanDevice* m_vulkanDevice = nullptr;
-    VulkanDeviceMemory m_allocation;
+    VulkanDeviceMemoryAllocation m_allocation;
 
     VulkanPipelineBufferTransitionScope m_pendingTransitionScope{};
 

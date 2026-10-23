@@ -4,10 +4,10 @@
 #include "CoreUtils.h"
 
 IVulkanDeviceMemoryProvider* Photon::Vulkan::DeviceMemoryProviderFactory::CreateVulkanDeviceMemoryProvider(VulkanMemoryProviderType memoryProviderType,
-    vk::raii::Device &device, vk::raii::PhysicalDevice &physicalDevice, const VulkanAllocationPresetDefinition &allocationPreset) {
+    VulkanDevice* vulkanDevice, const VulkanAllocationPresetDefinition &allocationPreset, bool releaseEmptyPages) {
     switch (memoryProviderType) {
         case VulkanMemoryProviderType::Default:
-            return new VulkanDeviceMemoryProvider(device, physicalDevice, allocationPreset);
+            return new VulkanDeviceMemoryProvider(VulkanDeviceMemoryProviderCreateInfo{vulkanDevice, allocationPreset, releaseEmptyPages});
         default:
             throw std::invalid_argument(StringFormatter("Memory provider with type ", static_cast<uint32_t>(memoryProviderType), " does not exist"));
     }

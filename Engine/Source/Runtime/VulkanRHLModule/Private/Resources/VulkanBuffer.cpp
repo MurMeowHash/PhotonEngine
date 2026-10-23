@@ -3,7 +3,7 @@
 #include "Memory/VulkanMemoryCommon.h"
 
 bool VulkanBuffer::IsDedicated() const {
-    return m_allocation.IsDedicated();
+    return m_allocation.m_memory.IsDedicated();
 }
 
 void VulkanBuffer::CommitPendingTransitionScope() {
@@ -11,7 +11,7 @@ void VulkanBuffer::CommitPendingTransitionScope() {
 }
 
 VulkanBuffer::~VulkanBuffer() {
-    m_allocation.UnMapMemory();
+    m_allocation.m_memory.UnMapMemory();
     m_vulkanDevice->GetMemoryProvider()->FreeMemory(m_allocation);
 }
 
@@ -48,12 +48,12 @@ Photon::Result VulkanBuffer::AllocateBufferMemory(vk::MemoryPropertyFlags memory
     if (!m_allocation.IsValid())
         return Photon::Result::UnknownFailure;
 
-    vk::Result memoryBindResult = Photon::VulkanMemoryCommon::BindBufferMemory(m_vulkanDevice->GetRawHandle(), m_allocation, *m_handle);
+    vk::Result memoryBindResult = Photon::VulkanMemoryCommon::BindBufferMemory(m_vulkanDevice->GetRawHandle(), m_allocation.m_memory, *m_handle);
     if (memoryBindResult != vk::Result::eSuccess)
         return Photon::Result::UnknownFailure;
 
     if ((memoryPropertyFlags & vk::MemoryPropertyFlagBits::eHostVisible) == vk::MemoryPropertyFlagBits::eHostVisible)
-        return m_allocation.MapMemory();
+        return m_allocation.m_memory.MapMemory();
 
     return Photon::Result::Success;
 }

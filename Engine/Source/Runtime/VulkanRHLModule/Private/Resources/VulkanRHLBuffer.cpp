@@ -11,9 +11,9 @@ VulkanRHLBuffer* VulkanRHLBuffer::Create(const VulkanRHLBufferCreateInfo &create
 vk::BufferUsageFlags VulkanRHLBuffer::GetVulkanUsageFromPhoton(VulkanRHLBufferUsage usage) {
     vk::BufferUsageFlags vulkanUsageFlags{};
 
-    if (FlagSet(VulkanRHLBufferUsage::Static, usage))
+    if (IS_FLAG_SET(VulkanRHLBufferUsage::Static, usage))
         vulkanUsageFlags |= vk::BufferUsageFlagBits::eTransferDst;
 
-    if (FlagSet(VulkanRHLBufferUsage::VertexBuffer, usage))
+    if (IS_FLAG_SET(VulkanRHLBufferUsage::VertexBuffer, usage))
         vulkanUsageFlags |= vk::BufferUsageFlagBits::eVertexBuffer;
 }

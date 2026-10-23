@@ -1,34 +1,22 @@
 #include "../../Public/Memory/DefaultVulkanDeviceAllocator.h"
 #include "Memory/VulkanMemoryCommon.h"
 
-DefaultVulkanDeviceAllocator::DefaultVulkanDeviceAllocator(vk::raii::Device& device, const VulkanMemoryHeap& vulkanMemoryHeap,
-    uint32_t memoryTypeIndex)
-: m_device(device), m_memoryTypeIndex(memoryTypeIndex), m_vulkanMemoryHeap(vulkanMemoryHeap) {
-    InitializeMemoryPool();
+DefaultVulkanDeviceAllocator::DefaultVulkanDeviceAllocator(const DefaultVulkanDeviceAllocatorCreateInfo &createInfo)
+: m_vulkanDevice(createInfo.m_vulkanDevice), m_memoryTypeIndex(createInfo.m_memoryTypeIndex), m_vulkanMemoryHeap(createInfo.m_vulkanMemoryHeap) {
+    InitializeMemoryPool(createInfo.m_releaseEmptyPages);
 }
 
 VulkanDeviceMemory DefaultVulkanDeviceAllocator::AllocateMemory(vk::DeviceSize memorySize, vk::DeviceSize alignment) {
     size_t allocationTierIndex = 0;
-    VulkanDeviceMemory allocatedMemory;
+    VulkanDeviceMemory allocatedMemory{};
     if (!m_vulkanMemoryHeap.TryFindAllocationTier(memorySize, allocationTierIndex))
         return allocatedMemory;
 
-    for (VulkanMemoryPage& tierMemoryPage: m_memoryPool[allocationTierIndex]) {
-        if (tierMemoryPage.TryAllocateFromRange(memorySize, alignment, allocatedMemory))
-            return allocatedMemory;
-    }
+    return m_memoryPool[allocationTierIndex].Allocate(memorySize, alignment);
+}
 
-    VulkanAllocationTier allocationTier = m_vulkanMemoryHeap.GetTierByIndex(allocationTierIndex);
-    VulkanDeviceMemory allocatedPageMemory = Photon::VulkanMemoryCommon::AllocateDeviceMemory(m_device, allocationTier.m_pageSize,
-        m_memoryTypeIndex);
-
-    if (!allocatedPageMemory.IsValid())
-        return allocatedMemory;
-
-    VulkanMemoryPage& allocatedPage = m_memoryPool[allocationTierIndex].emplace_back(std::move(allocatedPageMemory));
-    VulkanDeviceMemory memoryFromPage;
-    allocatedPage.TryAllocateFromRange(memorySize, alignment, memoryFromPage);
-    return memoryFromPage;
+vk::DeviceSize DefaultVulkanDeviceAllocator::GetMaxAllocationSize() const {
+    return m_vulkanMemoryHeap.GetMaxAllowedAllocation();
 }
 
 void DefaultVulkanDeviceAllocator::FreeMemory(VulkanDeviceMemory& memory) {
@@ -39,30 +27,27 @@ void DefaultVulkanDeviceAllocator::FreeMemory(VulkanDeviceMemory& memory) {
     if (!m_vulkanMemoryHeap.TryFindAllocationTier(memory.GetAllocationSize(), allocationTierIndex))
         return;
 
-    auto pageToReturnMemory = std::ranges::find_if(m_memoryPool[allocationTierIndex],
-        [&memory](VulkanMemoryPage& memoryPage) {
-            return memoryPage.GetPageMemory().GetHandle() == memory.GetHandle();
-    });
-
-    if (pageToReturnMemory == m_memoryPool[allocationTierIndex].end())
-        return;
-
-    pageToReturnMemory->ReturnMemory(memory);
+    m_memoryPool[allocationTierIndex].Free(memory);
 }
 
-void DefaultVulkanDeviceAllocator::FreeAllMemory(bool deallocate) {
-    for (std::vector<VulkanMemoryPage>& memoryPages : m_memoryPool) {
-        for (VulkanMemoryPage& page: memoryPages) {
-            if (deallocate)
-                Photon::VulkanMemoryCommon::FreeDeviceMemory(m_device, page.GetPageMemory());
-            else
-                page.InvalidateMemory();
-        }
-
-        memoryPages.clear();
+void DefaultVulkanDeviceAllocator::FreeAllMemory() {
+    for (VulkanDeviceMemoryPagesAllocator& memPageAllocator : m_memoryPool) {
+        memPageAllocator.FreeAll();
     }
 }
 
-void DefaultVulkanDeviceAllocator::InitializeMemoryPool() {
-    m_memoryPool.resize(m_vulkanMemoryHeap.GetTiersSize());
+void DefaultVulkanDeviceAllocator::InitializeMemoryPool(bool releaseEmptyPages) {
+    const uint32_t memTiersSize = m_vulkanMemoryHeap.GetTiersSize();
+    m_memoryPool.reserve(memTiersSize);
+
+    for (uint32_t tierIndex = 0; tierIndex < m_vulkanMemoryHeap.GetTiersSize(); tierIndex++) {
+        VulkanMemoryPagesAllocatorCreateInfo createInfo{
+            m_vulkanDevice,
+            m_memoryTypeIndex,
+            m_vulkanMemoryHeap.GetTierByIndex(tierIndex).m_pageSize,
+            releaseEmptyPages
+        };
+
+        m_memoryPool.emplace_back(createInfo);
+    }
 }
