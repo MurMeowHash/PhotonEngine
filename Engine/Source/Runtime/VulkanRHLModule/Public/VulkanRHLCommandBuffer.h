@@ -53,6 +53,9 @@ public:
     void DrawPrimitive(uint32_t vertexCount);
     void BeginRenderPass(const VulkanRHLRenderPassBeginInfo& passBeginInfo);
     void EndRenderPass();
+
+    void* BeginWriteBuffer(VulkanRHLBuffer* rhlBuffer, uint64_t offset, uint64_t size);
+    void EndWriteBuffer(VulkanRHLBuffer* rhlBuffer);
 protected:
     VulkanRHLGraphicsWorkContext* m_rhlGraphicsWorkContext = nullptr;
     std::unordered_map<RHLPipeline, VulkanRHLCommandWorkContext*> m_commandWorkContexts;

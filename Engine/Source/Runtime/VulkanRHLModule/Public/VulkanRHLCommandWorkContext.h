@@ -4,6 +4,8 @@
 #include "Queue/VulkanWorkContext.h"
 #include "Resources/VulkanResourceTransition.h"
 
+class VulkanRHLBuffer;
+
 class VulkanRHLCommandWorkContext : public VulkanWorkContext {
 public:
     [[nodiscard]] RHLPipeline GetRHLPipeline() const;

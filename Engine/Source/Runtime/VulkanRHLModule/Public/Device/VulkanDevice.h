@@ -14,6 +14,8 @@
 #include "Synchronization/VulkanTimelineSemaphore.h"
 #include "VulkanGlobals.h"
 #include "Queue/VulkanDeferredDeletionQueue.h"
+#include "Resources/VulkanBufferAllocator.h"
+#include "Resources/VulkanStagingBufferAllocator.h"
 
 using Photon::Vulkan::RHLPipeline;
 
@@ -65,6 +67,8 @@ public:
     [[nodiscard]] vk::PhysicalDeviceProperties GetProperties() const;
     [[nodiscard]] vk::PhysicalDeviceMemoryProperties GetMemoryProperties() const;
     [[nodiscard]] VulkanDeferredDeletionQueue* GetDeferredDeletionQueue() const;
+    [[nodiscard]] VulkanBufferAllocator* GetBufferAllocator() const;
+    [[nodiscard]] VulkanStagingBufferAllocator* GetStagingBufferAllocator() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
     [[nodiscard]] Photon::Result TryAllocateSemaphore(std::shared_ptr<TSemaphore>& outSema) {
@@ -109,6 +113,8 @@ private:
     vk::PhysicalDeviceMemoryProperties m_memoryProperties{};
     std::set<VulkanQueue*> m_operatingQueues{};
     VulkanDeferredDeletionQueue* m_deferredDeletionQueue = nullptr;
+    VulkanBufferAllocator* m_bufferAllocator = nullptr;
+    VulkanStagingBufferAllocator* m_stagingBufferAllocator = nullptr;
 
     [[nodiscard]] static bool IsQueueFamilySuitable(RHLPipeline pipeline, vk::QueueFlags queueFamilyFlags);
     QueueInitializeInfo InitializeDeviceQueues(RHLPipeline requestedPipelines);
@@ -126,4 +132,6 @@ private:
     void InitializeWorkAllocatorPool();
     void InitializeBinarySemaphorePool();
     void InitializeDeferredDeletionQueue();
+    void InitializeBufferAllocator();
+    void InitializeStagingBufferAllocator();
 };

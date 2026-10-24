@@ -13,6 +13,9 @@ struct VulkanBufferSliceAllocation {
     bool m_useSingleBuffer;
     VulkanRHLBufferUsage m_bufferUsage;
     VulkanRHLBufferUpdateFrequency m_updateFrequency;
+
+    [[nodiscard]] bool IsValid() const;
+    void Invalidate();
 };
 
 class VulkanBufferSubAllocator {

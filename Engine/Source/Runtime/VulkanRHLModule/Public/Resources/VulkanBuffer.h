@@ -32,6 +32,8 @@ public:
 
     [[nodiscard]] vk::Buffer GetHandle() const;
     void TrackLastTransitionScope(const VulkanPipelineBufferTransitionScope& transitionScope);
+    Photon::Result WriteData(void* data, vk::DeviceSize dataSize);
+    void* GetDataWriteDest() const;
 private:
     vk::raii::Buffer m_handle = nullptr;
     VulkanDevice* m_vulkanDevice = nullptr;

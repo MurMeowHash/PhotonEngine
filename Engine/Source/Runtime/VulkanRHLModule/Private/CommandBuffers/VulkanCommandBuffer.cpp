@@ -61,3 +61,8 @@ void VulkanCommandBuffer::ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelin
     for (VulkanResource* rhlResource : transitionInfo.m_pendingResources)
         rhlResource->CommitPendingTransitionScope();
 }
+
+void VulkanCommandBuffer::CopyBuffer(const VulkanBufferSlice& srcBuffer, const VulkanBufferSlice& dstBuffer) const {
+    m_handle.copyBuffer(srcBuffer.GetBuffer()->GetHandle(), dstBuffer.GetBuffer()->GetHandle(),
+        {srcBuffer.GetOffset(), dstBuffer.GetOffset(), srcBuffer.GetSize()});
+}

@@ -35,8 +35,10 @@ public:
     virtual ~VulkanWorkContext();
     void Initialize(VulkanQueue* workQueue, VulkanDevice* vulkanDevice);
     VulkanWorkBatch* GetWorkBatch(VulkanWorkStage stage);
+    VulkanWorkBatch* GetCurrentBatch();
     void AddWaitSemaphore(std::shared_ptr<VulkanSemaphore> semaphore, vk::PipelineStageFlags2 waitFlags);
     void AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> semaphore);
+    void AddSyncEvent(const VulkanWorkSyncEvent& syncEvent);
     [[nodiscard]] VulkanCommandBuffer* GetCommandBuffer();
     [[nodiscard]] Photon::Result PackWorkBatches(VulkanWorkSubmitInfo& workSubmitInfo);
     virtual void Reset();

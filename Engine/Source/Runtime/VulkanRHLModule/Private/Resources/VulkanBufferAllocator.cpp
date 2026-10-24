@@ -3,6 +3,14 @@
 #include "Device/VulkanDevice.h"
 #include "Memory/IVulkanDeviceMemoryProvider.h"
 
+bool VulkanBufferSliceAllocation::IsValid() const {
+    return m_bufferSlice.IsValid();
+}
+
+void VulkanBufferSliceAllocation::Invalidate() {
+    m_bufferSlice.InvalidateMemory();
+}
+
 VulkanBufferSubAllocator::VulkanBufferSubAllocator(VulkanDevice* vulkanDevice, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize pageSize)
 : m_vulkanDevice(vulkanDevice), m_memoryPropertyFlags(memoryPropertyFlags), m_pageSize(pageSize) { }
 

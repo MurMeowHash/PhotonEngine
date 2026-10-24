@@ -9,6 +9,8 @@
 #include "Event.h"
 
 class VulkanDevice;
+class VulkanBuffer;
+class VulkanBufferSlice;
 
 struct VulkanCommandBufferCreateInfo {
     VulkanCommandBufferType m_commandBufferType;
@@ -34,6 +36,7 @@ public:
     [[nodiscard]] Photon::Result End() const;
     void Reset();
     void ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelineBarrier) const;
+    void CopyBuffer(const VulkanBufferSlice& srcBuffer, const VulkanBufferSlice& dstBuffer) const;
 private:
     VulkanCommandBufferType m_commandBufferType = VulkanCommandBufferType::None;
     vk::raii::CommandBuffer m_handle = nullptr;

@@ -43,6 +43,19 @@ void VulkanBuffer::TrackLastTransitionScope(const VulkanPipelineBufferTransition
     m_pendingTransitionScope = transitionScope;
 }
 
+Photon::Result VulkanBuffer::WriteData(void *data, vk::DeviceSize dataSize) {
+    void* writeRange;
+    if (!m_allocation.m_memory.TryGetMappedRange(writeRange))
+        return Photon::Result::UnknownFailure;
+
+    memcpy(writeRange, data, dataSize);
+    return Photon::Result::Success;
+}
+
+void* VulkanBuffer::GetDataWriteDest() const {
+    return m_allocation.m_memory.GetMappedRange();
+}
+
 Photon::Result VulkanBuffer::AllocateBufferMemory(vk::MemoryPropertyFlags memoryPropertyFlags, DedicatedMemoryRequirementsFlags dedicatedRequirements) {
     m_allocation = m_vulkanDevice->GetMemoryProvider()->AllocateBufferMemory(m_handle, memoryPropertyFlags, dedicatedRequirements);
     if (!m_allocation.IsValid())

@@ -1,6 +1,7 @@
 #include "../Public/VulkanRHLCommandWorkContext.h"
 #include "VulkanDynamicRHL.h"
 #include "VulkanUtils.h"
+#include "Resources/VulkanRHLBuffer.h"
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
 

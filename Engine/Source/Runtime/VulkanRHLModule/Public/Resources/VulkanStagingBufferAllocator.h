@@ -22,6 +22,8 @@ struct VulkanStagingBufferAllocation {
 
 class VulkanStagingBufferAllocator {
 public:
+    ~VulkanStagingBufferAllocator();
+
     static VulkanStagingBufferAllocator* Create(const VulkanStagingBufferAllocatorCreateInfo& createInfo,
         InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr);
 

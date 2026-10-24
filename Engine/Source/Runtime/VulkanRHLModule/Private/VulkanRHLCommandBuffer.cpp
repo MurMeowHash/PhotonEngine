@@ -1,5 +1,6 @@
 #include "../Public/VulkanRHLCommandBuffer.h"
 #include "VulkanDynamicRHL.h"
+#include "Resources/VulkanRHLBuffer.h"
 
 using Photon::Vulkan::g_vulkanDynamicRHL;
 
@@ -53,6 +54,14 @@ void VulkanRHLCommandBuffer::BeginRenderPass(const VulkanRHLRenderPassBeginInfo 
 
 void VulkanRHLCommandBuffer::EndRenderPass() {
     m_rhlGraphicsWorkContext->EndRenderPass();
+}
+
+void* VulkanRHLCommandBuffer::BeginWriteBuffer(VulkanRHLBuffer *rhlBuffer, uint64_t offset, uint64_t size) {
+    return rhlBuffer->BeginWrite(m_rhlGraphicsWorkContext, offset, size);
+}
+
+void VulkanRHLCommandBuffer::EndWriteBuffer(VulkanRHLBuffer *rhlBuffer) {
+    return rhlBuffer->EndWrite(m_rhlGraphicsWorkContext);
 }
 
 void VulkanRHLCommandBuffer::AddCommandWorkContext(VulkanRHLCommandWorkContext *workContext) {

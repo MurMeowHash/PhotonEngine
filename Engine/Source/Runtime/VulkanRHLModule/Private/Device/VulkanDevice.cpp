@@ -17,6 +17,8 @@ using Photon::Core::Flags::operator|;
     }
 
 VulkanDevice::~VulkanDevice() {
+    delete m_stagingBufferAllocator;
+    delete m_bufferAllocator;
     delete m_gfxPipelineProvider;
     delete m_memoryProvider;
     delete m_deferredDeletionQueue;
@@ -72,6 +74,8 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->InitializeDeferredDeletionQueue();
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
     instance->InitializePipelineProviders();
+    instance->InitializeBufferAllocator();
+    instance->InitializeStagingBufferAllocator();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
@@ -122,6 +126,14 @@ vk::PhysicalDeviceMemoryProperties VulkanDevice::GetMemoryProperties() const {
 
 VulkanDeferredDeletionQueue* VulkanDevice::GetDeferredDeletionQueue() const {
     return m_deferredDeletionQueue;
+}
+
+VulkanBufferAllocator* VulkanDevice::GetBufferAllocator() const {
+    return m_bufferAllocator;
+}
+
+VulkanStagingBufferAllocator* VulkanDevice::GetStagingBufferAllocator() const {
+    return m_stagingBufferAllocator;
 }
 
 VulkanGraphicsPipeline* VulkanDevice::GetGFXPipeline(const VulkanRHLGraphicsPipelineDescriptor &desc) const {
@@ -321,4 +333,16 @@ void VulkanDevice::InitializeBinarySemaphorePool() {
 void VulkanDevice::InitializeDeferredDeletionQueue() {
     VulkanDeferredDeletionQueueCreateInfo createInfo{this};
     m_deferredDeletionQueue = VulkanDeferredDeletionQueue::Create(createInfo);
+}
+
+void VulkanDevice::InitializeBufferAllocator() {
+    VulkanBufferAllocatorCreateInfo createInfo{};
+    createInfo.m_vulkanDevice = this;
+    m_bufferAllocator = VulkanBufferAllocator::Create(createInfo);
+}
+
+void VulkanDevice::InitializeStagingBufferAllocator() {
+    VulkanStagingBufferAllocatorCreateInfo createInfo{};
+    createInfo.m_vulkanDevice = this;
+    m_stagingBufferAllocator = VulkanStagingBufferAllocator::Create(createInfo);
 }

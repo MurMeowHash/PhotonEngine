@@ -11,6 +11,15 @@ void VulkanStagingBufferAllocation::Invalidate() {
     m_stagingBufferSize = 0ull;
 }
 
+VulkanStagingBufferAllocator::~VulkanStagingBufferAllocator() {
+    for (std::pair<const uint64_t, std::queue<VulkanBuffer *>>& stagingBuffers : m_bufferPool) {
+        while (!stagingBuffers.second.empty()) {
+            delete stagingBuffers.second.front();
+            stagingBuffers.second.pop();
+        }
+    }
+}
+
 VulkanStagingBufferAllocator* VulkanStagingBufferAllocator::Create(const VulkanStagingBufferAllocatorCreateInfo &createInfo,
                                                                    InOutCreateParams<Photon::Result> *inOutCreateParams) {
     VulkanStagingBufferAllocator* instance = Photon::AllocateObject<VulkanStagingBufferAllocator>(inOutCreateParams);

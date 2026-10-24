@@ -56,6 +56,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkContext.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkPools.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanDeferredDeletionQueue.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Queue/VulkanWorkSyncEvent.h
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Shaders/VulkanRHLShader.h
@@ -158,6 +159,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkContext.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkPools.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanDeferredDeletionQueue.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Queue/VulkanWorkSyncEvent.cpp
 
         ## Shaders
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Shaders/VulkanRHLShader.cpp

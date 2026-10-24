@@ -12,6 +12,9 @@ void VulkanWorkSubmitInfo::FinishBatch(size_t batchIndex) {
     for (VulkanCommandBuffer* cmdBuffer: m_workBatches[batchIndex]->m_commandBuffers)
         m_commandBufferPool->ReturnCommandBuffer(cmdBuffer);
 
+    for (const VulkanWorkSyncEvent& syncEvent : m_workBatches[batchIndex]->m_syncEvents)
+        syncEvent.Execute();
+
     ++m_finishedBatches;
 }
 
@@ -67,6 +70,10 @@ VulkanWorkBatch* VulkanWorkContext::GetWorkBatch(VulkanWorkStage stage) {
     return m_workBatches[m_workBatches.size() - 1];
 }
 
+VulkanWorkBatch* VulkanWorkContext::GetCurrentBatch() {
+    return m_workBatches.empty() ? CreateWorkBatch() : m_workBatches.back();
+}
+
 void VulkanWorkContext::AddWaitSemaphore(std::shared_ptr<VulkanSemaphore> semaphore, vk::PipelineStageFlags2 waitFlags) {
     VulkanWorkBatch* workBatch = GetWorkBatch(VulkanWorkStage::Wait);
     workBatch->m_waitSemaphores.emplace_back(semaphore);
@@ -76,6 +83,11 @@ void VulkanWorkContext::AddWaitSemaphore(std::shared_ptr<VulkanSemaphore> semaph
 void VulkanWorkContext::AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> semaphore) {
     VulkanWorkBatch* workBatch = GetWorkBatch(VulkanWorkStage::Signal);
     workBatch->m_signalSemaphores.emplace_back(semaphore);
+}
+
+void VulkanWorkContext::AddSyncEvent(const VulkanWorkSyncEvent &syncEvent) {
+    VulkanWorkBatch* workBatch = GetCurrentBatch();
+    workBatch->m_syncEvents.emplace_back(syncEvent);
 }
 
 VulkanCommandBuffer* VulkanWorkContext::GetCommandBuffer() {

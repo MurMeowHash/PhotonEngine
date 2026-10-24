@@ -11,7 +11,7 @@ class VulkanDevice;
 class VulkanQueue;
 
 struct VulkanDDQEntry {
-    StaticDelegate<> m_deleteDelegate;
+    const IDelegate<>& m_deleteDelegate;
 };
 
 struct VulkanDDQTimelineStamp {
