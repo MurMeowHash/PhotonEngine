@@ -126,6 +126,8 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLResourceDefinitions.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferPage.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanStagingBufferAllocator.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/BufferUpdateStrategy/IVulkanRHLBufferUpdateStrategy.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.h
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSwapChain.h
@@ -228,6 +230,7 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferAllocator.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferPage.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanStagingBufferAllocator.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.cpp
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSwapChain.cpp

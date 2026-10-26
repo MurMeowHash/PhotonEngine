@@ -1,9 +1,47 @@
 #include "../../Public/Resources/VulkanRHLBuffer.h"
 #include "VulkanRHLCommandWorkContext.h"
 #include "Device/VulkanDevice.h"
+#include "Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.h"
+#include "ObjectFunc.h"
 
 VulkanRHLBuffer::~VulkanRHLBuffer() {
     Clear();
+    delete m_bufferUpdateStrategy;
+}
+
+VulkanRHLBuffer* VulkanRHLBuffer::Create(const VulkanRHLBufferCreateInfo &createInfo,
+    InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanRHLBuffer* instance = Photon::AllocateObject<VulkanRHLBuffer>(inOutCreateParams);
+    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
+    instance->m_size = createInfo.m_size;
+    instance->m_elementSize = createInfo.m_elementSize;
+    instance->m_usage = createInfo.m_usage;
+    instance->m_updateFrequency = createInfo.m_updateFrequency;
+    instance->CreateUpdateStrategy();
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
+}
+
+void* VulkanRHLBuffer::BeginWrite(VulkanRHLCommandWorkContext *workContext, uint64_t writeOffset, uint64_t writeSize) {
+    VulkanRHLBufferUpdateContext updateContext{
+        m_vulkanDevice,
+        &m_activeBufferAllocation,
+        workContext,
+        m_bufferSliceAllocationFunc
+    };
+
+    return m_bufferUpdateStrategy->BeginWrite(updateContext, writeOffset, writeSize);
+}
+
+void VulkanRHLBuffer::EndWrite(VulkanRHLCommandWorkContext *workContext) {
+    VulkanRHLBufferUpdateContext updateContext{
+        m_vulkanDevice,
+        &m_activeBufferAllocation,
+        workContext,
+        m_bufferSliceAllocationFunc
+    };
+
+    m_bufferUpdateStrategy->EndWrite(updateContext);
 }
 
 void VulkanRHLBuffer::Clear() {
@@ -27,56 +65,16 @@ uint64_t VulkanRHLBuffer::GetElementSize() const {
     return m_elementSize;
 }
 
-void VulkanRHLBuffer::Initialize(VulkanDevice *vulkanDevice, uint64_t size, uint64_t elementSize, VulkanRHLBufferUsage usage) {
-    m_vulkanDevice = vulkanDevice;
-    m_size = size;
-    m_elementSize = elementSize;
-    m_usage = usage;
-}
-
-void* VulkanRHLStaticBuffer::BeginWrite(VulkanRHLCommandWorkContext* workContext, uint64_t writeOffset, uint64_t writeSize) {
-    if (!m_activeBufferAllocation.IsValid()) {
-        m_activeBufferAllocation = m_vulkanDevice->GetBufferAllocator()->AllocateBuffer(m_size, VulkanRHLBufferUpdateFrequency::Static, m_usage);
-        if (m_activeBufferAllocation.IsValid())
-            return nullptr;
+void VulkanRHLBuffer::CreateUpdateStrategy() {
+    switch (m_updateFrequency) {
+        case VulkanRHLBufferUpdateFrequency::Static:
+            m_bufferUpdateStrategy = new VulkanRHLBufferStaticUpdateStrategy();
+            break;
+        default:
+            throw std::runtime_error("");
     }
-
-    VulkanStagingBufferAllocation stagingBufferAllocation = m_vulkanDevice->GetStagingBufferAllocator()->AllocateBuffer(writeSize);
-    if (!stagingBufferAllocation.IsValid())
-        return nullptr;
-
-    m_pendingWrite = VulkanRHLStaticBufferPendingWrite(writeOffset, writeSize, stagingBufferAllocation);
-    return stagingBufferAllocation.m_stagingBuffer->GetDataWriteDest();
 }
 
-void VulkanRHLStaticBuffer::EndWrite(VulkanRHLCommandWorkContext* workContext) {
-    if (!m_pendingWrite.IsValid())
-        return;
-
-    VulkanStagingBufferAllocation stagingBufferAllocation = m_pendingWrite.m_stagingBufferAllocation;
-    VulkanBufferSlice stagingBufferSlice({stagingBufferAllocation.m_stagingBuffer,
-        {m_pendingWrite.m_writeSize,0,0}});
-    VulkanBufferSlice activeAllocationSubSlice({m_activeBufferAllocation.m_bufferSlice.GetBuffer(),
-        {m_pendingWrite.m_writeSize, m_activeBufferAllocation.m_bufferSlice.GetOffset() + m_pendingWrite.m_writeOffset,
-            m_activeBufferAllocation.m_bufferSlice.GetAlignmentOffset()}});
-    workContext->GetCommandBuffer()->CopyBuffer(stagingBufferSlice, activeAllocationSubSlice);
-    VulkanPipelineBarrier pipelineBarrier{};
-    pipelineBarrier.TransitionBuffer(m_activeBufferAllocation.m_bufferSlice.GetBuffer(),
-        {vk::PipelineStageFlagBits2::eTransfer, vk::AccessFlagBits2::eTransferWrite, vk::QueueFamilyIgnored},
-        {vk::PipelineStageFlagBits2::eAllCommands, vk::AccessFlagBits2::eMemoryRead | vk::AccessFlagBits2::eMemoryWrite, vk::QueueFamilyIgnored},
-        m_activeBufferAllocation.m_bufferSlice.GetOffset(), m_activeBufferAllocation.m_bufferSlice.GetSize());
-    workContext->GetCommandBuffer()->ExecutePipelineBarrier(std::move(pipelineBarrier));
-    workContext->AddSyncEvent(VulkanWorkSyncEvent(StaticDelegate<>([this, &stagingBufferAllocation]() {
-        m_vulkanDevice->GetStagingBufferAllocator()->FreeBuffer(stagingBufferAllocation);
-    })));
-
-    m_pendingWrite.Invalidate();
-}
-
-VulkanRHLStaticBuffer* VulkanRHLStaticBuffer::Create(const VulkanRHLStaticBufferCreateInfo &createInfo,
-                                                     InOutCreateParams<Photon::Result> *inOutCreateParams) {
-    VulkanRHLStaticBuffer* instance = Photon::AllocateObject<VulkanRHLStaticBuffer>(inOutCreateParams);
-    instance->Initialize(createInfo.m_vulkanDevice, createInfo.m_size, createInfo.m_usage);
-    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
-    return instance;
+VulkanBufferSliceAllocation VulkanRHLBuffer::AllocateBufferSlice() {
+    return m_vulkanDevice->GetBufferAllocator()->AllocateBuffer(m_size, m_updateFrequency, m_usage);
 }
