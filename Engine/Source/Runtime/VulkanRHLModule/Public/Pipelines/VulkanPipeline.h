@@ -4,6 +4,7 @@
 
 class VulkanPipeline {
 public:
+    virtual ~VulkanPipeline() = default;
     [[nodiscard]] vk::Pipeline GetHandle() const;
 protected:
     vk::raii::Pipeline m_handle = nullptr;

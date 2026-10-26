@@ -1,9 +1,29 @@
 #include "../../Public/Pipelines/VulkanGraphicsPipeline.h"
 #include "Device/VulkanDevice.h"
 
+VulkanGraphicsPipeline::~VulkanGraphicsPipeline() {
+    delete m_vertexInputState;
+}
+
 VulkanGraphicsPipeline* VulkanGraphicsPipeline::Create(const VulkanGraphicsPipelineCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderModulesInfo = AssembleShaderPipelineData(createInfo.m_shaders);
-    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
+    const std::vector<vk::PipelineShaderStageCreateInfo>& shaderModulesInfo = createInfo.m_shaderPipeline.GetShaderStageCreateInfo();
+
+    VulkanPipelineVertexInputStateCreateInfo inputStateCreateInfo(createInfo.m_shaderPipeline, createInfo.m_vertexLayout);
+    InOutCreateParams<Photon::Result> inputStateInOut{};
+    VulkanPipelineVertexInputState* vertexInputState = VulkanPipelineVertexInputState::Create(inputStateCreateInfo, &inputStateInOut);
+    if (inputStateInOut.m_result != Photon::Result::Success) {
+        Photon::PushResult(inputStateInOut.m_result, inOutCreateParams);
+        return nullptr;
+    }
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{
+        {},
+        static_cast<uint32_t>(vertexInputState->GetVulkanVertexBindingDescriptions().size()),
+        vertexInputState->GetVulkanVertexBindingDescriptions().data(),
+        static_cast<uint32_t>(vertexInputState->GetVulkanVertexAttributeDescriptions().size()),
+        vertexInputState->GetVulkanVertexAttributeDescriptions().data()
+    };
+
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo({}, createInfo.m_primitiveTopology);
     vk::PipelineViewportStateCreateInfo viewportInfo{};
     vk::PipelineRasterizationStateCreateInfo rasterizationInfo{};
@@ -64,17 +84,11 @@ VulkanGraphicsPipeline* VulkanGraphicsPipeline::Create(const VulkanGraphicsPipel
     VulkanGraphicsPipeline* instance = Photon::AllocateObject<VulkanGraphicsPipeline>(inOutCreateParams);
     instance->m_handle = std::move(graphicsPipelineWrapper.value);
     instance->m_pipelineLayout = std::move(pipelineLayoutWrapper.value);
+    instance->m_vertexInputState = vertexInputState;
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
 }
 
-std::vector<vk::PipelineShaderStageCreateInfo> VulkanGraphicsPipeline::AssembleShaderPipelineData(const std::vector<VulkanRHLShader *>& shaders) {
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos;
-    shaderStageCreateInfos.reserve(shaders.size());
-    for (VulkanRHLShader* rhlShader : shaders) {
-        shaderStageCreateInfos.emplace_back(vk::PipelineShaderStageCreateInfo{{}, rhlShader->GetVulkanShaderStage(),
-            rhlShader->GetHandle(), rhlShader->GetMetaData().m_entryName});
-    }
-
-    return shaderStageCreateInfos;
+VulkanPipelineVertexInputState* VulkanGraphicsPipeline::GetVertexInputState() const {
+    return m_vertexInputState;
 }

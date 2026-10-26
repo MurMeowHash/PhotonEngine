@@ -105,6 +105,7 @@ Photon::Result VulkanRHLShaderCompiler::CompileShader(const VulkanRHLShaderCompi
         L"-D", GetStageDefine(shaderInput.m_shaderStage),
         L"-I", includeDirectory.c_str(),
         L"-spirv",
+        L"-fspv-reflect",
         targetEnvironment.c_str(),
     };
 

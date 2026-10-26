@@ -19,6 +19,10 @@ uint64_t VulkanRHLBuffer::GetSize() const {
     return m_size;
 }
 
+VulkanBufferSlice VulkanRHLBuffer::GetHandle() const {
+    return m_activeBufferAllocation.m_bufferSlice;
+}
+
 void VulkanRHLBuffer::Initialize(VulkanDevice *vulkanDevice, uint64_t size, VulkanRHLBufferUsage usage) {
     m_vulkanDevice = vulkanDevice;
     m_size = size;

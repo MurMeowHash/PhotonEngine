@@ -5,19 +5,16 @@
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
 #include "VulkanGlobals.h"
-#include "VulkanUtils.h"
+#include "VulkanShaderDefinitions.h"
+#include "VulkanSpirV.h"
 
 class VulkanDevice;
 
 struct VulkanRHLShaderCreateInfo {
     VulkanDevice* m_vulkanDevice;
-    std::vector<char> m_spirVCode;
-    Photon::Vulkan::RHLShaderStage m_shaderStage;
+    VulkanSpirV m_spirVCode;
+    VulkanRHLShaderStage m_shaderStage;
     const char* m_shaderEntryName;
-};
-
-struct VulkanRHLShaderMetaData {
-    const char* m_entryName;
 };
 
 class VulkanRHLShader {
@@ -32,20 +29,22 @@ public:
     }
 
     [[nodiscard]] vk::ShaderModule GetHandle() const;
-    [[nodiscard]] VulkanRHLShaderMetaData GetMetaData() const;
+    [[nodiscard]] const VulkanShaderMetaData& GetMetaData() const;
     [[nodiscard]] vk::ShaderStageFlagBits GetVulkanShaderStage() const;
+    [[nodiscard]] const char* GetEntryName() const;
 private:
     vk::raii::ShaderModule m_handle = nullptr;
-    Photon::Vulkan::RHLShaderStage m_shaderStage{};
-    VulkanRHLShaderMetaData m_metaData{};
+    VulkanRHLShaderStage m_shaderStage{};
     vk::ShaderStageFlagBits m_vulkanShaderStage{};
+    VulkanShaderMetaData m_metaData{};
+    const char* m_entryName{};
 
     [[nodiscard]] Photon::Result CreateInternal(const VulkanRHLShaderCreateInfo& createInfo);
 };
 
 struct VulkanRHLTypedShaderCreateInfo {
     VulkanDevice* m_vulkanDevice;
-    std::vector<char> m_spirVCode;
+    VulkanSpirV m_spirVCode;
     const char* m_shaderEntryName;
 };
 

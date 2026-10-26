@@ -38,6 +38,7 @@ public:
     virtual void EndWrite(VulkanRHLCommandWorkContext* workContext) = 0;
     void Clear();
     [[nodiscard]] uint64_t GetSize() const;
+    [[nodiscard]] VulkanBufferSlice GetHandle() const;
 
 protected:
     VulkanDevice* m_vulkanDevice = nullptr;

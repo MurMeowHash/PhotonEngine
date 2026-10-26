@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VulkanPipelineStateBlueprint.h"
-#include "VulkanPipelineStateProperty.h"
 #include "VulkanRHLCommandWorkContext.h"
 #include "ObjectDelegate.h"
 
@@ -30,16 +29,11 @@ public:
         InvalidateLastCommitBuffer();
     }
 
-    void SetPipeline(VulkanPipeline* pipeline) {
-        m_pipeline.SetProperty(pipeline);
-    }
-
     virtual void Reset() = 0;
 
 protected:
     TPipelineBlueprint m_pipelineBlueprint;
 
-    VulkanPipelineStateProperty m_pipeline;
     VulkanCommandBuffer* m_lastCommitBuffer = nullptr;
 
     virtual void CommitInternal(VulkanCommandBuffer* commandBuffer) = 0;

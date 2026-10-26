@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-
 #include "CoreUtils.h"
 #include "VulkanGlobals.h"
 #include "Resources/VulkanRHLResourceDefinitions.h"
+#include "VulkanDefinitions.h"
 
 namespace Photon::Vulkan {
     inline uint32_t EngineToVulkanVersion(Core::Version version) {
@@ -16,11 +16,11 @@ namespace Photon::Vulkan {
             apiVersion.m_versionMinor, apiVersion.m_versionPatch);
     }
 
-    inline vk::ShaderStageFlagBits RHLToVulkanShaderStage(RHLShaderStage rhlShaderStage) {
+    inline vk::ShaderStageFlagBits RHLToVulkanShaderStage(VulkanRHLShaderStage rhlShaderStage) {
         switch (rhlShaderStage) {
-            case RHLShaderStage::Vertex:
+            case VulkanRHLShaderStage::Vertex:
                 return vk::ShaderStageFlagBits::eVertex;
-            case RHLShaderStage::Fragment:
+            case VulkanRHLShaderStage::Fragment:
                 return vk::ShaderStageFlagBits::eFragment;
             default:
                 assert(false);
@@ -36,19 +36,22 @@ namespace Photon::Vulkan {
         }
     }
 
-    inline vk::Format RHLFormatToVulkan(RHLFormat format) {
-        switch (format) {
-            case RHLFormat::B8G8R8A8:
+    inline vk::Format RHLFormatToVulkan(VulkanRHLFormat rhlFormat) {
+        switch (rhlFormat) {
+            case VulkanRHLFormat::B8G8R8A8_Srgb:
                 return vk::Format::eB8G8R8A8Srgb;
+            case VulkanRHLFormat::R32G32B32_Float:
+                return vk::Format::eR32G32B32Sfloat;
             default:
                 assert(false);
+                return vk::Format::eUndefined;
         }
     }
 
-    inline RHLFormat VulkanFormatToRHL(vk::Format format) {
+    inline VulkanRHLFormat VulkanFormatToRHL(vk::Format format) {
         switch (format) {
             case vk::Format::eB8G8R8A8Srgb:
-                return RHLFormat::B8G8R8A8;
+                return VulkanRHLFormat::B8G8R8A8_Srgb;
             default:
                 assert(false);
         }

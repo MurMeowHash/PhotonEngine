@@ -7,6 +7,7 @@
 #include "PipelineState/GFX/VulkanGraphicsPipelineState.h"
 #include <glm/glm.hpp>
 #include "VulkanGlobals.h"
+#include "VertexFactory/VulkanRHLVertexInput.h"
 
 struct VulkanRHLViewportRect {
     float m_minX;
@@ -44,6 +45,7 @@ public:
     void SetViewport(const VulkanRHLViewportRect& viewportRect);
     void SetScissor(const VulkanRHLRect& scissorRect);
     void BindPipeline(const VulkanRHLGraphicsPipelineDescriptor& pipelineDesc);
+    void BindVertexInput(const VulkanRHLVertexInput& vertexInput);
     void DrawPrimitive(uint32_t vertexCount);
     void BeginRenderPass(const VulkanRHLRenderPassBeginInfo& passBeginInfo);
     void EndRenderPass();

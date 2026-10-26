@@ -56,6 +56,12 @@ else()
     message(STATUS "DXC library linking is only configured for Windows")
 endif()
 
+# ---------- SPIRV-Reflect ----------
+set(SPIRV_REFLECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/spirv-reflect")
+add_library(spirv-reflect STATIC "${SPIRV_REFLECT_DIR}/spirv_reflect.c")
+target_include_directories(spirv-reflect PUBLIC "${SPIRV_REFLECT_DIR}")
+set_target_properties(spirv-reflect PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON)
+
 # ==========================================
 # Engine Runtime
 # ==========================================

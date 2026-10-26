@@ -31,7 +31,12 @@ void VulkanRHLGraphicsWorkContext::SetScissor(const VulkanRHLRect &scissorRect) 
 }
 
 void VulkanRHLGraphicsWorkContext::BindPipeline(const VulkanRHLGraphicsPipelineDescriptor &pipelineDesc) {
-    m_pendingGFXState.SetPipeline(m_vulkanDevice->GetGFXPipeline(pipelineDesc));
+    m_pendingGFXState.SetGraphicsPipeline(m_vulkanDevice->GetGFXPipeline(pipelineDesc));
+}
+
+void VulkanRHLGraphicsWorkContext::BindVertexInput(const VulkanRHLVertexInput &vertexInput) {
+    for (const VulkanRHLVertexStream& vertexStream : vertexInput.GetStreams())
+        m_pendingGFXState.SetVertexStream(vertexStream.m_streamSource, vertexStream.m_streamBuffer);
 }
 
 void VulkanRHLGraphicsWorkContext::DrawPrimitive(uint32_t vertexCount) {

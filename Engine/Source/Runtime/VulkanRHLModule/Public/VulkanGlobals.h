@@ -54,20 +54,9 @@ namespace Photon::Vulkan {
         Buffer = 1,
     };
 
-    enum class RHLShaderStage {
-        None = 0,
-        Vertex = 1,
-        Fragment = 2,
-    };
-
     enum class RHLPrimitiveType {
         None = 0,
         Triangle = 1,
-    };
-
-    enum class RHLFormat {
-        None = 0,
-        B8G8R8A8 = 1,
     };
 
     inline VulkanDynamicRHL* g_vulkanDynamicRHL = nullptr;

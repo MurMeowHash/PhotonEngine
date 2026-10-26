@@ -11,6 +11,7 @@ VulkanDynamicRHL::~VulkanDynamicRHL() {
     for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
         rhlSystem->Dispose();
 
+    delete m_vertexLayoutCache;
     delete m_immediateRHlCommandBuffer;
     delete m_vulkanDevice;
     delete m_vulkanInstance;
@@ -48,6 +49,12 @@ VulkanRHLPendingTransition VulkanDynamicRHL::CreateTransition(const VulkanRHLRes
     return pendingTransition;
 }
 
+VulkanRHLVertexInput VulkanDynamicRHL::CreateVertexInput(const VulkanRHLVertexInputCreateInfo &createInfo) const {
+    VulkanRHLVertexLayout* vertexLayout = m_vertexLayoutCache->PoolBlueprint(createInfo.m_vertexLayoutDescriptor);
+    VulkanRHLVertexInputInitializeInfo initializeInfo{vertexLayout, createInfo.m_vertexStreams};
+    return VulkanRHLVertexInput(initializeInfo);
+}
+
 Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLCreateInfo &createInfo) {
     Photon::Result createResult = CreateVulkanInstance();
     if (createResult != Photon::Result::Success)
@@ -61,6 +68,7 @@ Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLC
     for (const std::unique_ptr<IVulkanRHLSystem>& rhlSystem : m_rhlSystems)
         rhlSystem->Initialize(this);
 
+    m_vertexLayoutCache = new VulkanRHLVertexLayoutCache();
     return Photon::Result::Success;
 }
 
