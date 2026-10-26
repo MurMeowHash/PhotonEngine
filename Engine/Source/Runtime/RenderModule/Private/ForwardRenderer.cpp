@@ -24,11 +24,17 @@ void ForwardRenderer::Render(const RenderSceneInput& renderSceneInput, VulkanRHL
     rhlCommandBuffer->SetScissor(rhlRenderRect);
 
     VulkanRHLGraphicsPipelineDescriptor desc{};
-    desc.AddVertexStage(VulkanRHLVertexShadingStage().SetVertexShader(renderSceneInput.m_renderScene.m_renderObject.m_vertexShader))
-        .AddPrimitiveAssemblyStage(VulkanRHLPrimitiveAssemblyStage().SetPrimitiveType(renderSceneInput.m_renderScene.m_renderObject.m_primitiveType))
-        .AddFragmentStage(VulkanRHLFragmentShadingStage().SetFragmentShader(renderSceneInput.m_renderScene.m_renderObject.m_fragmentShader))
-        .AddPresentationStage(VulkanRHLPresentationStage().AddColorAttachment(rhlTextureTarget->GetFormat()));
+    desc.AddVertexStage(VulkanRHLVertexShadingStage()
+            .SetVertexLayout(renderSceneInput.m_renderScene.m_renderObject.m_vertexInput.GetVertexLayout())
+            .SetVertexShader(renderSceneInput.m_renderScene.m_renderObject.m_vertexShader))
+        .AddPrimitiveAssemblyStage(VulkanRHLPrimitiveAssemblyStage()
+            .SetPrimitiveType(renderSceneInput.m_renderScene.m_renderObject.m_primitiveType))
+        .AddFragmentStage(VulkanRHLFragmentShadingStage()
+            .SetFragmentShader(renderSceneInput.m_renderScene.m_renderObject.m_fragmentShader))
+        .AddPresentationStage(VulkanRHLPresentationStage()
+            .AddColorAttachment(rhlTextureTarget->GetFormat()));
     rhlCommandBuffer->BindPipeline(desc);
+    rhlCommandBuffer->BindVertexInput(renderSceneInput.m_renderScene.m_renderObject.m_vertexInput);
 
     rhlCommandBuffer->DrawPrimitive(3);
     rhlCommandBuffer->EndRenderPass();

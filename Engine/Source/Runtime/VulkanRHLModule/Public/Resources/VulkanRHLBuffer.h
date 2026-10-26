@@ -38,20 +38,23 @@ public:
     virtual void EndWrite(VulkanRHLCommandWorkContext* workContext) = 0;
     void Clear();
     [[nodiscard]] uint64_t GetSize() const;
-    [[nodiscard]] VulkanBufferSlice GetHandle() const;
+    [[nodiscard]] VulkanBufferSlice GetBackingHandle() const;
+    [[nodiscard]] uint64_t GetElementSize() const;
 
 protected:
     VulkanDevice* m_vulkanDevice = nullptr;
     uint64_t m_size{};
+    uint64_t m_elementSize{};
     VulkanRHLBufferUsage m_usage{};
     VulkanBufferSliceAllocation m_activeBufferAllocation = VulkanBufferSliceAllocation();
 
-    void Initialize(VulkanDevice* vulkanDevice, uint64_t size, VulkanRHLBufferUsage usage);
+    void Initialize(VulkanDevice* vulkanDevice, uint64_t size, uint64_t elementSize, VulkanRHLBufferUsage usage);
 };
 
 struct VulkanRHLStaticBufferCreateInfo {
     VulkanDevice* m_vulkanDevice;
     uint64_t m_size;
+    uint64_t m_elementSize;
     VulkanRHLBufferUsage m_usage;
 };
 

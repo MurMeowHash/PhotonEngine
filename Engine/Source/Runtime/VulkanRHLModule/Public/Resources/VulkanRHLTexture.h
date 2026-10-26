@@ -8,13 +8,14 @@
 #include "VulkanGlobals.h"
 #include "VulkanResource.h"
 #include "Resources/VulkanResourceTransition.h"
+#include "VulkanDefinitions.h"
 
 class VulkanDevice;
 
 struct VulkanImageCreateInfo {
     VulkanDevice* m_vulkanDevice;
     vk::Image m_imageHandle;
-    vk::Format m_imageFormat;
+    VulkanRHLFormat m_imageFormat;
     Photon::Vulkan::ImageType m_imageType;
     uint32_t m_arrayLayers;
     uint32_t m_mipLevels;
@@ -22,6 +23,7 @@ struct VulkanImageCreateInfo {
 
 class VulkanRHLTexture : public VulkanResource {
 public:
+    [[nodiscard]] bool IsDedicated() const override;
     void CommitPendingTransitionScope() override;
 
 public:
@@ -29,12 +31,12 @@ public:
     static VulkanRHLTexture* Create(const VulkanImageCreateInfo& createInfo);
     [[nodiscard]] vk::Image GetHandle() const;
     [[nodiscard]] VulkanImageView* GetDefaultImageView() const;
-    [[nodiscard]] Photon::Vulkan::RHLFormat GetFormat() const;
+    [[nodiscard]] VulkanRHLFormat GetFormat() const;
     void TrackLastTransitionScope(const VulkanPipelineImageTransitionScope& transitionScope);
     [[nodiscard]] vk::ImageLayout GetLastLayout() const;
 private:
     vk::Image m_handle;
-    Photon::Vulkan::RHLFormat m_rhlImageFormat{};
+    VulkanRHLFormat m_rhlImageFormat{};
     vk::Format m_nativeImageFormat{};
     Photon::Vulkan::ImageType m_imageType{};
     uint32_t m_arrayLayers{};

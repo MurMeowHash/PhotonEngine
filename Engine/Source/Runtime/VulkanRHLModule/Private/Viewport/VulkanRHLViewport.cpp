@@ -26,6 +26,7 @@ VulkanRHLViewport* VulkanRHLViewport::Create(const VulkanRHLViewportCreateInfo &
     swapChainCreateInfo.m_vulkanSurface = surface;
     swapChainCreateInfo.m_width = createInfo.m_viewportInfo.m_viewportWidth;
     swapChainCreateInfo.m_height = createInfo.m_viewportInfo.m_viewportHeight;
+    swapChainCreateInfo.m_format = createInfo.m_viewportInfo.m_backBufferFormat;
     swapChainCreateInfo.m_blockUntilVBlank = createInfo.m_viewportInfo.m_blockUntilVBlank;
     swapChainCreateInfo.m_oldSwapChain = nullptr;
 
@@ -152,6 +153,7 @@ bool VulkanRHLViewport::RecreateSwapChain(VulkanRHLGraphicsWorkContext* gfxWorkC
     createInfo.m_vulkanSurface = m_vulkanSurface;
     createInfo.m_width = m_viewportWidth;
     createInfo.m_height = m_viewportHeight;
+    createInfo.m_format = m_vulkanSwapChain->GetFormat();
     createInfo.m_blockUntilVBlank = m_isBlockedUntilVBlank;
     createInfo.m_oldSwapChain = m_vulkanSwapChain;
 

@@ -18,7 +18,8 @@ struct VulkanRHLVertexInputInitializeInfo {
 class VulkanRHLVertexInput {
 public:
     explicit VulkanRHLVertexInput(const VulkanRHLVertexInputInitializeInfo& createInfo);
-    const std::vector<VulkanRHLVertexStream>& GetStreams() const;
+    [[nodiscard]] const std::vector<VulkanRHLVertexStream>& GetStreams() const;
+    [[nodiscard]] VulkanRHLVertexLayout* GetVertexLayout() const;
 private:
     VulkanRHLVertexLayout* m_vertexLayout = nullptr;
     std::vector<VulkanRHLVertexStream> m_vertexStreams;

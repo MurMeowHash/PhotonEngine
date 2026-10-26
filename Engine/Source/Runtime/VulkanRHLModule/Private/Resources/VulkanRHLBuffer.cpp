@@ -19,13 +19,18 @@ uint64_t VulkanRHLBuffer::GetSize() const {
     return m_size;
 }
 
-VulkanBufferSlice VulkanRHLBuffer::GetHandle() const {
+VulkanBufferSlice VulkanRHLBuffer::GetBackingHandle() const {
     return m_activeBufferAllocation.m_bufferSlice;
 }
 
-void VulkanRHLBuffer::Initialize(VulkanDevice *vulkanDevice, uint64_t size, VulkanRHLBufferUsage usage) {
+uint64_t VulkanRHLBuffer::GetElementSize() const {
+    return m_elementSize;
+}
+
+void VulkanRHLBuffer::Initialize(VulkanDevice *vulkanDevice, uint64_t size, uint64_t elementSize, VulkanRHLBufferUsage usage) {
     m_vulkanDevice = vulkanDevice;
     m_size = size;
+    m_elementSize = elementSize;
     m_usage = usage;
 }
 

@@ -17,6 +17,7 @@ struct VulkanSwapChainCreateInfo {
     VulkanSurface* m_vulkanSurface;
     uint32_t m_width;
     uint32_t m_height;
+    VulkanRHLFormat m_format;
     bool m_blockUntilVBlank;
     VulkanSwapChain* m_oldSwapChain;
 };
@@ -38,11 +39,12 @@ public:
     [[nodiscard]] VulkanRHLTexture* GetImageByIndex(uint32_t imageIndex) const;
     [[nodiscard]] bool TryGetImageByIndex(uint32_t imageIndex, VulkanRHLTexture*& outImage) const;
     [[nodiscard]] uint32_t GetImagesCount() const;
+    [[nodiscard]] VulkanRHLFormat GetFormat() const;
     [[nodiscard]] VulkanSwapChainState Present(uint32_t imageIndex, const std::shared_ptr<VulkanBinarySemaphore>& renderFinishedSemaphore) const;
 private:
     vk::SwapchainKHR m_handle = nullptr;
     std::vector<VulkanRHLTexture*> m_images;
-    vk::Format m_format{};
+    VulkanRHLFormat m_format{};
 
     VulkanDevice* m_vulkanDevice = nullptr;
     VulkanQueue* m_presentQueue = nullptr;
@@ -50,7 +52,8 @@ private:
     [[nodiscard]] Photon::Result RetrieveImages(uint32_t arrayLayers);
 
     [[nodiscard]] static uint32_t GetSwapChainMinImageCount(const vk::SurfaceCapabilitiesKHR& surfaceProperties);
-    [[nodiscard]] static bool TryGetSurfaceFormat(VulkanDevice* vulkanDevice, VulkanSurface* vulkanSurface, VkSurfaceFormatKHR& surfaceFormat);
+    [[nodiscard]] static bool TryGetSurfaceFormat(VulkanDevice* vulkanDevice, VulkanSurface* vulkanSurface, VulkanRHLFormat requestedFormat,
+        vk::SurfaceFormatKHR& surfaceFormat);
     [[nodiscard]] static vk::Extent2D GetClampedExtents(uint32_t preferredWidth, uint32_t preferredHeight, const vk::SurfaceCapabilitiesKHR& surfaceProperties);
     [[nodiscard]] static vk::PresentModeKHR GetPresentMode(VulkanDevice* vulkanDevice, VulkanSurface* vulkanSurface, bool vSyncEnabled);
     [[nodiscard]] static VulkanSwapChainState ResolveSwapChainStateByVulkanResult(vk::Result vkResult);

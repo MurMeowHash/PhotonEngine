@@ -12,6 +12,7 @@ struct VulkanShaderPipelineCreateInfo {
 
 class VulkanShaderPipeline {
 public:
+    VulkanShaderPipeline() = default;
     explicit VulkanShaderPipeline(const VulkanShaderPipelineCreateInfo& createInfo);
     [[nodiscard]] const std::vector<vk::PipelineShaderStageCreateInfo>& GetShaderStageCreateInfo() const;
     [[nodiscard]] bool ValidateVertexAttribute(VulkanRHLShaderSemantic semantic, VulkanRHLFormat vertexInputFormat) const;

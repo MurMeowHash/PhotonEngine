@@ -2,6 +2,7 @@
 #include "Device/VulkanDevice.h"
 #include "Synchronization/VulkanBinarySemaphore.h"
 #include "Viewport/VulkanSurface.h"
+#include "VulkanUtils.h"
 
 VulkanSwapChain::~VulkanSwapChain() {
     m_vulkanDevice->WaitIdle();
@@ -30,7 +31,7 @@ VulkanSwapChain* VulkanSwapChain::Create(const VulkanSwapChainCreateInfo &create
     swapChainCreateInfo.minImageCount = GetSwapChainMinImageCount(surfaceProperties.value);
 
     vk::SurfaceFormatKHR surfaceFormat{};
-    if (!TryGetSurfaceFormat(createInfo.m_vulkanDevice, createInfo.m_vulkanSurface, surfaceFormat)) {
+    if (!TryGetSurfaceFormat(createInfo.m_vulkanDevice, createInfo.m_vulkanSurface, createInfo.m_format, surfaceFormat)) {
         Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
         return nullptr;
     }
@@ -66,7 +67,7 @@ VulkanSwapChain* VulkanSwapChain::Create(const VulkanSwapChainCreateInfo &create
 
     VulkanSwapChain* instance = Photon::AllocateObject<VulkanSwapChain>(inOutCreateParams);
     instance->m_handle = swapChainWrapper.value;
-    instance->m_format = surfaceFormat.format;
+    instance->m_format = createInfo.m_format;
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
     instance->m_presentQueue = presentQueue;
     Photon::Result imageRetrieveResult = instance->RetrieveImages(chainArrayLayers);
@@ -106,6 +107,10 @@ bool VulkanSwapChain::TryGetImageByIndex(uint32_t imageIndex, VulkanRHLTexture*&
 
 uint32_t VulkanSwapChain::GetImagesCount() const {
     return m_images.size();
+}
+
+VulkanRHLFormat VulkanSwapChain::GetFormat() const {
+    return m_format;
 }
 
 VulkanSwapChainState VulkanSwapChain::Present(uint32_t imageIndex, const std::shared_ptr<VulkanBinarySemaphore>& renderFinishedSemaphore) const {
@@ -148,22 +153,23 @@ uint32_t VulkanSwapChain::GetSwapChainMinImageCount(const vk::SurfaceCapabilitie
     : desiredImageCount;
 }
 
-bool VulkanSwapChain::TryGetSurfaceFormat(VulkanDevice *vulkanDevice, VulkanSurface* vulkanSurface, VkSurfaceFormatKHR &surfaceFormat) {
+bool VulkanSwapChain::TryGetSurfaceFormat(VulkanDevice *vulkanDevice, VulkanSurface* vulkanSurface, VulkanRHLFormat requestedFormat,
+    vk::SurfaceFormatKHR &surfaceFormat) {
     vk::ResultValue<std::vector<vk::SurfaceFormatKHR>> surfaceFormats =
         vulkanDevice->GetPhysicalHandle().getSurfaceFormatsKHR(*vulkanSurface->GetHandle());
 
-    if (surfaceFormats.result != vk::Result::eSuccess || surfaceFormats.value.empty())
+    if (surfaceFormats.result != vk::Result::eSuccess)
         return false;
 
+    const vk::Format requestedVulkanFormat = Photon::Vulkan::RHLFormatToVulkan(requestedFormat);
     for (const vk::SurfaceFormatKHR& format: surfaceFormats.value) {
-        if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) { // TODO: needs comprehensive selection
-            surfaceFormat = *format;
+        if (format.format == requestedVulkanFormat && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+            surfaceFormat = format;
             return true;
         }
     }
 
-    surfaceFormat = *surfaceFormats.value[0];
-    return true;
+    return false;
 }
 
 vk::Extent2D VulkanSwapChain::GetClampedExtents(uint32_t preferredWidth, uint32_t preferredHeight, const vk::SurfaceCapabilitiesKHR &surfaceProperties) {

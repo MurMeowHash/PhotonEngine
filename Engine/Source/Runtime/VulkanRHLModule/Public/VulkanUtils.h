@@ -23,7 +23,7 @@ namespace Photon::Vulkan {
             case VulkanRHLShaderStage::Fragment:
                 return vk::ShaderStageFlagBits::eFragment;
             default:
-                assert(false);
+                throw std::runtime_error("");
         }
     }
 
@@ -32,7 +32,7 @@ namespace Photon::Vulkan {
             case RHLPrimitiveType::Triangle:
                 return vk::PrimitiveTopology::eTriangleList;
             default:
-                assert(false);
+                throw std::runtime_error("");
         }
     }
 
@@ -43,17 +43,7 @@ namespace Photon::Vulkan {
             case VulkanRHLFormat::R32G32B32_Float:
                 return vk::Format::eR32G32B32Sfloat;
             default:
-                assert(false);
-                return vk::Format::eUndefined;
-        }
-    }
-
-    inline VulkanRHLFormat VulkanFormatToRHL(vk::Format format) {
-        switch (format) {
-            case vk::Format::eB8G8R8A8Srgb:
-                return VulkanRHLFormat::B8G8R8A8_Srgb;
-            default:
-                assert(false);
+                throw std::runtime_error("");
         }
     }
 
@@ -74,7 +64,17 @@ namespace Photon::Vulkan {
             case VulkanRHLBufferUpdateFrequency::Static:
                 return vk::MemoryPropertyFlagBits::eDeviceLocal;
             default:
-                assert(false);
+                throw std::runtime_error("");
         }
+    }
+
+    inline vk::IndexType GetIndexType(uint32_t elementSize) {
+        if (elementSize == 1)
+            return vk::IndexType::eUint8;
+
+        if (elementSize == 2)
+            return vk::IndexType::eUint16;
+
+        return vk::IndexType::eUint32;
     }
 }

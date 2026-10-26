@@ -6,3 +6,7 @@ VulkanRHLVertexInput::VulkanRHLVertexInput(const VulkanRHLVertexInputInitializeI
 const std::vector<VulkanRHLVertexStream> & VulkanRHLVertexInput::GetStreams() const {
     return m_vertexStreams;
 }
+
+VulkanRHLVertexLayout* VulkanRHLVertexInput::GetVertexLayout() const {
+    return m_vertexLayout;
+}

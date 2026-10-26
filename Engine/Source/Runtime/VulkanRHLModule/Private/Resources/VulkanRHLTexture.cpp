@@ -1,6 +1,13 @@
 #include "../../Public/Resources/VulkanRHLTexture.h"
 #include "Device/VulkanDevice.h"
 
+bool VulkanRHLTexture::IsDedicated() const {
+    if (!m_isRaii)
+        return false;
+
+    return false; // TODO : return backed memory dedicated flags
+}
+
 void VulkanRHLTexture::CommitPendingTransitionScope() {
     CommitResourceTransitionScope(m_pendingTransitionScope);
     m_lastTransitionLayout = m_pendingTransitionScope.m_layout;
@@ -19,8 +26,8 @@ VulkanRHLTexture* VulkanRHLTexture::Create(const VulkanImageCreateInfo& createIn
     instance->m_isRaii = false;
     instance->m_vulkanDevice = createInfo.m_vulkanDevice;
     instance->m_handle = createInfo.m_imageHandle;
-    instance->m_nativeImageFormat = createInfo.m_imageFormat;
-    instance->m_rhlImageFormat = Photon::Vulkan::VulkanFormatToRHL(createInfo.m_imageFormat);
+    instance->m_nativeImageFormat = Photon::Vulkan::RHLFormatToVulkan(createInfo.m_imageFormat);
+    instance->m_rhlImageFormat = createInfo.m_imageFormat;
     instance->m_imageType = createInfo.m_imageType;
     instance->m_arrayLayers = createInfo.m_arrayLayers;
     instance->m_mipLevels = createInfo.m_mipLevels;
@@ -37,7 +44,7 @@ VulkanImageView* VulkanRHLTexture::GetDefaultImageView() const {
     return m_imageViewCache->PoolBlueprint(m_defaultImageViewDescriptor);
 }
 
-Photon::Vulkan::RHLFormat VulkanRHLTexture::GetFormat() const {
+VulkanRHLFormat VulkanRHLTexture::GetFormat() const {
     return m_rhlImageFormat;
 }
 

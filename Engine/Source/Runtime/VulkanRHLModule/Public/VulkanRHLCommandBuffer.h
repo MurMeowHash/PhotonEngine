@@ -7,6 +7,7 @@
 
 class VulkanRHLViewport;
 class VulkanRHLTexture;
+class VulkanRHLBuffer;
 
 struct VulkanRHLCommandBufferCreateInfo {
 
@@ -52,6 +53,7 @@ public:
     void BindPipeline(const VulkanRHLGraphicsPipelineDescriptor& pipelineDesc);
     void BindVertexInput(const VulkanRHLVertexInput& vertexInput);
     void DrawPrimitive(uint32_t vertexCount);
+    void DrawMeshIndexed(VulkanRHLBuffer* indexBuffer, uint32_t indexCount);
     void BeginRenderPass(const VulkanRHLRenderPassBeginInfo& passBeginInfo);
     void EndRenderPass();
 

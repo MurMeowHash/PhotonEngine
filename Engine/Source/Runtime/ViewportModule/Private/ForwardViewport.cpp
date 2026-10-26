@@ -20,6 +20,7 @@ ForwardViewport* ForwardViewport::Create(const ForwardViewportCreateInfo &create
     rhlViewportCreateInfo.m_windowHandle = createInfo.m_viewportWindowHandle;
     rhlViewportCreateInfo.m_viewportWidth = createInfo.m_viewportWidth;
     rhlViewportCreateInfo.m_viewportHeight = createInfo.m_viewportHeight;
+    rhlViewportCreateInfo.m_backBufferFormat = VulkanRHLFormat::B8G8R8A8_Srgb;
     rhlViewportCreateInfo.m_blockUntilVBlank = false;
     InOutCreateParams<Photon::Result> rhlViewportInOutCreateParams{};
     VulkanRHLViewport* rhlViewport = vulkanRHLModule->GetVulkanDynamicRHL()->CreateVulkanRHLViewport(rhlViewportCreateInfo, &rhlViewportInOutCreateParams);

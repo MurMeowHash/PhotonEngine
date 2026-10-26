@@ -52,6 +52,10 @@ void VulkanRHLCommandBuffer::DrawPrimitive(uint32_t vertexCount) {
     m_rhlGraphicsWorkContext->DrawPrimitive(vertexCount);
 }
 
+void VulkanRHLCommandBuffer::DrawMeshIndexed(VulkanRHLBuffer *indexBuffer, uint32_t indexCount) {
+    m_rhlGraphicsWorkContext->DrawMeshIndexed(indexBuffer, indexCount);
+}
+
 void VulkanRHLCommandBuffer::BeginRenderPass(const VulkanRHLRenderPassBeginInfo &passBeginInfo) {
     m_rhlGraphicsWorkContext->BeginRenderPass(passBeginInfo);
 }

@@ -1,6 +1,8 @@
 #include "../Public/VulkanRHLGraphicsWorkContext.h"
 #include "VulkanDynamicRHL.h"
 #include "VulkanGlobals.h"
+#include "Resources/VulkanRHLBuffer.h"
+#include "VulkanUtils.h"
 
 void VulkanRHLGraphicsWorkContext::Reset() {
     VulkanRHLComputeWorkContext::Reset();
@@ -42,6 +44,19 @@ void VulkanRHLGraphicsWorkContext::BindVertexInput(const VulkanRHLVertexInput &v
 void VulkanRHLGraphicsWorkContext::DrawPrimitive(uint32_t vertexCount) {
     m_pendingGFXState.Commit(this);
     GetCommandBuffer()->GetHandle().draw(vertexCount, 1, 0, 0);
+}
+
+void VulkanRHLGraphicsWorkContext::DrawMeshIndexed(VulkanRHLBuffer* indexBuffer, uint32_t indexCount) {
+    m_pendingGFXState.Commit(this);
+    VulkanBufferSlice indexBackingHandle = indexBuffer->GetBackingHandle();
+    vk::CommandBuffer cmdBuffer = GetCommandBuffer()->GetHandle();
+    cmdBuffer.bindIndexBuffer(
+        indexBackingHandle.GetBuffer()->GetHandle(),
+        indexBackingHandle.GetOffset(),
+        Photon::Vulkan::GetIndexType(indexBuffer->GetElementSize())
+        );
+
+    cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
 
 void VulkanRHLGraphicsWorkContext::BeginRenderPass(const VulkanRHLRenderPassBeginInfo &passBeginInfo) {

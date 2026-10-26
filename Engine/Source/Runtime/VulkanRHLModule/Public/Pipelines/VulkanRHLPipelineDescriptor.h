@@ -2,16 +2,24 @@
 
 #include "Blueprints/BlueprintDescriptor.h"
 #include "Shaders/VulkanRHLShader.h"
+#include "VulkanDefinitions.h"
+#include "VertexFactory/VulkanRHLVertexLayout.h"
 
 class VulkanGraphicsPipelineProvider;
 
 struct VulkanRHLVertexShadingStage {
     VulkanRHLVertexShader* m_rhlVertexShader = nullptr;
+    VulkanRHLVertexLayout* m_vertexLayout = nullptr;
 
     bool operator==(const VulkanRHLVertexShadingStage&) const = default;
 
     VulkanRHLVertexShadingStage& SetVertexShader(VulkanRHLVertexShader* rhlVertexShader) {
         m_rhlVertexShader = rhlVertexShader;
+        return *this;
+    }
+
+    VulkanRHLVertexShadingStage& SetVertexLayout(VulkanRHLVertexLayout* vertexLayout) {
+        m_vertexLayout = vertexLayout;
         return *this;
     }
 };
@@ -39,11 +47,11 @@ struct VulkanRHLFragmentShadingStage {
 };
 
 struct VulkanRHLPresentationStage {
-    std::vector<Photon::Vulkan::RHLFormat> m_colorAttachments;
+    std::vector<VulkanRHLFormat> m_colorAttachments;
 
     bool operator==(const VulkanRHLPresentationStage&) const = default;
 
-    VulkanRHLPresentationStage& AddColorAttachment(Photon::Vulkan::RHLFormat colorAttachment) {
+    VulkanRHLPresentationStage& AddColorAttachment(VulkanRHLFormat colorAttachment) {
         m_colorAttachments.push_back(colorAttachment);
         return *this;
     }
@@ -62,6 +70,9 @@ public:
         hashCombine(std::hash<const void*>{}(
             m_vertexShadingStage.m_rhlVertexShader));
 
+        hashCombine(std::hash<const void*>{}(
+            m_vertexShadingStage.m_vertexLayout));
+
         hashCombine(std::hash<Photon::Vulkan::RHLPrimitiveType>{}(
             m_primitiveAssemblyStage.m_primitiveType));
 
@@ -70,8 +81,8 @@ public:
 
         hashCombine(std::hash<size_t>{}(
             m_presentationStage.m_colorAttachments.size()));
-        for (Photon::Vulkan::RHLFormat colorAttachment : m_presentationStage.m_colorAttachments)
-            hashCombine(std::hash<Photon::Vulkan::RHLFormat>{}(colorAttachment));
+        for (VulkanRHLFormat colorAttachment : m_presentationStage.m_colorAttachments)
+            hashCombine(std::hash<VulkanRHLFormat>{}(colorAttachment));
 
         return seed;
     }

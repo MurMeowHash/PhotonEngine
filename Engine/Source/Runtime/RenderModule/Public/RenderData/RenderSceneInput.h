@@ -5,6 +5,8 @@
 
 class VulkanRHLVertexShader;
 class VulkanRHLFragmentShader;
+class VulkanRHLVertexInput;
+
 namespace Photon::Vulkan {
     enum class RHLPrimitiveType;
 }
@@ -25,6 +27,7 @@ struct RenderViewCollection {
 };
 
 struct RenderObject {
+    const VulkanRHLVertexInput& m_vertexInput;
     VulkanRHLVertexShader* m_vertexShader;
     VulkanRHLFragmentShader* m_fragmentShader;
     Photon::Vulkan::RHLPrimitiveType m_primitiveType;

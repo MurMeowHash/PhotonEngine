@@ -5,10 +5,9 @@
 #include "Shaders/VulkanShaderDefinitions.h"
 #include "Shaders/VulkanShaderPipeline.h"
 #include "VulkanPipelineInternalState.h"
+#include "VertexFactory/VulkanRHLVertexLayout.h"
 
 class VulkanDevice;
-class VulkanRHLShader;
-class VulkanRHLVertexLayout;
 
 struct VulkanGraphicsPipelineCreateInfo {
     VulkanDevice* m_vulkanDevice;

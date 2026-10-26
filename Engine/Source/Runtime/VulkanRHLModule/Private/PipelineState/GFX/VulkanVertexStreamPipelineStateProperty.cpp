@@ -28,9 +28,9 @@ void VulkanVertexStreamPipelineStateProperty::Record(VulkanPipelineStateRecordCo
         if (streamIterator == m_streams.end())
             return;
 
-        VulkanBufferSlice bufferHandle = streamIterator->second->GetHandle();
-        bufferHandles[bindingIndex] = bufferHandle.GetBuffer()->GetHandle();
-        bufferOffsets[bindingIndex] = bufferHandle.GetOffset();
+        VulkanBufferSlice bufferBackingHandle = streamIterator->second->GetBackingHandle();
+        bufferHandles[bindingIndex] = bufferBackingHandle.GetBuffer()->GetHandle();
+        bufferOffsets[bindingIndex] = bufferBackingHandle.GetOffset();
     }
 
     if (m_bindingsCount == bindingsCount

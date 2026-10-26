@@ -12,6 +12,7 @@ struct RHLViewportCreateInfo {
     HWND m_windowHandle;
     uint32_t m_viewportWidth;
     uint32_t m_viewportHeight;
+    VulkanRHLFormat m_backBufferFormat;
     bool m_blockUntilVBlank;
 };
 
