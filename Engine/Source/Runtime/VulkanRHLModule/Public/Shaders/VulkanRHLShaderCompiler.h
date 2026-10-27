@@ -6,8 +6,7 @@
 #include "VulkanGlobals.h"
 #include "CoreGlobals.h"
 #include "FactoryGlobals.h"
-
-using Photon::Vulkan::RHLShaderStage;
+#include "VulkanShaderDefinitions.h"
 
 class VulkanInstance;
 class VulkanDevice;
@@ -25,7 +24,7 @@ struct VulkanRHLShaderCompilerCreateInfo {
 struct VulkanRHLShaderCompileInput {
     std::filesystem::path m_sourceFile;
     std::string m_entryName;
-    RHLShaderStage m_shaderStage;
+    VulkanRHLShaderStage m_shaderStage;
 };
 
 struct VulkanRHLShaderCompileOutput {
@@ -49,6 +48,6 @@ private:
 
     [[nodiscard]] Photon::Result InitializeDxc();
     [[nodiscard]] static std::wstring GetSpirVTargetEnvironment(uint32_t vulkanApiVersion);
-    [[nodiscard]] static const wchar_t* GetTargetProfile(RHLShaderStage shaderStage);
-    [[nodiscard]] static const wchar_t* GetStageDefine(RHLShaderStage shaderStage);
+    [[nodiscard]] static const wchar_t* GetTargetProfile(VulkanRHLShaderStage shaderStage);
+    [[nodiscard]] static const wchar_t* GetStageDefine(VulkanRHLShaderStage shaderStage);
 };

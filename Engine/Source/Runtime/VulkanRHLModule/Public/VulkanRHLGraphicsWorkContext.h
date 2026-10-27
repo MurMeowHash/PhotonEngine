@@ -45,7 +45,7 @@ public:
     void SetViewport(const VulkanRHLViewportRect& viewportRect);
     void SetScissor(const VulkanRHLRect& scissorRect);
     void BindPipeline(const VulkanRHLGraphicsPipelineDescriptor& pipelineDesc);
-    void BindVertexInput(const VulkanRHLVertexInput& vertexInput);
+    void BindVertexInput(VulkanRHLVertexInput* vertexInput);
     void DrawPrimitive(uint32_t vertexCount);
     void DrawMeshIndexed(VulkanRHLBuffer* indexBuffer, uint32_t indexCount);
     void BeginRenderPass(const VulkanRHLRenderPassBeginInfo& passBeginInfo);

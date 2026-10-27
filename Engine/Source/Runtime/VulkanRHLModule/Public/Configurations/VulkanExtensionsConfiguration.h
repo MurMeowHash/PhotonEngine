@@ -17,6 +17,8 @@ namespace Photon::Vulkan::ExtensionsConfiguration {
         VulkanExtension(vk::KHRSwapchainExtensionName, true),
         VulkanExtension(vk::KHRSpirv14ExtensionName, true),
         VulkanExtension(vk::KHRSynchronization2ExtensionName, true),
-        VulkanExtension(vk::KHRDynamicRenderingExtensionName, true)
+        VulkanExtension(vk::KHRDynamicRenderingExtensionName, true),
+        VulkanExtension(vk::GOOGLEHlslFunctionality1ExtensionName, true),
+        VulkanExtension(vk::GOOGLEUserTypeExtensionName, true),
     };
 }

@@ -64,5 +64,5 @@ void VulkanCommandBuffer::ExecutePipelineBarrier(VulkanPipelineBarrier&& pipelin
 
 void VulkanCommandBuffer::CopyBuffer(const VulkanBufferSlice& srcBuffer, const VulkanBufferSlice& dstBuffer) const {
     m_handle.copyBuffer(srcBuffer.GetBuffer()->GetHandle(), dstBuffer.GetBuffer()->GetHandle(),
-        {srcBuffer.GetOffset(), dstBuffer.GetOffset(), srcBuffer.GetSize()});
+        {vk::BufferCopy(srcBuffer.GetOffset(), dstBuffer.GetOffset(), srcBuffer.GetSize())});
 }

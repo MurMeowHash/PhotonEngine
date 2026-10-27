@@ -60,8 +60,8 @@ vk::PipelineShaderStageCreateInfo VulkanShaderPipeline::GetShaderTagetPipelineIn
 
 bool VulkanShaderPipeline::IsRHLFormatCompatibleWithShader(VulkanRHLFormat rhlFormat, VulkanRHLShaderFormat shaderFormat) {
     switch (shaderFormat) {
-        case VulkanRHLShaderFormat::R32G32B32_Float:
-            return rhlFormat == VulkanRHLFormat::R32G32B32_Float;
+        case VulkanRHLShaderFormat::R32G32_Float:
+            return rhlFormat == VulkanRHLFormat::R32G32_Float;
         default:
             return false;
     }

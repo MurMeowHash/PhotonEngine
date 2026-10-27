@@ -17,13 +17,21 @@ VulkanDynamicRHL::~VulkanDynamicRHL() {
     delete m_vulkanInstance;
 }
 
-VulkanRHLViewport* VulkanDynamicRHL::CreateVulkanRHLViewport(const RHLViewportCreateInfo &createInfo,
+VulkanRHLViewport* VulkanDynamicRHL::CreateRHLViewport(const RHLViewportCreateInfo &createInfo,
     InOutCreateParams<Photon::Result>* inOutCreateParams) const {
     VulkanRHLViewportCreateInfo vulkanCreateInfo{};
     vulkanCreateInfo.m_vulkanInstance = m_vulkanInstance;
     vulkanCreateInfo.m_vulkanDevice = m_vulkanDevice;
     vulkanCreateInfo.m_viewportInfo = createInfo;
     return VulkanRHLViewport::Create(vulkanCreateInfo, inOutCreateParams);
+}
+
+VulkanRHLBuffer * VulkanDynamicRHL::CreateRHLBuffer(const RHLBufferCreateInfo &createInfo,
+    InOutCreateParams<Photon::Result> *inOutCreateParams) const {
+    VulkanRHLBufferCreateInfo vulkanCreateInfo{};
+    vulkanCreateInfo.m_vulkanDevice = m_vulkanDevice;
+    vulkanCreateInfo.m_rhlInfo = createInfo;
+    return VulkanRHLBuffer::Create(vulkanCreateInfo, inOutCreateParams);
 }
 
 void VulkanDynamicRHL::Tick() const {
@@ -49,10 +57,10 @@ VulkanRHLPendingTransition VulkanDynamicRHL::CreateTransition(const VulkanRHLRes
     return pendingTransition;
 }
 
-VulkanRHLVertexInput VulkanDynamicRHL::CreateVertexInput(const VulkanRHLVertexInputCreateInfo &createInfo) const {
+VulkanRHLVertexInput* VulkanDynamicRHL::CreateVertexInput(const VulkanRHLVertexInputCreateInfo &createInfo) const {
     VulkanRHLVertexLayout* vertexLayout = m_vertexLayoutCache->PoolBlueprint(createInfo.m_vertexLayoutDescriptor);
     VulkanRHLVertexInputInitializeInfo initializeInfo{vertexLayout, createInfo.m_vertexStreams};
-    return VulkanRHLVertexInput(initializeInfo);
+    return new VulkanRHLVertexInput(initializeInfo);
 }
 
 Photon::Result VulkanDynamicRHL::Create([[maybe_unused]] const VulkanDynamicRHLCreateInfo &createInfo) {

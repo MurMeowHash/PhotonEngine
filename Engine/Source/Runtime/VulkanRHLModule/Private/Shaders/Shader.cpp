@@ -38,15 +38,15 @@ Photon::Result GlobalShadersBlob::CreateVulkanRHLShader(VulkanDevice *vulkanDevi
     VulkanRHLTypedShaderCreateInfo createInfo{};
     createInfo.m_vulkanDevice = vulkanDevice;
     createInfo.m_shaderEntryName = descriptor->m_entryName;
-    createInfo.m_spirVCode = std::move(byteCode);
+    createInfo.m_spirVCode = VulkanSpirV(std::move(byteCode));
     InOutCreateParams<Photon::Result> inOut{};
     VulkanRHLShader* rhlShader{};
 
     switch (descriptor->m_stage) {
-        case RHLShaderStage::Vertex:
+        case VulkanRHLShaderStage::Vertex:
             rhlShader = VulkanRHLVertexShader::Create(createInfo, &inOut);
             break;
-        case RHLShaderStage::Fragment:
+        case VulkanRHLShaderStage::Fragment:
             rhlShader = VulkanRHLFragmentShader::Create(createInfo, &inOut);
             break;
         default:

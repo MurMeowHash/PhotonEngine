@@ -44,7 +44,7 @@ void VulkanRHLCommandBuffer::BindPipeline(const VulkanRHLGraphicsPipelineDescrip
     m_rhlGraphicsWorkContext->BindPipeline(pipelineDesc);
 }
 
-void VulkanRHLCommandBuffer::BindVertexInput(const VulkanRHLVertexInput &vertexInput) {
+void VulkanRHLCommandBuffer::BindVertexInput(VulkanRHLVertexInput* vertexInput) {
     m_rhlGraphicsWorkContext->BindVertexInput(vertexInput);
 }
 

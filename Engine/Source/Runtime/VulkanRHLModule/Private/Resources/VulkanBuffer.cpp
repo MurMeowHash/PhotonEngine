@@ -11,7 +11,6 @@ void VulkanBuffer::CommitPendingTransitionScope() {
 }
 
 VulkanBuffer::~VulkanBuffer() {
-    m_allocation.m_memory.UnMapMemory();
     m_vulkanDevice->GetMemoryProvider()->FreeMemory(m_allocation);
 }
 
@@ -53,7 +52,7 @@ Photon::Result VulkanBuffer::WriteData(void *data, vk::DeviceSize dataSize) {
 }
 
 void* VulkanBuffer::GetDataWriteDest() const {
-    return m_allocation.m_memory.GetMappedRange();
+    return m_allocation.m_memory.GetWriteRange();
 }
 
 Photon::Result VulkanBuffer::AllocateBufferMemory(vk::MemoryPropertyFlags memoryPropertyFlags, DedicatedMemoryRequirementsFlags dedicatedRequirements) {
@@ -64,9 +63,6 @@ Photon::Result VulkanBuffer::AllocateBufferMemory(vk::MemoryPropertyFlags memory
     vk::Result memoryBindResult = Photon::VulkanMemoryCommon::BindBufferMemory(m_vulkanDevice->GetRawHandle(), m_allocation.m_memory, *m_handle);
     if (memoryBindResult != vk::Result::eSuccess)
         return Photon::Result::UnknownFailure;
-
-    if ((memoryPropertyFlags & vk::MemoryPropertyFlagBits::eHostVisible) == vk::MemoryPropertyFlagBits::eHostVisible)
-        return m_allocation.m_memory.MapMemory();
 
     return Photon::Result::Success;
 }

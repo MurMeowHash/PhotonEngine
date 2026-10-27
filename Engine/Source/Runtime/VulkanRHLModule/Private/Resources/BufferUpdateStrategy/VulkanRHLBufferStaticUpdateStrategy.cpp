@@ -6,7 +6,7 @@
 void* VulkanRHLBufferStaticUpdateStrategy::BeginWrite(const VulkanRHLBufferUpdateContext &updateContext, uint64_t writeOffset, uint64_t writeSize) {
     if (!updateContext.m_bufferAllocation->IsValid()) {
         *updateContext.m_bufferAllocation = updateContext.m_allocateFunc();
-        if (updateContext.m_bufferAllocation->IsValid())
+        if (!updateContext.m_bufferAllocation->IsValid())
             return nullptr;
     }
 
@@ -15,7 +15,7 @@ void* VulkanRHLBufferStaticUpdateStrategy::BeginWrite(const VulkanRHLBufferUpdat
         return nullptr;
 
     m_pendingWrite = VulkanRHLStaticBufferPendingWrite(writeOffset, writeSize, stagingBufferAllocation);
-    return stagingBufferAllocation.m_stagingBuffer->GetDataWriteDest();
+    return static_cast<char*>(stagingBufferAllocation.m_stagingBuffer->GetDataWriteDest()) + writeOffset;
 }
 
 void VulkanRHLBufferStaticUpdateStrategy::EndWrite(const VulkanRHLBufferUpdateContext &updateContext) {
@@ -36,7 +36,7 @@ void VulkanRHLBufferStaticUpdateStrategy::EndWrite(const VulkanRHLBufferUpdateCo
         updateContext.m_bufferAllocation->m_bufferSlice.GetOffset(), updateContext.m_bufferAllocation->m_bufferSlice.GetSize());
     updateContext.m_workContext->GetCommandBuffer()->ExecutePipelineBarrier(std::move(pipelineBarrier));
     VulkanDevice* device = updateContext.m_vulkanDevice;
-    updateContext.m_workContext->AddSyncEvent(VulkanWorkSyncEvent(StaticDelegate<>([device, &stagingBufferAllocation]() {
+    updateContext.m_workContext->AddSyncEvent(VulkanWorkSyncEvent(StaticDelegate<>([device, stagingBufferAllocation]() mutable {
         device->GetStagingBufferAllocator()->FreeBuffer(stagingBufferAllocation);
     })));
 

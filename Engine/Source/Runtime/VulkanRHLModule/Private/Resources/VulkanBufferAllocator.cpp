@@ -21,9 +21,8 @@ vk::DeviceSize VulkanBufferSubAllocator::GetBufferAlignment(vk::BufferUsageFlags
     return alignment;
 }
 
-VulkanBufferSliceAllocation GeneralVulkanBufferSubAllocator::AllocateBuffer(vk::DeviceSize bufferSize, VulkanRHLBufferUsage bufferUsage) {
-    vk::BufferUsageFlags vulkanBufferUsage = Photon::Vulkan::RHLBufferUsageToVulkan(bufferUsage);
-    vk::DeviceSize bufferAlignment = GetBufferAlignment(vulkanBufferUsage);
+VulkanBufferSliceAllocation GeneralVulkanBufferSubAllocator::AllocateBuffer(vk::DeviceSize bufferSize, vk::BufferUsageFlags bufferUsage) {
+    vk::DeviceSize bufferAlignment = GetBufferAlignment(bufferUsage);
 
     VulkanBufferSliceAllocation bufferSliceAllocation;
     bufferSliceAllocation.m_useSingleBuffer = bufferSize > m_pageSize;
@@ -31,7 +30,7 @@ VulkanBufferSliceAllocation GeneralVulkanBufferSubAllocator::AllocateBuffer(vk::
     bufferSliceAllocation.m_updateFrequency = VulkanRHLBufferUpdateFrequency::None;
 
     if (bufferSliceAllocation.m_useSingleBuffer) {
-        bufferSliceAllocation.m_bufferSlice = m_singleBuffers.Allocate(bufferSize, bufferAlignment, vulkanBufferUsage);
+        bufferSliceAllocation.m_bufferSlice = m_singleBuffers.Allocate(bufferSize, bufferAlignment, bufferUsage);
         return bufferSliceAllocation;
     }
 
@@ -39,7 +38,7 @@ VulkanBufferSliceAllocation GeneralVulkanBufferSubAllocator::AllocateBuffer(vk::
     if (bufferUsageIterator == m_pooledBuffers.end()) {
         VulkanBufferPagesAllocatorCreateInfo createInfo{};
         createInfo.m_vulkanDevice = m_vulkanDevice;
-        createInfo.m_usageFlags = vulkanBufferUsage;
+        createInfo.m_usageFlags = bufferUsage;
         createInfo.m_memoryPropertyFlags = m_memoryPropertyFlags;
         createInfo.m_dedicatedRequirements = DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred;
         createInfo.m_pageSize = m_pageSize;
@@ -84,7 +83,8 @@ VulkanBufferAllocator* VulkanBufferAllocator::Create(const VulkanBufferAllocator
 
 VulkanBufferSliceAllocation VulkanBufferAllocator::AllocateBuffer(vk::DeviceSize bufferSize, VulkanRHLBufferUpdateFrequency updateFrequency, VulkanRHLBufferUsage bufferUsage) {
     assert(updateFrequency != VulkanRHLBufferUpdateFrequency::None);
-    VulkanBufferSliceAllocation bufferSliceAllocation = m_bufferSubAllocators[updateFrequency]->AllocateBuffer(bufferSize, bufferUsage);
+    vk::BufferUsageFlags vulkanUsageFlags = Photon::Vulkan::GetBufferRequiredUsageFlags(updateFrequency) | Photon::Vulkan::RHLBufferUsageToVulkan(bufferUsage);
+    VulkanBufferSliceAllocation bufferSliceAllocation = m_bufferSubAllocators[updateFrequency]->AllocateBuffer(bufferSize, vulkanUsageFlags);
     bufferSliceAllocation.m_updateFrequency = updateFrequency;
     return bufferSliceAllocation;
 }

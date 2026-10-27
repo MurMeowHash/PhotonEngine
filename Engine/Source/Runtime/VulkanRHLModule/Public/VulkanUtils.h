@@ -1,12 +1,22 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <functional>
 #include "CoreUtils.h"
 #include "VulkanGlobals.h"
 #include "Resources/VulkanRHLResourceDefinitions.h"
 #include "VulkanDefinitions.h"
+#include "Shaders/VulkanShaderDefinitions.h"
 
 namespace Photon::Vulkan {
+    template<typename TBitType>
+    struct FlagsHasher {
+        size_t operator()(vk::Flags<TBitType> flags) const noexcept {
+            using TMask = typename vk::Flags<TBitType>::MaskType;
+            return std::hash<TMask>{}(static_cast<TMask>(flags));
+        }
+    };
+
     inline uint32_t EngineToVulkanVersion(Core::Version version) {
         return VK_MAKE_VERSION(version.m_major, version.m_minor, version.m_patch);
     }
@@ -40,8 +50,8 @@ namespace Photon::Vulkan {
         switch (rhlFormat) {
             case VulkanRHLFormat::B8G8R8A8_Srgb:
                 return vk::Format::eB8G8R8A8Srgb;
-            case VulkanRHLFormat::R32G32B32_Float:
-                return vk::Format::eR32G32B32Sfloat;
+            case VulkanRHLFormat::R32G32_Float:
+                return vk::Format::eR32G32Sfloat;
             default:
                 throw std::runtime_error("");
         }
@@ -65,6 +75,15 @@ namespace Photon::Vulkan {
                 return vk::MemoryPropertyFlagBits::eDeviceLocal;
             default:
                 throw std::runtime_error("");
+        }
+    }
+
+    inline vk::BufferUsageFlags GetBufferRequiredUsageFlags(VulkanRHLBufferUpdateFrequency updateFrequency) {
+        switch (updateFrequency) {
+            case VulkanRHLBufferUpdateFrequency::Static:
+                return vk::BufferUsageFlagBits::eTransferDst;
+            default:
+                return {};
         }
     }
 

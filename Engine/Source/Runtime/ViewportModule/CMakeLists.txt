@@ -21,12 +21,14 @@ target_include_directories(ViewportModule
 )
 
 target_link_libraries(ViewportModule
+        PUBLIC
+        VulkanRHLModule
         PRIVATE
         RenderModule
         FactoryModule
         CoreModule
-        VulkanRHLModule
         ModuleBaseModule.Core
+        glm
 )
 
 if(MSVC)

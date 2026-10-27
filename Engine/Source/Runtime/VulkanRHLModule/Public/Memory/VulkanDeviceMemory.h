@@ -4,12 +4,15 @@
 #include "Memory.h"
 #include "CoreGlobals.h"
 
+class VulkanDevice;
+
 struct VulkanDeviceMemoryInitializeInfo {
-    vk::Device m_device;
+    VulkanDevice* m_vulkanDevice;
     vk::DeviceMemory m_handle;
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;
     MemoryInitializeInfo<vk::DeviceSize> m_memInfo;
+    void* m_mappedRange;
 };
 
 class VulkanDeviceMemory final : public Memory<vk::DeviceSize> {
@@ -24,14 +27,17 @@ public:
     [[nodiscard]] vk::DeviceMemory GetHandle() const;
     [[nodiscard]] bool IsValid() const;
     [[nodiscard]] bool IsDedicated() const;
+    [[nodiscard]] bool IsMemoryMappable() const;
     [[nodiscard]] void* GetMappedRange() const;
+    [[nodiscard]] void* GetWriteRange() const;
+    [[nodiscard]] bool IsMemoryMapped() const;
     [[nodiscard]] bool TryGetMappedRange(void*& mappedRange) const;
 
-    [[nodiscard]] Photon::Result MapMemory();
+    Photon::Result MapMemory();
     void UnMapMemory();
 
 private:
-    vk::Device m_device;
+    VulkanDevice* m_vulkanDevice;
     vk::DeviceMemory m_handle;
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;

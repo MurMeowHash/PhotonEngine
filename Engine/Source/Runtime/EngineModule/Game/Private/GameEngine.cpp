@@ -47,7 +47,7 @@ Photon::Result GameEngine::CreateGameWindow() {
 }
 
 Photon::Result GameEngine::CreateGameViewport() {
-    m_gameViewportInteractor = new ViewportInteractor();
+    m_gameViewportInteractor = new ViewportInteractor(m_rhlCommandBuffer);
     ForwardViewportCreateInfo viewportCreateInfo{};
     viewportCreateInfo.m_viewportWindowHandle = m_gameWindow->GetHandle();
     viewportCreateInfo.m_viewportWidth = m_gameWindow->GetWidth();

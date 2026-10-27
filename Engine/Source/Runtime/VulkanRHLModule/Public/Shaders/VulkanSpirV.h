@@ -5,6 +5,7 @@
 
 class VulkanSpirV {
 public:
+    VulkanSpirV() = default;
     explicit VulkanSpirV(const std::vector<char>& code);
     [[nodiscard]] size_t GetCodeSize() const;
     [[nodiscard]] const uint32_t* GetCode() const;

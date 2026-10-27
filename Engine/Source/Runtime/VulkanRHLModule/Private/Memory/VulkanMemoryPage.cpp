@@ -4,10 +4,12 @@
 
 void VulkanDeviceMemoryPage::InitializeMemoryObject(VulkanDeviceMemory &memoryObject, const MemoryInitializeInfo<vk::DeviceSize> &memInitializeInfo) {
     VulkanDeviceMemoryInitializeInfo initializeInfo{};
+    initializeInfo.m_vulkanDevice = m_vulkanDevice;
     initializeInfo.m_handle = m_memory.GetHandle();
     initializeInfo.m_memoryTypeIndex = m_memory.GetMemoryTypeIndex();
     initializeInfo.m_dedicated = m_memory.IsDedicated();
     initializeInfo.m_memInfo = memInitializeInfo;
+    initializeInfo.m_mappedRange = m_memory.GetMappedRange();
     memoryObject.Initialize(initializeInfo);
 }
 
@@ -16,13 +18,20 @@ bool VulkanDeviceMemoryPage::OwnsMemory(const VulkanDeviceMemory &memory) const 
 }
 
 VulkanDeviceMemoryPage::~VulkanDeviceMemoryPage() {
+    if (m_memory.IsMemoryMapped())
+        m_memory.UnMapMemory();
+
     Photon::VulkanMemoryCommon::FreeDeviceMemory(m_vulkanDevice->GetRawHandle(), m_memory);
 }
 
 VulkanDeviceMemoryPage::VulkanDeviceMemoryPage(const VulkanDeviceMemoryPageCreateInfo &createInfo)
 : m_vulkanDevice(createInfo.m_vulkanDevice) {
-    m_memory = Photon::VulkanMemoryCommon::AllocateDeviceMemory(m_vulkanDevice->GetRawHandle(), createInfo.m_pageSize,
+    m_memory = Photon::VulkanMemoryCommon::AllocateDeviceMemory(m_vulkanDevice, createInfo.m_pageSize,
         createInfo.m_memoryTypeIndex, createInfo.m_dedicatedAllocationInfo);
+
+    if (m_memory.IsMemoryMappable())
+        m_memory.MapMemory();
+
     InvalidateMemory();
 }
 

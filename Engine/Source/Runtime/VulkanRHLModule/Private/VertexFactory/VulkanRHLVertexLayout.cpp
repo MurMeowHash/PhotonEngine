@@ -12,7 +12,6 @@ size_t VulkanRHLVertexLayoutDescriptor::GetIdentifier() const {
     hashCombine(std::hash<size_t>{}(m_vertexDescriptions.size()));
     for (const VulkanRHLVertexDescription& vertexDescription : m_vertexDescriptions) {
         hashCombine(std::hash<VulkanRHLShaderSemantic>{}(vertexDescription.m_semantic));
-        hashCombine(std::hash<uint32_t>{}(vertexDescription.m_semanticIndex));
         hashCombine(std::hash<VulkanRHLFormat>{}(vertexDescription.m_format));
         hashCombine(std::hash<uint32_t>{}(vertexDescription.m_streamSource));
         hashCombine(std::hash<uint32_t>{}(vertexDescription.m_streamOffset));
@@ -31,7 +30,7 @@ size_t VulkanRHLVertexLayoutDescriptor::GetIdentifier() const {
 void VulkanRHLVertexLayoutDescriptor::AddVertexDescription(const VulkanRHLVertexDescription &vertexDescription) {
     auto vertexDescriptionKey = [](const VulkanRHLVertexDescription& description) {
         return std::tie(description.m_streamSource, description.m_streamOffset, description.m_semantic,
-            description.m_semanticIndex, description.m_format);
+            description.m_format);
     };
 
     auto insertPosition = std::ranges::upper_bound(m_vertexDescriptions, vertexDescription,

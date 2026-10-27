@@ -80,8 +80,8 @@ VulkanRHLShaderSemantic VulkanShaderReflectModule::TranslateSemanticToRHL(const 
 
 VulkanRHLShaderFormat VulkanShaderReflectModule::TranslateReflectFormatToRHL(SpvReflectFormat spvFormat) {
     switch (spvFormat) {
-        case SPV_REFLECT_FORMAT_R32G32B32_SFLOAT:
-            return VulkanRHLShaderFormat::R32G32B32_Float;
+        case SPV_REFLECT_FORMAT_R32G32_SFLOAT:
+            return VulkanRHLShaderFormat::R32G32_Float;
         default:
             return VulkanRHLShaderFormat::Undefined;
     }

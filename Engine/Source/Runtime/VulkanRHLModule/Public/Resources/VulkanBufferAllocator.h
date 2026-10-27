@@ -11,7 +11,7 @@ class VulkanDevice;
 struct VulkanBufferSliceAllocation {
     VulkanBufferSlice m_bufferSlice;
     bool m_useSingleBuffer;
-    VulkanRHLBufferUsage m_bufferUsage;
+    vk::BufferUsageFlags m_bufferUsage;
     VulkanRHLBufferUpdateFrequency m_updateFrequency;
 
     [[nodiscard]] bool IsValid() const;
@@ -23,7 +23,7 @@ public:
     virtual ~VulkanBufferSubAllocator() = default;
     VulkanBufferSubAllocator(VulkanDevice* vulkanDevice, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize pageSize);
 
-    virtual VulkanBufferSliceAllocation AllocateBuffer(vk::DeviceSize bufferSize, VulkanRHLBufferUsage bufferUsage) = 0;
+    virtual VulkanBufferSliceAllocation AllocateBuffer(vk::DeviceSize bufferSize, vk::BufferUsageFlags bufferUsage) = 0;
     virtual void FreeBuffer(VulkanBufferSliceAllocation& bufferSlice) = 0;
 
 protected:
@@ -36,14 +36,14 @@ protected:
 
 class GeneralVulkanBufferSubAllocator : public VulkanBufferSubAllocator {
 public:
-    VulkanBufferSliceAllocation AllocateBuffer(vk::DeviceSize bufferSize, VulkanRHLBufferUsage bufferUsage) override;
+    VulkanBufferSliceAllocation AllocateBuffer(vk::DeviceSize bufferSize, vk::BufferUsageFlags bufferUsage) override;
     void FreeBuffer(VulkanBufferSliceAllocation &bufferSlice) override;
 
 public:
     GeneralVulkanBufferSubAllocator(VulkanDevice* vulkanDevice, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize pageSize);
 
 private:
-    std::unordered_map<VulkanRHLBufferUsage, VulkanBufferPagesAllocator> m_pooledBuffers;
+    std::unordered_map<vk::BufferUsageFlags, VulkanBufferPagesAllocator, Photon::Vulkan::FlagsHasher<vk::BufferUsageFlagBits>> m_pooledBuffers;
     VulkanBufferPagesAllocatorSeparate m_singleBuffers;
 };
 

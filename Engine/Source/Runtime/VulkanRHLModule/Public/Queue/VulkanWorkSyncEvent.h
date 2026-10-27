@@ -1,11 +1,11 @@
 #pragma once
 
-#include <IDelegate.h>
+#include <StaticDelegate.h>
 
 class VulkanWorkSyncEvent {
 public:
-    explicit VulkanWorkSyncEvent(const IDelegate<>& syncDelegate);
+    explicit VulkanWorkSyncEvent(StaticDelegate<>&& syncDelegate);
     void Execute() const;
 private:
-    const IDelegate<>& m_syncDelegate;
+    StaticDelegate<> m_syncDelegate;
 };

@@ -38,6 +38,7 @@ VulkanStagingBufferAllocation VulkanStagingBufferAllocator::AllocateBuffer(vk::D
 
     if (!bufferPoolIterator->second.empty()) {
         VulkanBuffer* buffer = bufferPoolIterator->second.front();
+        bufferPoolIterator->second.pop();
         return VulkanStagingBufferAllocation(buffer, roundedSize);
     }
 

@@ -85,7 +85,7 @@ void VulkanWorkContext::AddSignalSemaphore(std::shared_ptr<VulkanSemaphore> sema
     workBatch->m_signalSemaphores.emplace_back(semaphore);
 }
 
-void VulkanWorkContext::AddSyncEvent(const VulkanWorkSyncEvent &syncEvent) {
+void VulkanWorkContext::AddSyncEvent(const VulkanWorkSyncEvent& syncEvent) {
     VulkanWorkBatch* workBatch = GetCurrentBatch();
     workBatch->m_syncEvents.emplace_back(syncEvent);
 }

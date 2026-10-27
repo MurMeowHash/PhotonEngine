@@ -23,20 +23,22 @@ void ForwardRenderer::Render(const RenderSceneInput& renderSceneInput, VulkanRHL
     rhlCommandBuffer->SetViewport({renderRect.m_xMin, renderRect.m_yMin, 0.0f, renderRect.m_xMax, renderRect.m_yMax, 1.0f});
     rhlCommandBuffer->SetScissor(rhlRenderRect);
 
+    const RenderObject& renderObject = renderSceneInput.m_renderScene.m_renderObject;
     VulkanRHLGraphicsPipelineDescriptor desc{};
     desc.AddVertexStage(VulkanRHLVertexShadingStage()
-            .SetVertexLayout(renderSceneInput.m_renderScene.m_renderObject.m_vertexInput.GetVertexLayout())
-            .SetVertexShader(renderSceneInput.m_renderScene.m_renderObject.m_vertexShader))
+            .SetVertexLayout(renderObject.m_vertexInput->GetVertexLayout())
+            .SetVertexShader(renderObject.m_vertexShader))
         .AddPrimitiveAssemblyStage(VulkanRHLPrimitiveAssemblyStage()
-            .SetPrimitiveType(renderSceneInput.m_renderScene.m_renderObject.m_primitiveType))
+            .SetPrimitiveType(renderObject.m_primitiveType))
         .AddFragmentStage(VulkanRHLFragmentShadingStage()
-            .SetFragmentShader(renderSceneInput.m_renderScene.m_renderObject.m_fragmentShader))
+            .SetFragmentShader(renderObject.m_fragmentShader))
         .AddPresentationStage(VulkanRHLPresentationStage()
             .AddColorAttachment(rhlTextureTarget->GetFormat()));
-    rhlCommandBuffer->BindPipeline(desc);
-    rhlCommandBuffer->BindVertexInput(renderSceneInput.m_renderScene.m_renderObject.m_vertexInput);
 
-    rhlCommandBuffer->DrawPrimitive(3);
+    rhlCommandBuffer->BindPipeline(desc);
+    rhlCommandBuffer->BindVertexInput(renderObject.m_vertexInput);
+    rhlCommandBuffer->DrawMeshIndexed(renderObject.m_indexBuffer, renderObject.m_indexCount);
+
     rhlCommandBuffer->EndRenderPass();
 }
 

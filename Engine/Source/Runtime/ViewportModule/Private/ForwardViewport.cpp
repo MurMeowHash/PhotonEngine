@@ -23,7 +23,7 @@ ForwardViewport* ForwardViewport::Create(const ForwardViewportCreateInfo &create
     rhlViewportCreateInfo.m_backBufferFormat = VulkanRHLFormat::B8G8R8A8_Srgb;
     rhlViewportCreateInfo.m_blockUntilVBlank = false;
     InOutCreateParams<Photon::Result> rhlViewportInOutCreateParams{};
-    VulkanRHLViewport* rhlViewport = vulkanRHLModule->GetVulkanDynamicRHL()->CreateVulkanRHLViewport(rhlViewportCreateInfo, &rhlViewportInOutCreateParams);
+    VulkanRHLViewport* rhlViewport = vulkanRHLModule->GetVulkanDynamicRHL()->CreateRHLViewport(rhlViewportCreateInfo, &rhlViewportInOutCreateParams);
     if (rhlViewportInOutCreateParams.m_result != Photon::Result::Success) {
         Photon::PushResult(Photon::Result::UnknownFailure, inOutCreateParams);
         return nullptr;

@@ -9,6 +9,6 @@ namespace Photon::Vulkan::DeviceConfiguration {
         VulkanDeviceFeature(VulkanDeviceFeatureType::ShaderDrawParameters, true),
         VulkanDeviceFeature(VulkanDeviceFeatureType::Synchronization2, true),
         VulkanDeviceFeature(VulkanDeviceFeatureType::DynamicRendering, true),
-        VulkanDeviceFeature(VulkanDeviceFeatureType::TimelineSemaphore, true)
+        VulkanDeviceFeature(VulkanDeviceFeatureType::TimelineSemaphore, true),
     };
 };

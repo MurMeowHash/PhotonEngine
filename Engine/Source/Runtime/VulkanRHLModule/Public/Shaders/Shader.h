@@ -7,15 +7,13 @@
 #include "VulkanRHLShaderCompiler.h"
 #include "VulkanRHLModule.h"
 
-using Photon::Vulkan::RHLShaderStage;
-
 class VulkanDevice;
 
 struct ShaderDescriptor {
     const char* m_name;
     const char* m_sourceFile;
     const char* m_entryName;
-    RHLShaderStage m_stage;
+    VulkanRHLShaderStage m_stage;
 };
 
 struct GlobalShaderDescriptorRegistry {

@@ -11,12 +11,16 @@
 class VulkanDevice;
 class VulkanRHLCommandWorkContext;
 
-struct VulkanRHLBufferCreateInfo {
-    VulkanDevice* m_vulkanDevice;
+struct RHLBufferCreateInfo {
     uint64_t m_size;
     uint64_t m_elementSize;
     VulkanRHLBufferUpdateFrequency m_updateFrequency;
     VulkanRHLBufferUsage m_usage;
+};
+
+struct VulkanRHLBufferCreateInfo {
+    VulkanDevice* m_vulkanDevice;
+    RHLBufferCreateInfo m_rhlInfo;
 };
 
 class VulkanRHLBuffer {

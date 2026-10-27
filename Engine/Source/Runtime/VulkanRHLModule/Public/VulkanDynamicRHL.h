@@ -11,6 +11,7 @@
 #include <memory>
 #include "VertexFactory/VulkanRHLVertexLayout.h"
 #include "VertexFactory/VulkanRHLVertexInput.h"
+#include "Resources/VulkanRHLBuffer.h"
 
 struct VulkanDynamicRHLCreateInfo {
 
@@ -27,13 +28,15 @@ class VulkanDynamicRHL {
     friend class VulkanRHLFactory;
 public:
     ~VulkanDynamicRHL();
-    [[nodiscard]] VulkanRHLViewport* CreateVulkanRHLViewport(const RHLViewportCreateInfo& createInfo,
+    [[nodiscard]] VulkanRHLViewport* CreateRHLViewport(const RHLViewportCreateInfo& createInfo,
+        InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr) const;
+    [[nodiscard]] VulkanRHLBuffer* CreateRHLBuffer(const RHLBufferCreateInfo& createInfo,
         InOutCreateParams<Photon::Result>* inOutCreateParams = nullptr) const;
     void Tick() const;
     [[nodiscard]] VulkanDevice* GetVulkanDevice() const;
     [[nodiscard]] VulkanInstance* GetVulkanInstance() const;
     [[nodiscard]] VulkanRHLPendingTransition CreateTransition(const VulkanRHLResourceTransitionRequestBatch& transitionRequests) const;
-    [[nodiscard]] VulkanRHLVertexInput CreateVertexInput(const VulkanRHLVertexInputCreateInfo& createInfo) const;
+    [[nodiscard]] VulkanRHLVertexInput* CreateVertexInput(const VulkanRHLVertexInputCreateInfo& createInfo) const;
 private:
     VulkanInstance* m_vulkanInstance = nullptr;
     VulkanDevice* m_vulkanDevice = nullptr;

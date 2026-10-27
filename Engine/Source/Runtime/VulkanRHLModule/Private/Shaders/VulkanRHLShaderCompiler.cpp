@@ -167,22 +167,22 @@ std::wstring VulkanRHLShaderCompiler::GetSpirVTargetEnvironment(uint32_t vulkanA
     return L"vulkan1." + std::to_wstring(minorVersion);
 }
 
-const wchar_t* VulkanRHLShaderCompiler::GetTargetProfile(RHLShaderStage shaderStage) {
+const wchar_t* VulkanRHLShaderCompiler::GetTargetProfile(VulkanRHLShaderStage shaderStage) {
     switch (shaderStage) {
-        case RHLShaderStage::Vertex:
+        case VulkanRHLShaderStage::Vertex:
             return L"vs_6_0";
-        case RHLShaderStage::Fragment:
+        case VulkanRHLShaderStage::Fragment:
             return L"ps_6_0";
         default:
             return L"";
     }
 }
 
-const wchar_t* VulkanRHLShaderCompiler::GetStageDefine(RHLShaderStage shaderStage) {
+const wchar_t* VulkanRHLShaderCompiler::GetStageDefine(VulkanRHLShaderStage shaderStage) {
     switch (shaderStage) {
-        case RHLShaderStage::Vertex:
+        case VulkanRHLShaderStage::Vertex:
             return L"VERTEXSHADER=1";
-        case RHLShaderStage::Fragment:
+        case VulkanRHLShaderStage::Fragment:
             return L"PIXELSHADER=1";
         default:
             return L"";

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "RenderTarget.h"
-#include <vector>
+#include <cstdint>
 
 class VulkanRHLVertexShader;
 class VulkanRHLFragmentShader;
 class VulkanRHLVertexInput;
+class VulkanRHLBuffer;
 
 namespace Photon::Vulkan {
     enum class RHLPrimitiveType;
@@ -27,7 +28,9 @@ struct RenderViewCollection {
 };
 
 struct RenderObject {
-    const VulkanRHLVertexInput& m_vertexInput;
+    VulkanRHLVertexInput* m_vertexInput;
+    VulkanRHLBuffer* m_indexBuffer;
+    uint32_t m_indexCount;
     VulkanRHLVertexShader* m_vertexShader;
     VulkanRHLFragmentShader* m_fragmentShader;
     Photon::Vulkan::RHLPrimitiveType m_primitiveType;

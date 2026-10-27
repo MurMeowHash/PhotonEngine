@@ -68,15 +68,37 @@ VulkanDeviceMemoryAllocation VulkanDeviceMemoryProvider::AllocateImageMemory(vk:
 
 bool VulkanDeviceMemoryProvider::TryFindMemoryTypeIndex(uint32_t memoryTypeRequirementsBits,
     vk::MemoryPropertyFlags requestedMemoryPropertyFlags, uint32_t &memoryTypeIndex) {
+    const vk::MemoryPropertyFlags avoidedFlags = vk::MemoryPropertyFlagBits::eProtected
+        | vk::MemoryPropertyFlagBits::eLazilyAllocated
+        | vk::MemoryPropertyFlagBits::eDeviceCoherentAMD
+        | vk::MemoryPropertyFlagBits::eDeviceUncachedAMD;
+
+    uint32_t bestMemoryTypeIndex = UINT32_MAX;
+    int bestExtraFlagsCount = INT_MAX;
     for (uint32_t i = 0; i < m_memoryProperties.memoryTypeCount; i++) {
-        if (memoryTypeRequirementsBits & 1 << i
-            && (m_memoryProperties.memoryTypes[i].propertyFlags & requestedMemoryPropertyFlags) == requestedMemoryPropertyFlags) {
-            memoryTypeIndex = i;
-            return true;
+        if (!(memoryTypeRequirementsBits & (1u << i)))
+            continue;
+
+        const vk::MemoryPropertyFlags typeFlags = m_memoryProperties.memoryTypes[i].propertyFlags;
+        if ((typeFlags & requestedMemoryPropertyFlags) != requestedMemoryPropertyFlags)
+            continue;
+
+        const vk::MemoryPropertyFlags extraFlags = typeFlags & ~requestedMemoryPropertyFlags;
+        if (extraFlags & avoidedFlags)
+            continue;
+
+        const int extraFlagsCount = std::popcount(static_cast<VkMemoryPropertyFlags>(extraFlags));
+        if (extraFlagsCount < bestExtraFlagsCount) {
+            bestExtraFlagsCount = extraFlagsCount;
+            bestMemoryTypeIndex = i;
         }
     }
 
-    return false;
+    if (bestMemoryTypeIndex == UINT32_MAX)
+        return false;
+
+    memoryTypeIndex = bestMemoryTypeIndex;
+    return true;
 }
 
 void VulkanDeviceMemoryProvider::FreeMemory(VulkanDeviceMemoryAllocation &allocation) {
