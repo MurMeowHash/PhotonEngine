@@ -62,6 +62,8 @@ bool VulkanShaderPipeline::IsRHLFormatCompatibleWithShader(VulkanRHLFormat rhlFo
     switch (shaderFormat) {
         case VulkanRHLShaderFormat::R32G32_Float:
             return rhlFormat == VulkanRHLFormat::R32G32_Float;
+        case VulkanRHLShaderFormat::R32G32B32_Float:
+            return rhlFormat == VulkanRHLFormat::R32G32B32_Float;
         default:
             return false;
     }

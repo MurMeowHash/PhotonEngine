@@ -6,6 +6,7 @@ enum class VulkanRHLFormat {
     None = 0,
     B8G8R8A8_Srgb = 1,
     R32G32_Float = 2,
+    R32G32B32_Float = 3,
 };
 
 enum class VulkanRHLVertexInputRate {

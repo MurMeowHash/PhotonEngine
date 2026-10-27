@@ -52,6 +52,8 @@ namespace Photon::Vulkan {
                 return vk::Format::eB8G8R8A8Srgb;
             case VulkanRHLFormat::R32G32_Float:
                 return vk::Format::eR32G32Sfloat;
+            case VulkanRHLFormat::R32G32B32_Float:
+                return vk::Format::eR32G32B32Sfloat;
             default:
                 throw std::runtime_error("");
         }

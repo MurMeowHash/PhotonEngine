@@ -12,6 +12,7 @@
 
 
 #define POSITION_SEMANTIC_NAME "POSITION"
+#define COLOR_SEMANTIC_NAME "COLOR"
 
 VulkanShaderReflectModule::~VulkanShaderReflectModule() {
     spvReflectDestroyShaderModule(&m_handle);
@@ -74,6 +75,8 @@ VulkanRHLShaderSemantic VulkanShaderReflectModule::TranslateSemanticToRHL(const 
 
     if (semanticName == POSITION_SEMANTIC_NAME)
         rhlSemantic.m_semanticType = VulkanRHLShaderSemanticType::Position;
+    else if (semanticName == COLOR_SEMANTIC_NAME)
+        rhlSemantic.m_semanticType = VulkanRHLShaderSemanticType::Color;
 
     return rhlSemantic;
 }
@@ -82,6 +85,8 @@ VulkanRHLShaderFormat VulkanShaderReflectModule::TranslateReflectFormatToRHL(Spv
     switch (spvFormat) {
         case SPV_REFLECT_FORMAT_R32G32_SFLOAT:
             return VulkanRHLShaderFormat::R32G32_Float;
+        case SPV_REFLECT_FORMAT_R32G32B32_SFLOAT:
+            return VulkanRHLShaderFormat::R32G32B32_Float;
         default:
             return VulkanRHLShaderFormat::Undefined;
     }

@@ -18,6 +18,7 @@ public:
 private:
     Viewport* m_viewport = nullptr;
     VulkanRHLBuffer* m_dummyObjectVertexBuffer = nullptr;
+    VulkanRHLBuffer* m_dummyObjectColorsVertexBuffer = nullptr;
     VulkanRHLBuffer* m_dummyObjectIndexBuffer = nullptr;
     VulkanRHLVertexInput* m_dummyObjectVertexInput{};
     uint32_t m_dummyObjectIndexCount{};

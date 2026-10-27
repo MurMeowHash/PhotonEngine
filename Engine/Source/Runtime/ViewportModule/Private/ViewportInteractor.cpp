@@ -12,6 +12,7 @@ using Photon::Module::g_activeModuleSequence;
 
 ViewportInteractor::~ViewportInteractor() {
     delete m_dummyObjectVertexBuffer;
+    delete m_dummyObjectColorsVertexBuffer;
     delete m_dummyObjectIndexBuffer;
     delete m_dummyObjectVertexInput;
 }
@@ -63,6 +64,13 @@ void ViewportInteractor::CreateDummyRenderObject(VulkanRHLCommandBufferImmediate
         glm::vec2(0.5, 0.5f)
     };
 
+    std::array<glm::vec3, 4> dummyColors = {
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f)
+    };
+
     std::array<uint16_t, 6> dummyIndices = {
         0, 1, 3, 1, 2, 3
     };
@@ -80,6 +88,21 @@ void ViewportInteractor::CreateDummyRenderObject(VulkanRHLCommandBufferImmediate
     memcpy(vertexWriteRange, dummyVertices.data(), dummyVerticesDataSize);
     rhlCommandBuffer->EndWriteBuffer(m_dummyObjectVertexBuffer);
 
+    const uint64_t dummyColorsDataStride = sizeof(glm::vec3);
+    const uint64_t dummyColorsDataSize = dummyColorsDataStride * dummyColors.size();
+    RHLBufferCreateInfo colorVertexBufferCreateInfo{dummyColorsDataSize, dummyColorsDataStride,
+        VulkanRHLBufferUpdateFrequency::Static, VulkanRHLBufferUsage::VertexBuffer};
+    InOutCreateParams<Photon::Result> colorsInOut{};
+    m_dummyObjectColorsVertexBuffer = vulkanDynamicRHL->CreateRHLBuffer(colorVertexBufferCreateInfo, &colorsInOut);
+    if (colorsInOut.m_result != Photon::Result::Success)
+        return;
+
+    glm::vec3* colorsBuffer = static_cast<glm::vec3*>(rhlCommandBuffer->BeginWriteBuffer(m_dummyObjectColorsVertexBuffer, 0, dummyColorsDataSize));
+    for (size_t i = 0; i < dummyColors.size(); i++) {
+        colorsBuffer[i] = dummyColors[i];
+    }
+    rhlCommandBuffer->EndWriteBuffer(m_dummyObjectColorsVertexBuffer);
+
     const uint64_t dummyIndicesDataSize = sizeof(uint16_t) * dummyIndices.size();
     RHLBufferCreateInfo indexBufferCreateInfo{dummyIndicesDataSize, sizeof(uint16_t),
         VulkanRHLBufferUpdateFrequency::Static, VulkanRHLBufferUsage::IndexBuffer};
@@ -94,10 +117,16 @@ void ViewportInteractor::CreateDummyRenderObject(VulkanRHLCommandBufferImmediate
 
     VulkanRHLVertexLayoutDescriptor layoutDescriptor{};
     layoutDescriptor.AddStreamDescription({0, dummyVertexDataStride, VulkanRHLVertexInputRate::PerVertex});
+    layoutDescriptor.AddStreamDescription({1, dummyColorsDataStride, VulkanRHLVertexInputRate::PerVertex});
     layoutDescriptor.AddVertexDescription({VulkanRHLShaderSemantic(VulkanRHLShaderSemanticType::Position, 0),
         VulkanRHLFormat::R32G32_Float, 0, 0});
+    layoutDescriptor.AddVertexDescription({VulkanRHLShaderSemantic(VulkanRHLShaderSemanticType::Color, 0),
+        VulkanRHLFormat::R32G32B32_Float, 1, 0});
 
-    VulkanRHLVertexStream vertexStream{0, m_dummyObjectVertexBuffer};
-    m_dummyObjectVertexInput = rhlModule->GetVulkanDynamicRHL()->CreateVertexInput({layoutDescriptor, {vertexStream}});
+    std::vector<VulkanRHLVertexStream> vertexStreams = {
+        {0, m_dummyObjectVertexBuffer},
+        {1, m_dummyObjectColorsVertexBuffer}
+    };
+    m_dummyObjectVertexInput = rhlModule->GetVulkanDynamicRHL()->CreateVertexInput({layoutDescriptor, vertexStreams});
     m_dummyObjectIndexCount = dummyIndices.size();
 }

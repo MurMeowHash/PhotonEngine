@@ -9,11 +9,13 @@
 enum class VulkanRHLShaderSemanticType {
     Undefined = 0,
     Position = 1,
+    Color = 2,
 };
 
 enum class VulkanRHLShaderFormat {
     Undefined = 0,
     R32G32_Float = 1,
+    R32G32B32_Float = 2,
 };
 
 enum class VulkanRHLShaderStage {
