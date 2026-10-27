@@ -45,6 +45,9 @@ void VulkanRHLBuffer::EndWrite(VulkanRHLCommandWorkContext *workContext) {
 }
 
 void VulkanRHLBuffer::Clear() {
+    if (!m_activeBufferAllocation.IsValid())
+        return;
+
     VulkanBufferSliceAllocation outdatedAllocation = m_activeBufferAllocation;
     VulkanDevice* capturedDevice = m_vulkanDevice;
     m_vulkanDevice->GetDeferredDeletionQueue()->Enqueue(

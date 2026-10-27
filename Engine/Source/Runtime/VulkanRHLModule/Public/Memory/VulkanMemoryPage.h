@@ -9,6 +9,7 @@ struct VulkanDeviceMemoryPageCreateInfo {
     VulkanDevice* m_vulkanDevice;
     vk::DeviceSize m_pageSize;
     uint32_t m_memoryTypeIndex;
+    uint32_t m_allocationTier;
     VkMemoryDedicatedAllocateInfo* m_dedicatedAllocationInfo;
 };
 
@@ -22,11 +23,13 @@ public:
     explicit VulkanDeviceMemoryPage(const VulkanDeviceMemoryPageCreateInfo& createInfo);
 private:
     VulkanDevice* m_vulkanDevice;
+    uint32_t m_allocationTier;
 };
 
 struct VulkanMemoryPagesAllocatorCreateInfo {
     VulkanDevice* m_vulkanDevice;
     uint32_t m_memoryTypeIndex;
+    uint32_t m_allocationTier;
     vk::DeviceSize m_pageSize;
     bool m_releaseEmptyPages;
 };
@@ -40,6 +43,7 @@ public:
 private:
     VulkanDevice* m_vulkanDevice;
     uint32_t m_memoryTypeIndex;
+    uint32_t m_allocationTier;
 };
 
 struct VulkanDeviceMemoryPagesAllocatorSeparateCreateInfo {

@@ -100,10 +100,11 @@ private:
     }
 
     void MergeRangesBackward(std::vector<MemoryRange<TSize>>::iterator currentRange, RangeIteratorOffset neighborOffset) {
-        auto neighborRange = currentRange - neighborOffset;
-
-        if (neighborRange < m_freeRanges.begin())
+        const RangeIteratorOffset currentRangeIndex = currentRange - m_freeRanges.begin();
+        if (neighborOffset > currentRangeIndex)
             return;
+
+        auto neighborRange = currentRange - neighborOffset;
 
         if (currentRange->GetBegin() == neighborRange->GetEnd()) {
             currentRange->OverrideBegin(neighborRange->GetBegin());

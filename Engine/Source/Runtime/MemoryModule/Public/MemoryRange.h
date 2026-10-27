@@ -10,15 +10,19 @@ public:
     : Range<TMemory>(beginBytes, endBytes) {}
 
     [[nodiscard]] TMemory GetAlignedSize(TMemory alignment) const {
-        return this->GetEnd() - Photon::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
+        TMemory alignedBegin = GetAlignedBegin(alignment);
+        if (alignedBegin > this->m_end)
+            return TMemory();
+
+        return this->m_end - alignedBegin;
     }
 
     [[nodiscard]] TMemory GetAlignedBegin(TMemory alignment) const {
-        return Photon::MemoryOperationsCommon::AlignForward(this->GetBegin(), alignment);
+        return Photon::MemoryOperationsCommon::AlignForward(this->m_begin, alignment);
     }
 
     void ShrinkForwardAligned(TMemory shift, TMemory alignment) {
-        this->ShrinkForward(GetAlignedBegin(alignment) - this->GetBegin() + shift);
+        this->ShrinkForward(GetAlignedBegin(alignment) - this->m_begin + shift);
     }
 
     void MarkCoalesced() {

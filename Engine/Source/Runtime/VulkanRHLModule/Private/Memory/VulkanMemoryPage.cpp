@@ -10,6 +10,7 @@ void VulkanDeviceMemoryPage::InitializeMemoryObject(VulkanDeviceMemory &memoryOb
     initializeInfo.m_dedicated = m_memory.IsDedicated();
     initializeInfo.m_memInfo = memInitializeInfo;
     initializeInfo.m_mappedRange = m_memory.GetMappedRange();
+    initializeInfo.m_allocationTier = m_allocationTier;
     memoryObject.Initialize(initializeInfo);
 }
 
@@ -25,7 +26,7 @@ VulkanDeviceMemoryPage::~VulkanDeviceMemoryPage() {
 }
 
 VulkanDeviceMemoryPage::VulkanDeviceMemoryPage(const VulkanDeviceMemoryPageCreateInfo &createInfo)
-: m_vulkanDevice(createInfo.m_vulkanDevice) {
+: m_vulkanDevice(createInfo.m_vulkanDevice), m_allocationTier(createInfo.m_allocationTier) {
     m_memory = Photon::VulkanMemoryCommon::AllocateDeviceMemory(m_vulkanDevice, createInfo.m_pageSize,
         createInfo.m_memoryTypeIndex, createInfo.m_dedicatedAllocationInfo);
 
@@ -40,13 +41,14 @@ std::unique_ptr<VulkanDeviceMemoryPage> VulkanDeviceMemoryPagesAllocator::Alloca
     createInfo.m_vulkanDevice = m_vulkanDevice;
     createInfo.m_pageSize = pageSize;
     createInfo.m_memoryTypeIndex = m_memoryTypeIndex;
+    createInfo.m_allocationTier = m_allocationTier;
     createInfo.m_dedicatedAllocationInfo = nullptr;
     return std::make_unique<VulkanDeviceMemoryPage>(createInfo);
 }
 
 VulkanDeviceMemoryPagesAllocator::VulkanDeviceMemoryPagesAllocator(const VulkanMemoryPagesAllocatorCreateInfo &createInfo)
 : MemoryPagesAllocator(createInfo.m_pageSize, createInfo.m_releaseEmptyPages),
-m_vulkanDevice(createInfo.m_vulkanDevice), m_memoryTypeIndex(createInfo.m_memoryTypeIndex) { }
+m_vulkanDevice(createInfo.m_vulkanDevice), m_memoryTypeIndex(createInfo.m_memoryTypeIndex), m_allocationTier(createInfo.m_allocationTier) { }
 
 std::unique_ptr<VulkanDeviceMemoryPage> VulkanDeviceMemoryPagesAllocatorSeparate::AllocatePage(vk::DeviceSize pageSize,
     VkMemoryDedicatedAllocateInfo * const &dedicatedAllocationInfo) {

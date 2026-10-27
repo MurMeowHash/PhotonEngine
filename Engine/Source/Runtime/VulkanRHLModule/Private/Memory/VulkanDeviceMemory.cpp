@@ -14,12 +14,17 @@ void VulkanDeviceMemory::Initialize(const VulkanDeviceMemoryInitializeInfo &init
     m_handle = initializeInfo.m_handle;
     m_memoryTypeIndex = initializeInfo.m_memoryTypeIndex;
     m_dedicated = initializeInfo.m_dedicated;
+    m_allocationTier = initializeInfo.m_allocationTier;
     m_mappedRange = initializeInfo.m_mappedRange;
     InitializeMemory(initializeInfo.m_memInfo);
 }
 
 uint32_t VulkanDeviceMemory::GetMemoryTypeIndex() const {
     return m_memoryTypeIndex;
+}
+
+uint32_t VulkanDeviceMemory::GetAllocationTier() const {
+    return m_allocationTier;
 }
 
 vk::DeviceMemory VulkanDeviceMemory::GetHandle() const {

@@ -3,6 +3,8 @@
 template<typename T>
 class Range {
 public:
+    virtual ~Range() = default;
+
     Range(T begin, T end)
     : m_begin(begin), m_end(end) { }
 
@@ -43,7 +45,7 @@ public:
         return !(*this == rhs);
     }
 
-private:
+protected:
     T m_begin;
     T m_end;
 };

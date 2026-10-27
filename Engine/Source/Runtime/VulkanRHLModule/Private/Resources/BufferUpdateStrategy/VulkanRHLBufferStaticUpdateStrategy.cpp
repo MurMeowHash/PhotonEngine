@@ -15,7 +15,7 @@ void* VulkanRHLBufferStaticUpdateStrategy::BeginWrite(const VulkanRHLBufferUpdat
         return nullptr;
 
     m_pendingWrite = VulkanRHLStaticBufferPendingWrite(writeOffset, writeSize, stagingBufferAllocation);
-    return static_cast<char*>(stagingBufferAllocation.m_stagingBuffer->GetDataWriteDest()) + writeOffset;
+    return stagingBufferAllocation.m_stagingBuffer->GetDataWriteDest();
 }
 
 void VulkanRHLBufferStaticUpdateStrategy::EndWrite(const VulkanRHLBufferUpdateContext &updateContext) {

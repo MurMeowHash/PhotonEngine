@@ -13,6 +13,7 @@ struct VulkanDeviceMemoryInitializeInfo {
     bool m_dedicated;
     MemoryInitializeInfo<vk::DeviceSize> m_memInfo;
     void* m_mappedRange;
+    uint32_t m_allocationTier;
 };
 
 class VulkanDeviceMemory final : public Memory<vk::DeviceSize> {
@@ -24,6 +25,7 @@ public:
     void Initialize(const VulkanDeviceMemoryInitializeInfo& initializeInfo);
 
     [[nodiscard]] uint32_t GetMemoryTypeIndex() const;
+    [[nodiscard]] uint32_t GetAllocationTier() const;
     [[nodiscard]] vk::DeviceMemory GetHandle() const;
     [[nodiscard]] bool IsValid() const;
     [[nodiscard]] bool IsDedicated() const;
@@ -42,4 +44,5 @@ private:
     uint32_t m_memoryTypeIndex;
     bool m_dedicated;
     void* m_mappedRange = nullptr;
+    uint32_t m_allocationTier{};
 };

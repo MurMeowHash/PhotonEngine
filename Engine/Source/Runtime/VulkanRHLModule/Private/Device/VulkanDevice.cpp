@@ -20,8 +20,8 @@ VulkanDevice::~VulkanDevice() {
     delete m_stagingBufferAllocator;
     delete m_bufferAllocator;
     delete m_gfxPipelineProvider;
-    delete m_memoryProvider;
     delete m_deferredDeletionQueue;
+    delete m_memoryProvider;
 
     for (std::pair<const RHLPipeline, VulkanQueue *>& queue: m_deviceQueues) {
         delete queue.second;
@@ -71,8 +71,8 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->InitializeBinarySemaphorePool();
     Photon::Result queueObtainResult = instance->ObtainQueues(std::move(queueInitializationInfo.m_queueFamilyRequestProperties),
         std::move(queueInitializationInfo.m_queueFamilyRequestInfo));
-    instance->InitializeDeferredDeletionQueue();
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
+    instance->InitializeDeferredDeletionQueue();
     instance->InitializePipelineProviders();
     instance->InitializeBufferAllocator();
     instance->InitializeStagingBufferAllocator();

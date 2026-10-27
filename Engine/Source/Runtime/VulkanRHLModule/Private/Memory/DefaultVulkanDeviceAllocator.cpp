@@ -23,8 +23,8 @@ void DefaultVulkanDeviceAllocator::FreeMemory(VulkanDeviceMemory& memory) {
     if (memory.GetMemoryTypeIndex() != m_memoryTypeIndex)
         return;
 
-    size_t allocationTierIndex = 0;
-    if (!m_vulkanMemoryHeap.TryFindAllocationTier(memory.GetAllocationSize(), allocationTierIndex))
+    const uint32_t allocationTierIndex = memory.GetAllocationTier();
+    if (allocationTierIndex >= m_memoryPool.size())
         return;
 
     m_memoryPool[allocationTierIndex].Free(memory);
@@ -44,6 +44,7 @@ void DefaultVulkanDeviceAllocator::InitializeMemoryPool(bool releaseEmptyPages) 
         VulkanMemoryPagesAllocatorCreateInfo createInfo{
             m_vulkanDevice,
             m_memoryTypeIndex,
+            tierIndex,
             m_vulkanMemoryHeap.GetTierByIndex(tierIndex).m_pageSize,
             releaseEmptyPages
         };
