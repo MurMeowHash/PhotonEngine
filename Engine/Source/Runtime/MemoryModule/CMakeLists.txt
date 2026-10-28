@@ -4,7 +4,7 @@ target_sources(MemoryModule
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/IAllocator.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/LinearAllocator.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/MemoryChunk.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/MemoryBlock.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Adopters/IAllocatorAdopter.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Adopters/LinearToLinearAllocatorAdopter.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/IAllocatorProcessor.h

@@ -9,7 +9,7 @@ void LinearToSimpleAllocatorAdopter::Adopt(IAllocator *dest, IAllocator *src) {
     SimpleAllocator* destSimple = static_cast<SimpleAllocator*>(dest);
     LinearAllocator* srcLinear = static_cast<LinearAllocator*>(src);
 
-    MemoryChunk* currentLinearChunk = srcLinear->m_rootChunk;
+    MemoryBlock* currentLinearChunk = srcLinear->m_rootChunk;
     size_t linearChunkPlacePointer = 0;
     bool foundLinearChunkPlacePointer = false;
     while(currentLinearChunk != nullptr) {

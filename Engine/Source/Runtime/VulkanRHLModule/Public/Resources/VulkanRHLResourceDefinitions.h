@@ -5,6 +5,7 @@
 enum class VulkanRHLBufferUpdateFrequency {
     None = 0,
     Static = 1,
+    Volatile = 2,
 };
 
 enum class VulkanRHLBufferUsage : uint32_t {

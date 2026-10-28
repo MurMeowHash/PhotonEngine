@@ -2,7 +2,7 @@
 
 #include "AllocatorBase.h"
 #include <cstdlib>
-#include "MemoryChunk.h"
+#include "MemoryBlock.h"
 
 class LinearToLinearAllocatorAdopter;
 class LinearToSimpleAllocatorAdopter;
@@ -19,8 +19,8 @@ public:
     [[nodiscard]] size_t GetAllocatedMemorySize() const override;
 
 private:
-    MemoryChunk* m_rootChunk = nullptr;
-    MemoryChunk* m_tailChunk = nullptr;
+    MemoryBlock* m_rootChunk = nullptr;
+    MemoryBlock* m_tailChunk = nullptr;
 
     size_t m_uniformChunkSize;
 

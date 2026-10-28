@@ -13,7 +13,7 @@ void *LinearAllocator::AllocateMemory(size_t memorySize) {
     assert(memorySize <= m_uniformChunkSize);
 
     if (m_rootChunk == nullptr) {
-        m_rootChunk = new MemoryChunk(m_uniformChunkSize);
+        m_rootChunk = new MemoryBlock(m_uniformChunkSize);
         m_tailChunk = m_rootChunk;
     }
 
@@ -22,7 +22,7 @@ void *LinearAllocator::AllocateMemory(size_t memorySize) {
 
     if(alignedOffset + memorySize > m_tailChunk->m_capacity) {
         if (m_tailChunk->m_next == nullptr) {
-            m_tailChunk->m_next = new MemoryChunk(m_uniformChunkSize);
+            m_tailChunk->m_next = new MemoryBlock(m_uniformChunkSize);
         }
 
         m_tailChunk = m_tailChunk->m_next;
@@ -38,10 +38,10 @@ void *LinearAllocator::AllocateMemory(size_t memorySize) {
 }
 
 void LinearAllocator::FreeMemory() {
-    MemoryChunk* currentChunk = m_rootChunk;
+    MemoryBlock* currentChunk = m_rootChunk;
     while(currentChunk != nullptr) {
         currentChunk->FreeChunk();
-        MemoryChunk* inspectedChunk = currentChunk;
+        MemoryBlock* inspectedChunk = currentChunk;
         currentChunk = currentChunk->m_next;
         delete inspectedChunk;
     }
@@ -57,7 +57,7 @@ void LinearAllocator::InvalidateAllocator() {
 size_t LinearAllocator::GetAllocatedMemorySize() const {
     size_t totalMemorySize = 0;
 
-    MemoryChunk* currentChunk = m_rootChunk;
+    MemoryBlock* currentChunk = m_rootChunk;
     while (currentChunk != nullptr) {
         totalMemorySize += currentChunk->m_size;
         currentChunk = currentChunk->m_next;
