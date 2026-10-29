@@ -41,9 +41,12 @@ private:
     uint64_t m_elementSize{};
     VulkanRHLBufferUsage m_usage{};
     VulkanRHLBufferUpdateFrequency m_updateFrequency{};
-    VulkanBufferSliceAllocation m_activeBufferAllocation = VulkanBufferSliceAllocation();
+    VulkanBufferSliceAllocation m_activeBufferAllocation{};
 
     IVulkanRHLBufferUpdateStrategy* m_bufferUpdateStrategy = nullptr;
+
+    vk::MemoryPropertyFlags m_cachedVulkanMemoryProperties{};
+    vk::BufferUsageFlags m_cachedVulkanBufferUsage{};
 
     ObjectFunc<VulkanRHLBuffer, VulkanBufferSliceAllocation> m_bufferSliceAllocationFunc{this, &VulkanRHLBuffer::AllocateBufferSlice};
 

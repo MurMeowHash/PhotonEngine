@@ -75,6 +75,8 @@ namespace Photon::Vulkan {
         switch (updateFrequency) {
             case VulkanRHLBufferUpdateFrequency::Static:
                 return vk::MemoryPropertyFlagBits::eDeviceLocal;
+            case VulkanRHLBufferUpdateFrequency::Volatile:
+                return vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
             default:
                 throw std::runtime_error("");
         }
@@ -97,5 +99,10 @@ namespace Photon::Vulkan {
             return vk::IndexType::eUint16;
 
         return vk::IndexType::eUint32;
+    }
+
+    inline vk::DeviceSize GetBufferAlignment(vk::BufferUsageFlags bufferUsage) {
+        constexpr vk::DeviceSize defaultAlignment = 16;
+        return defaultAlignment;
     }
 }

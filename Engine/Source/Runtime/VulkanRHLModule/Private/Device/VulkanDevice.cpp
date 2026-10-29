@@ -3,9 +3,8 @@
 #include "LinearAllocator.h"
 #include "Memory/VulkanDeviceMemoryProviderFactory.h"
 #include "Memory/Configurations/VulkanAllocationConfiguration.h"
+#include "Configurations/VulkanResourceConfiguration.h"
 #include "Synchronization/VulkanTimelineSemaphore.h"
-
-using Photon::Core::Flags::operator|;
 
 #define QUERY_FEATURE_SUPPORT_SAFE(featureType, featureName, deviceFeatureInfo, deviceApiVersion, featuresApiVersion)   \
     deviceApiVersion < featuresApiVersion ? vk::False : deviceFeatureInfo.get<featureType>().featureName
@@ -18,7 +17,8 @@ using Photon::Core::Flags::operator|;
 
 VulkanDevice::~VulkanDevice() {
     delete m_stagingBufferAllocator;
-    delete m_bufferAllocator;
+    delete m_permanentBufferAllocator;
+    delete m_temporaryBufferAllocator;
     delete m_gfxPipelineProvider;
     delete m_deferredDeletionQueue;
     delete m_memoryProvider;
@@ -41,6 +41,8 @@ bool VulkanDevice::TryGetAvailableExtensions(std::vector<vk::ExtensionProperties
 }
 
 VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    using Photon::Core::Flags::operator|;
+
     VulkanDevice* instance = Photon::AllocateObject<VulkanDevice>(inOutCreateParams);
     instance->m_physicalDevice = createInfo.m_physicalDevice;
     instance->m_cachedProperties = createInfo.m_physicalDevice.getProperties2();
@@ -74,8 +76,7 @@ VulkanDevice* VulkanDevice::Create(const VulkanDeviceCreateInfo &createInfo, InO
     instance->InitializeMemoryProvider(createInfo.m_memoryProviderType);
     instance->InitializeDeferredDeletionQueue();
     instance->InitializePipelineProviders();
-    instance->InitializeBufferAllocator();
-    instance->InitializeStagingBufferAllocator();
+    instance->InitializeBufferAllocators();
 
     queueInitializationInfo.m_prioritiesAllocator->FreeMemory();
     delete queueInitializationInfo.m_prioritiesAllocator;
@@ -128,8 +129,12 @@ VulkanDeferredDeletionQueue* VulkanDevice::GetDeferredDeletionQueue() const {
     return m_deferredDeletionQueue;
 }
 
-VulkanBufferAllocator* VulkanDevice::GetBufferAllocator() const {
-    return m_bufferAllocator;
+VulkanPermanentBufferAllocator* VulkanDevice::GetPermanentBufferAllocator() const {
+    return m_permanentBufferAllocator;
+}
+
+VulkanTemporaryBufferAllocator* VulkanDevice::GetTemporaryBufferAllocator() const {
+    return m_temporaryBufferAllocator;
 }
 
 VulkanStagingBufferAllocator* VulkanDevice::GetStagingBufferAllocator() const {
@@ -335,14 +340,22 @@ void VulkanDevice::InitializeDeferredDeletionQueue() {
     m_deferredDeletionQueue = VulkanDeferredDeletionQueue::Create(createInfo);
 }
 
-void VulkanDevice::InitializeBufferAllocator() {
-    VulkanBufferAllocatorCreateInfo createInfo{};
-    createInfo.m_vulkanDevice = this;
-    m_bufferAllocator = VulkanBufferAllocator::Create(createInfo);
-}
+void VulkanDevice::InitializeBufferAllocators() {
+    VulkanPermanentBufferAllocatorCreateInfo permanentCreateInfo{};
+    permanentCreateInfo.m_vulkanDevice = this;
+    permanentCreateInfo.m_pageSize = Photon::Vulkan::BufferPoolAllocationConfiguration::g_permanentBufferPageSize;
 
-void VulkanDevice::InitializeStagingBufferAllocator() {
-    VulkanStagingBufferAllocatorCreateInfo createInfo{};
-    createInfo.m_vulkanDevice = this;
-    m_stagingBufferAllocator = VulkanStagingBufferAllocator::Create(createInfo);
+    m_permanentBufferAllocator = VulkanPermanentBufferAllocator::Create(permanentCreateInfo);
+
+    VulkanTemporaryBufferAllocatorCreateInfo temporaryCreateInfo{};
+    temporaryCreateInfo.m_vulkanDevice = this;
+    temporaryCreateInfo.m_chunkSize = Photon::Vulkan::BufferPoolAllocationConfiguration::g_temporaryBufferChunkSize;
+    temporaryCreateInfo.m_memoryProperties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    temporaryCreateInfo.m_usageFlags = Photon::Vulkan::RHLBufferUsageToVulkan(VulkanRHLBufferUsage::All);
+
+    m_temporaryBufferAllocator = VulkanTemporaryBufferAllocator::Create(temporaryCreateInfo);
+
+    VulkanStagingBufferAllocatorCreateInfo stagingCreateInfo{};
+    stagingCreateInfo.m_vulkanDevice = this;
+    m_stagingBufferAllocator = VulkanStagingBufferAllocator::Create(stagingCreateInfo);
 }

@@ -122,12 +122,14 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanResourceTransition.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLBuffer.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBuffer.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferAllocator.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferAllocator.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanRHLResourceDefinitions.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferPage.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanStagingBufferAllocator.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/BufferUpdateStrategy/IVulkanRHLBufferUpdateStrategy.h
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/BufferUpdateStrategy/VulkanRHLBufferVolatileUpdateStrategy.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/VulkanBufferChunk.h
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Public/Viewport/VulkanSwapChain.h
@@ -227,10 +229,12 @@ target_sources(VulkanRHLModule
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanResourceTransition.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanRHLBuffer.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBuffer.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferAllocator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferAllocator.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferPage.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanStagingBufferAllocator.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/BufferUpdateStrategy/VulkanRHLBufferVolatileUpdateStrategy.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Private/Resources/VulkanBufferChunk.cpp
 
         ## Viewport
             ${CMAKE_CURRENT_SOURCE_DIR}/Private/Viewport/VulkanSwapChain.cpp

@@ -12,4 +12,6 @@ enum class VulkanRHLBufferUsage : uint32_t {
     None = 0,
     VertexBuffer = 1 << 0,
     IndexBuffer = 1 << 1,
+
+    All = VertexBuffer | IndexBuffer
 };

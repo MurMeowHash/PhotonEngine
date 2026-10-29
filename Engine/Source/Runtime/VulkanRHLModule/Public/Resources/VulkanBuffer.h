@@ -53,11 +53,12 @@ class VulkanBufferSlice final : public Memory<vk::DeviceSize> {
 public:
     void InvalidateMemory() override;
 public:
-    explicit VulkanBufferSlice();
+    VulkanBufferSlice();
     explicit VulkanBufferSlice(const VulkanBufferSliceInitializeInfo& initializeInfo);
     void Initialize(const VulkanBufferSliceInitializeInfo& initializeInfo);
     [[nodiscard]] VulkanBuffer* GetBuffer() const;
     [[nodiscard]] bool IsValid() const;
+    [[nodiscard]] void* GetSliceWriteDest() const;
 private:
     VulkanBuffer* m_buffer = nullptr;
 };

@@ -92,3 +92,11 @@ VulkanBuffer * VulkanBufferSlice::GetBuffer() const {
 bool VulkanBufferSlice::IsValid() const {
     return m_buffer != nullptr;
 }
+
+void* VulkanBufferSlice::GetSliceWriteDest() const {
+    void* parentBufferWriteDest = m_buffer->GetDataWriteDest();
+    if (parentBufferWriteDest == nullptr)
+        return nullptr;
+
+    return static_cast<char*>(parentBufferWriteDest) + m_offset;
+}

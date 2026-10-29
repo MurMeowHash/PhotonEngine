@@ -3,6 +3,7 @@
 #include "Device/VulkanDevice.h"
 #include "Resources/BufferUpdateStrategy/VulkanRHLBufferStaticUpdateStrategy.h"
 #include "ObjectFunc.h"
+#include "Resources/BufferUpdateStrategy/VulkanRHLBufferVolatileUpdateStrategy.h"
 
 VulkanRHLBuffer::~VulkanRHLBuffer() {
     Clear();
@@ -17,6 +18,10 @@ VulkanRHLBuffer* VulkanRHLBuffer::Create(const VulkanRHLBufferCreateInfo &create
     instance->m_elementSize = createInfo.m_rhlInfo.m_elementSize;
     instance->m_usage = createInfo.m_rhlInfo.m_usage;
     instance->m_updateFrequency = createInfo.m_rhlInfo.m_updateFrequency;
+    instance->m_cachedVulkanMemoryProperties = Photon::Vulkan::ResolveVulkanMemoryFlagsFromUpdateFrequency(createInfo.m_rhlInfo.m_updateFrequency);
+    instance->m_cachedVulkanBufferUsage =
+        Photon::Vulkan::GetBufferRequiredUsageFlags(createInfo.m_rhlInfo.m_updateFrequency)
+        | Photon::Vulkan::RHLBufferUsageToVulkan(createInfo.m_rhlInfo.m_usage);
     instance->CreateUpdateStrategy();
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
@@ -45,14 +50,14 @@ void VulkanRHLBuffer::EndWrite(VulkanRHLCommandWorkContext *workContext) {
 }
 
 void VulkanRHLBuffer::Clear() {
-    if (!m_activeBufferAllocation.IsValid())
+    if (!m_activeBufferAllocation.IsValid() || m_updateFrequency == VulkanRHLBufferUpdateFrequency::Volatile)
         return;
 
     VulkanBufferSliceAllocation outdatedAllocation = m_activeBufferAllocation;
     VulkanDevice* capturedDevice = m_vulkanDevice;
     m_vulkanDevice->GetDeferredDeletionQueue()->Enqueue(
-        VulkanDDQEntry(StaticDelegate<>([capturedDevice, outdatedAllocation]() mutable {
-            capturedDevice->GetBufferAllocator()->FreeBuffer(outdatedAllocation);
+        VulkanDDQEntry(StaticDelegate([capturedDevice, outdatedAllocation]() mutable {
+            capturedDevice->GetPermanentBufferAllocator()->FreeBuffer(outdatedAllocation);
     })));
 
     m_activeBufferAllocation.Invalidate();
@@ -75,11 +80,21 @@ void VulkanRHLBuffer::CreateUpdateStrategy() {
         case VulkanRHLBufferUpdateFrequency::Static:
             m_bufferUpdateStrategy = new VulkanRHLBufferStaticUpdateStrategy();
             break;
+        case VulkanRHLBufferUpdateFrequency::Volatile:
+            m_bufferUpdateStrategy = new VulkanRHLBufferVolatileUpdateStrategy();
+            break;
         default:
             throw std::runtime_error("");
     }
 }
 
 VulkanBufferSliceAllocation VulkanRHLBuffer::AllocateBufferSlice() {
-    return m_vulkanDevice->GetBufferAllocator()->AllocateBuffer(m_size, m_updateFrequency, m_usage);
+    switch (m_updateFrequency) {
+        case VulkanRHLBufferUpdateFrequency::Static:
+            return m_vulkanDevice->GetPermanentBufferAllocator()->AllocateBuffer(m_size, m_cachedVulkanMemoryProperties, m_cachedVulkanBufferUsage);
+        case VulkanRHLBufferUpdateFrequency::Volatile:
+            return m_vulkanDevice->GetTemporaryBufferAllocator()->AllocateBuffer(m_size, m_cachedVulkanBufferUsage);
+        default:
+            throw std::runtime_error("");
+    }
 }

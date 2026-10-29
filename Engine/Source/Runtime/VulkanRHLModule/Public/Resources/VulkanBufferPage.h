@@ -44,18 +44,18 @@ private:
 
 struct VulkanBufferPagesAllocatorSeparateCreateInfo {
     VulkanDevice* m_vulkanDevice;
-    vk::MemoryPropertyFlags m_memoryPropertyFlags;
     DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
 };
 
-class VulkanBufferPagesAllocatorSeparate final : public MemoryPagesAllocatorSeparate<vk::DeviceSize, VulkanBufferSlice, VulkanBufferPage, vk::BufferUsageFlags> {
+class VulkanBufferPagesAllocatorSeparate final : public MemoryPagesAllocatorSeparate<vk::DeviceSize, VulkanBufferSlice, VulkanBufferPage,
+    vk::BufferUsageFlags, vk::MemoryPropertyFlags> {
 protected:
-    [[nodiscard]] std::unique_ptr<VulkanBufferPage> AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags& usageFlags) override;
+    [[nodiscard]] std::unique_ptr<VulkanBufferPage> AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags& usageFlags,
+        const vk::MemoryPropertyFlags& memoryPropertyFlags) override;
 public:
     explicit VulkanBufferPagesAllocatorSeparate(const VulkanBufferPagesAllocatorSeparateCreateInfo& createInfo);
 
 private:
     VulkanDevice* m_vulkanDevice;
-    vk::MemoryPropertyFlags m_memoryPropertyFlags;
     DedicatedMemoryRequirementsFlags m_dedicatedRequirements;
 };

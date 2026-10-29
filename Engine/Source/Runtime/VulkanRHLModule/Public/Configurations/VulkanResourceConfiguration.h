@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Resources/VulkanRHLResourceDefinitions.h"
-#include <unordered_map>
+#include <vulkan/vulkan.hpp>
 
 namespace Photon::Vulkan::BufferPoolAllocationConfiguration {
-    inline std::unordered_map<VulkanRHLBufferUpdateFrequency, vk::DeviceSize> g_bufferPoolMaxSize {
-        {VulkanRHLBufferUpdateFrequency::Static, 1ul * 1024ul * 1024ul}
-    };
+    inline constexpr vk::DeviceSize g_permanentBufferPageSize = 1ull * 1024ull * 1024ull;
+    inline constexpr vk::DeviceSize g_temporaryBufferChunkSize = 1ull * 1024ull * 1024ull;
 }

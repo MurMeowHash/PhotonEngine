@@ -1,5 +1,4 @@
 #include "../../Public/Resources/VulkanBufferAllocator.h"
-#include "VulkanUtils.h"
 #include "Device/VulkanDevice.h"
 #include "Memory/IVulkanDeviceMemoryProvider.h"
 
@@ -11,85 +10,93 @@ void VulkanBufferSliceAllocation::Invalidate() {
     m_bufferSlice.InvalidateMemory();
 }
 
-VulkanBufferSubAllocator::VulkanBufferSubAllocator(VulkanDevice* vulkanDevice, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize pageSize)
-: m_vulkanDevice(vulkanDevice), m_memoryPropertyFlags(memoryPropertyFlags), m_pageSize(pageSize) { }
+VulkanPermanentBufferAllocator::VulkanPermanentBufferAllocator(const VulkanPermanentBufferAllocatorCreateInfo &createInfo)
+: m_vulkanDevice(createInfo.m_vulkanDevice), m_pageSize(createInfo.m_pageSize),
+m_singleBuffers(VulkanBufferPagesAllocatorSeparateCreateInfo{createInfo.m_vulkanDevice, DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred}) { }
 
-vk::DeviceSize VulkanBufferSubAllocator::GetBufferAlignment(vk::BufferUsageFlags bufferUsage) const {
-    vk::PhysicalDeviceLimits deviceLimits = m_vulkanDevice->GetProperties().limits;
-    constexpr float defaultAlignment = 16;
-    vk::DeviceSize alignment = defaultAlignment;
-    return alignment;
-}
-
-VulkanBufferSliceAllocation GeneralVulkanBufferSubAllocator::AllocateBuffer(vk::DeviceSize bufferSize, vk::BufferUsageFlags bufferUsage) {
-    vk::DeviceSize bufferAlignment = GetBufferAlignment(bufferUsage);
-
-    VulkanBufferSliceAllocation bufferSliceAllocation;
-    bufferSliceAllocation.m_useSingleBuffer = bufferSize > m_pageSize;
-    bufferSliceAllocation.m_bufferUsage = bufferUsage;
-    bufferSliceAllocation.m_updateFrequency = VulkanRHLBufferUpdateFrequency::None;
-
-    if (bufferSliceAllocation.m_useSingleBuffer) {
-        bufferSliceAllocation.m_bufferSlice = m_singleBuffers.Allocate(bufferSize, bufferAlignment, bufferUsage);
-        return bufferSliceAllocation;
-    }
-
-    auto bufferUsageIterator = m_pooledBuffers.find(bufferUsage);
-    if (bufferUsageIterator == m_pooledBuffers.end()) {
-        VulkanBufferPagesAllocatorCreateInfo createInfo{};
-        createInfo.m_vulkanDevice = m_vulkanDevice;
-        createInfo.m_usageFlags = bufferUsage;
-        createInfo.m_memoryPropertyFlags = m_memoryPropertyFlags;
-        createInfo.m_dedicatedRequirements = DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred;
-        createInfo.m_pageSize = m_pageSize;
-        createInfo.m_releaseEmptyPages = true;
-        bufferUsageIterator = m_pooledBuffers.try_emplace(bufferUsage, createInfo).first;
-    }
-
-    bufferSliceAllocation.m_bufferSlice = bufferUsageIterator->second.Allocate(bufferSize, bufferAlignment);
-    return bufferSliceAllocation;
-}
-
-void GeneralVulkanBufferSubAllocator::FreeBuffer(VulkanBufferSliceAllocation &bufferSlice) {
-    if (bufferSlice.m_useSingleBuffer) {
-        m_singleBuffers.Free(bufferSlice.m_bufferSlice);
-        return;
-    }
-
-    auto bufferPageAllocatorIterator = m_pooledBuffers.find(bufferSlice.m_bufferUsage);
-    if (bufferPageAllocatorIterator == m_pooledBuffers.end())
-        return;
-
-    bufferPageAllocatorIterator->second.Free(bufferSlice.m_bufferSlice);
-}
-
-GeneralVulkanBufferSubAllocator::GeneralVulkanBufferSubAllocator(VulkanDevice* vulkanDevice, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize pageSize)
-: VulkanBufferSubAllocator(vulkanDevice, memoryPropertyFlags, pageSize),
-m_singleBuffers(VulkanBufferPagesAllocatorSeparateCreateInfo{vulkanDevice, memoryPropertyFlags, DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred}) { }
-
-VulkanBufferAllocator::~VulkanBufferAllocator() {
-    for (std::pair<const VulkanRHLBufferUpdateFrequency, VulkanBufferSubAllocator *>& subAllocator: m_bufferSubAllocators) {
-        delete subAllocator.second;
-    }
-}
-
-VulkanBufferAllocator* VulkanBufferAllocator::Create(const VulkanBufferAllocatorCreateInfo &createInfo,InOutCreateParams<Photon::Result> *inOutCreateParams) {
-    VulkanBufferAllocator* instance = Photon::AllocateObject<VulkanBufferAllocator>(inOutCreateParams);
-    instance->m_vulkanDevice = createInfo.m_vulkanDevice;
-    instance->AddBufferSubAllocator<GeneralVulkanBufferSubAllocator>(VulkanRHLBufferUpdateFrequency::Static);
+VulkanPermanentBufferAllocator* VulkanPermanentBufferAllocator::Create(const VulkanPermanentBufferAllocatorCreateInfo &createInfo,
+    InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanPermanentBufferAllocator* instance = Photon::AllocateObject<VulkanPermanentBufferAllocator>(inOutCreateParams, createInfo);
     Photon::PushResult(Photon::Result::Success, inOutCreateParams);
     return instance;
 }
 
-VulkanBufferSliceAllocation VulkanBufferAllocator::AllocateBuffer(vk::DeviceSize bufferSize, VulkanRHLBufferUpdateFrequency updateFrequency, VulkanRHLBufferUsage bufferUsage) {
-    assert(updateFrequency != VulkanRHLBufferUpdateFrequency::None);
-    vk::BufferUsageFlags vulkanUsageFlags = Photon::Vulkan::GetBufferRequiredUsageFlags(updateFrequency) | Photon::Vulkan::RHLBufferUsageToVulkan(bufferUsage);
-    VulkanBufferSliceAllocation bufferSliceAllocation = m_bufferSubAllocators[updateFrequency]->AllocateBuffer(bufferSize, vulkanUsageFlags);
-    bufferSliceAllocation.m_updateFrequency = updateFrequency;
+VulkanBufferSliceAllocation VulkanPermanentBufferAllocator::AllocateBuffer(vk::DeviceSize bufferSize,
+    vk::MemoryPropertyFlags memoryProperties, vk::BufferUsageFlags bufferUsage) {
+    vk::DeviceSize bufferAlignment = Photon::Vulkan::GetBufferAlignment(bufferUsage);
+
+    VulkanBufferSliceAllocation bufferSliceAllocation;
+    bufferSliceAllocation.m_useSingleBuffer = bufferSize > m_pageSize;
+    bufferSliceAllocation.m_bufferUsage = bufferUsage;
+    bufferSliceAllocation.m_memoryProperties = memoryProperties;
+
+    if (bufferSliceAllocation.m_useSingleBuffer) {
+        bufferSliceAllocation.m_bufferSlice = m_singleBuffers.Allocate(bufferSize, bufferAlignment, bufferUsage, memoryProperties);
+        return bufferSliceAllocation;
+    }
+
+    bufferSliceAllocation.m_bufferSlice = GetPooledBuffersAllocator(memoryProperties, bufferUsage).Allocate(bufferSize, bufferAlignment);
     return bufferSliceAllocation;
 }
 
-void VulkanBufferAllocator::FreeBuffer(VulkanBufferSliceAllocation &buffer) {
-    assert(buffer.m_updateFrequency != VulkanRHLBufferUpdateFrequency::None);
-    m_bufferSubAllocators[buffer.m_updateFrequency]->FreeBuffer(buffer);
+void VulkanPermanentBufferAllocator::FreeBuffer(VulkanBufferSliceAllocation &buffer) {
+    if (buffer.m_useSingleBuffer) {
+        m_singleBuffers.Free(buffer.m_bufferSlice);
+        return;
+    }
+
+    auto pooledBuffersIterator = m_pooledBuffers.find(buffer.m_memoryProperties);
+    if (pooledBuffersIterator == m_pooledBuffers.end())
+        return;
+
+    auto pagesAllocatorIterator = pooledBuffersIterator->second.find(buffer.m_bufferUsage);
+    if (pagesAllocatorIterator == pooledBuffersIterator->second.end())
+        return;
+
+    pagesAllocatorIterator->second.Free(buffer.m_bufferSlice);
+}
+
+VulkanBufferPagesAllocator& VulkanPermanentBufferAllocator::GetPooledBuffersAllocator(vk::MemoryPropertyFlags memoryProperties, vk::BufferUsageFlags bufferUsage) {
+    PooledBuffersMap& pooledBuffers = m_pooledBuffers[memoryProperties];
+    auto pagesAllocatorIterator = pooledBuffers.find(bufferUsage);
+    if (pagesAllocatorIterator != pooledBuffers.end())
+        return pagesAllocatorIterator->second;
+
+    VulkanBufferPagesAllocatorCreateInfo createInfo{};
+    createInfo.m_vulkanDevice = m_vulkanDevice;
+    createInfo.m_usageFlags = bufferUsage;
+    createInfo.m_memoryPropertyFlags = memoryProperties;
+    createInfo.m_dedicatedRequirements = DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred;
+    createInfo.m_pageSize = m_pageSize;
+    createInfo.m_releaseEmptyPages = true;
+    return pooledBuffers.try_emplace(bufferUsage, createInfo).first->second;
+}
+
+VulkanTemporaryBufferAllocator::VulkanTemporaryBufferAllocator(const VulkanTemporaryBufferAllocatorCreateInfo &createInfo)
+: m_chunkSize(createInfo.m_chunkSize), m_memoryProperties(createInfo.m_memoryProperties),
+m_pooledBuffers({createInfo.m_vulkanDevice, createInfo.m_usageFlags, createInfo.m_memoryProperties,
+    DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred, createInfo.m_chunkSize}),
+m_singleBuffers({createInfo.m_vulkanDevice, createInfo.m_usageFlags, createInfo.m_memoryProperties,
+    DedicatedMemoryRequirementsFlags::UseDedicatedIfPreferred}) { }
+
+VulkanTemporaryBufferAllocator* VulkanTemporaryBufferAllocator::Create(const VulkanTemporaryBufferAllocatorCreateInfo &createInfo,
+    InOutCreateParams<Photon::Result> *inOutCreateParams) {
+    VulkanTemporaryBufferAllocator* instance = Photon::AllocateObject<VulkanTemporaryBufferAllocator>(inOutCreateParams, createInfo);
+    Photon::PushResult(Photon::Result::Success, inOutCreateParams);
+    return instance;
+}
+
+VulkanBufferSliceAllocation VulkanTemporaryBufferAllocator::AllocateBuffer(vk::DeviceSize bufferSize, vk::BufferUsageFlags bufferUsage) {
+    vk::DeviceSize bufferAlignment = Photon::Vulkan::GetBufferAlignment(bufferUsage);
+
+    VulkanBufferSliceAllocation bufferSliceAllocation;
+    bufferSliceAllocation.m_useSingleBuffer = bufferSize > m_chunkSize;
+    bufferSliceAllocation.m_bufferUsage = bufferUsage;
+    bufferSliceAllocation.m_memoryProperties = m_memoryProperties;
+
+    bufferSliceAllocation.m_bufferSlice = bufferSliceAllocation.m_useSingleBuffer
+        ? m_singleBuffers.Allocate(bufferSize, bufferAlignment)
+        : m_pooledBuffers.Allocate(bufferSize, bufferAlignment);
+
+    return bufferSliceAllocation;
 }

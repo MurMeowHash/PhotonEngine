@@ -67,7 +67,8 @@ public:
     [[nodiscard]] vk::PhysicalDeviceProperties GetProperties() const;
     [[nodiscard]] vk::PhysicalDeviceMemoryProperties GetMemoryProperties() const;
     [[nodiscard]] VulkanDeferredDeletionQueue* GetDeferredDeletionQueue() const;
-    [[nodiscard]] VulkanBufferAllocator* GetBufferAllocator() const;
+    [[nodiscard]] VulkanPermanentBufferAllocator* GetPermanentBufferAllocator() const;
+    [[nodiscard]] VulkanTemporaryBufferAllocator* GetTemporaryBufferAllocator() const;
     [[nodiscard]] VulkanStagingBufferAllocator* GetStagingBufferAllocator() const;
 
     template<std::derived_from<VulkanSemaphore> TSemaphore>
@@ -113,7 +114,8 @@ private:
     vk::PhysicalDeviceMemoryProperties m_memoryProperties{};
     std::set<VulkanQueue*> m_operatingQueues{};
     VulkanDeferredDeletionQueue* m_deferredDeletionQueue = nullptr;
-    VulkanBufferAllocator* m_bufferAllocator = nullptr;
+    VulkanPermanentBufferAllocator* m_permanentBufferAllocator = nullptr;
+    VulkanTemporaryBufferAllocator* m_temporaryBufferAllocator = nullptr;
     VulkanStagingBufferAllocator* m_stagingBufferAllocator = nullptr;
 
     [[nodiscard]] static bool IsQueueFamilySuitable(RHLPipeline pipeline, vk::QueueFlags queueFamilyFlags);
@@ -132,6 +134,5 @@ private:
     void InitializeWorkAllocatorPool();
     void InitializeBinarySemaphorePool();
     void InitializeDeferredDeletionQueue();
-    void InitializeBufferAllocator();
-    void InitializeStagingBufferAllocator();
+    void InitializeBufferAllocators();
 };

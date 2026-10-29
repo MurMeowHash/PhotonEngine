@@ -44,16 +44,17 @@ VulkanBufferPagesAllocator::VulkanBufferPagesAllocator(const VulkanBufferPagesAl
 m_vulkanDevice(createInfo.m_vulkanDevice), m_usageFlags(createInfo.m_usageFlags),
 m_memoryPropertyFlags(createInfo.m_memoryPropertyFlags), m_dedicatedRequirements(createInfo.m_dedicatedRequirements) { }
 
-std::unique_ptr<VulkanBufferPage> VulkanBufferPagesAllocatorSeparate::AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags &usageFlags) {
+std::unique_ptr<VulkanBufferPage> VulkanBufferPagesAllocatorSeparate::AllocatePage(vk::DeviceSize pageSize, const vk::BufferUsageFlags &usageFlags,
+    const vk::MemoryPropertyFlags &memoryPropertyFlags) {
     VulkanBufferCreateInfo bufferCreateInfo{};
     bufferCreateInfo.m_vulkanDevice = m_vulkanDevice;
     bufferCreateInfo.m_size = pageSize;
     bufferCreateInfo.m_usageFlags = usageFlags;
-    bufferCreateInfo.m_memoryPropertyFlags = m_memoryPropertyFlags;
+    bufferCreateInfo.m_memoryPropertyFlags = memoryPropertyFlags;
     bufferCreateInfo.m_dedicatedRequirements = m_dedicatedRequirements;
     return std::make_unique<VulkanBufferPage>(VulkanBufferPageCreateInfo{bufferCreateInfo});
 }
 
 VulkanBufferPagesAllocatorSeparate::VulkanBufferPagesAllocatorSeparate(const VulkanBufferPagesAllocatorSeparateCreateInfo &createInfo)
 : MemoryPagesAllocatorSeparate(), m_vulkanDevice(createInfo.m_vulkanDevice),
-m_memoryPropertyFlags(createInfo.m_memoryPropertyFlags), m_dedicatedRequirements(createInfo.m_dedicatedRequirements) { }
+m_dedicatedRequirements(createInfo.m_dedicatedRequirements) { }

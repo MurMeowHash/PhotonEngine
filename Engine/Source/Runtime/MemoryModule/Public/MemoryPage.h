@@ -64,7 +64,7 @@ public:
     }
 
     [[nodiscard]] bool IsEmpty() const {
-        if (m_freeRanges.size() < 1)
+        if (m_freeRanges.empty())
             return false;
 
         return m_freeRanges[0] == MemoryRange<TSize>(0, m_memory.GetAllocationSize());
